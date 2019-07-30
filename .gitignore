@@ -1,0 +1,13 @@
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Cache
+__pycache__
+.pytest_cache
+
+# Output files
+results
+logs
+
+# Tensorboard
+runs

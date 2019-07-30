@@ -1,0 +1,15 @@
+# Install these hooks with `pre-commit install`.
+# Update with `pre-commit autoupdate`.
+repos:
+  - repo: https://github.com/timothycrosley/isort
+    rev: 5.0.6
+    hooks:
+      - id: isort
+  - repo: https://github.com/ambv/black
+    rev: 19.10b0
+    hooks:
+      - id: black
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 3.8.3
+    hooks:
+      - id: flake8
