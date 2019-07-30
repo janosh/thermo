@@ -1,0 +1,98 @@
+# %%
+from bnn.tf_dropout import do_predict
+from data import load_gaultois, normalize, train_test_split
+from utils import plots
+from utils.evaluate import mse, plot_output
+
+# %%
+features, labels = load_gaultois()
+
+features, [X_mean, X_std] = normalize(features)
+labels, [y_mean, y_std] = normalize(labels)
+
+[X_train, y_train], [X_test, y_test] = train_test_split(features, labels)
+
+
+# %%
+rho_train, seebeck_train, kappa_train, zT_train = y_train.to_numpy().T
+rho_test, seebeck_test, kappa_test, zT_test = y_test.to_numpy().T
+
+# %% [markdown]
+# # Resistivity model with epistemic uncertainty
+
+# %%
+rho_ep_pred, rho_ep_var, rho_ep_history, rho_ep_model = do_predict(
+    X_train, seebeck_train, X_test, seebeck_test, uncertainty="epistemic"
+)
+
+# %%
+print(f"rho epistemic mse: {mse(rho_ep_pred, seebeck_test)}")
+
+plots.loss_history(rho_ep_history)
+
+plot_output(seebeck_test, rho_ep_pred, rho_ep_var ** 0.5, title="rho")
+
+# %% [markdown]
+# ## Resistivity model with aleatoric and epistemic uncertainty
+
+# %%
+rho_al_ep_pred, rho_al_ep_var, rho_al_ep_history, rho_al_ep_model = do_predict(
+    X_train, seebeck_train, X_test, seebeck_test
+)
+
+# %%
+print(f"rho aleatoric_epistemic mse: {mse(rho_al_ep_pred, seebeck_test)}")
+plots.loss_history(rho_al_ep_history)
+plot_output(seebeck_test, rho_al_ep_pred, rho_al_ep_var ** 0.5, title="rho")
+
+# %% [markdown]
+# ## Seebeck model with epistemic uncertainty
+
+# %%
+see_ep_pred, see_ep_var, see_ep_history, see_ep_model = do_predict(
+    X_train, seebeck_train, X_test, seebeck_test, uncertainty="epistemic"
+)
+
+# %%
+print(f"Seebeck epistemic mse: {mse(see_ep_pred, seebeck_test)}")
+plots.loss_history(see_ep_history)
+plot_output(seebeck_test, see_ep_pred, see_ep_var ** 0.5, title="seebeck")
+
+# %% [markdown]
+# ## Seebeck model with aleatoric and epistemic uncertainty
+
+# %%
+see_al_ep_pred, see_al_ep_var, see_al_ep_history, see_al_ep_model = do_predict(
+    X_train, seebeck_train, X_test, seebeck_test
+)
+
+# %%
+print(f"seebeck aleatoric_epistemic mse: {mse(see_al_ep_pred, seebeck_test)}")
+plots.loss_history(see_al_ep_history)
+plot_output(seebeck_test, see_al_ep_pred, see_al_ep_var ** 0.5, title="seebeck")
+
+# %% [markdown]
+# ## Thermal conductivity model with epistemic uncertainty
+
+# %%
+kappa_ep_pred, kappa_ep_var, kappa_ep_history, kappa_ep_model = do_predict(
+    X_train, kappa_train, X_test, kappa_test, uncertainty="epistemic"
+)
+
+# %%
+print(f"kappa epistemic mse: {mse(kappa_ep_pred, kappa_test)}")
+plots.loss_history(kappa_ep_history)
+plot_output(kappa_test, kappa_ep_pred, kappa_ep_var ** 0.5, title="kappa")
+
+# %% [markdown]
+# ## Thermal conductivity model with aleatoric and epistemic uncertainty
+
+# %%
+kappa_al_ep_pred, kappa_al_ep_var, kappa_al_ep_history, _ = do_predict(
+    X_train, kappa_train, X_test, kappa_test
+)
+
+# %%
+print(f"kappa aleatoric_epistemic mse: {mse(kappa_al_ep_pred, kappa_test)}")
+plots.loss_history(kappa_al_ep_history)
+plot_output(kappa_test, kappa_al_ep_pred, kappa_al_ep_var ** 0.5, title="kappa")
