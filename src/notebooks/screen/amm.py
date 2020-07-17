@@ -1,24 +1,27 @@
 # %%
-import automatminer as amm
-import matminer as mm
+import os
+
 import pandas as pd
 
-# from forest import RandomForestRegressor
+from data import load_gaultois, load_screen
+from utils import ROOT
+from utils.amm import MatPipe, pipe_config
+
+DIR = ROOT + "/results/amm/screen/"
+os.makedirs(DIR, exist_ok=True)
 
 
 # %%
-train_df = pd.read_csv("../../../data/gaultois_labels.csv", header=1)[
-    ["T", "formula", "zT"]
-].dropna(subset=["zT"])
+_, train_df = load_gaultois(target_cols=["T", "formula", "zT"])
 
-screen_df = pd.read_csv("../../../data/screening_formulas.csv", header=2)
+screen_df, _ = load_screen()
 
 for df in [train_df, screen_df]:
     df.rename(columns={"formula": "composition"}, inplace=True)
 
 
 # %%
-# Form Cartesian product between the screening features and the
+# Form Cartesian product between the screen features and the
 # 4 temperatures found in Gaultois' db. Then predict each
 # material at all 4 temps.
 temps = pd.DataFrame([300, 400, 700, 1000], columns=["T"])
@@ -32,39 +35,24 @@ for df in [temps, screen_df]:
 
 
 # %%
-featurizers = {
-    "composition": [mm.featurizers.composition.ElementProperty.from_preset("magpie")],
-    "structure": [],
-}
-pipe_config = lambda: {
-    **amm.get_preset_config("express"),
-    "autofeaturizer": amm.AutoFeaturizer(
-        # preset="express",
-        featurizers=featurizers,
-        guess_oxistates=False,
-    ),
-    "learner": amm.TPOTAdaptor(max_time_mins=5),
-    # "learner": amm.SinglePipelineAdaptor(
-    #     regressor=RandomForestRegressor(), classifier=None
-    # ),
-}
-
-pipe = amm.MatPipe(**pipe_config())
+pipe = MatPipe(**pipe_config())
 
 
 # %%
 # !%%capture
-# Don't show progress bar as it can crash the VSCode Python extension on
-# extended calculations.
+# Use `# !%%capture` to hide progress bar as it can crash the VS Code Python extension
+# on long runs. Update: Seems to be fixed but still a way to decrease verbosity.
 pipe.fit(train_df, "zT")
 
+
 # %%
-# pipe.inspect("pipe_inspection.yml")
-# pipe.save("mat.pipe")
+# pipe.summarize(DIR + "pipe_summary.yml")
+# pipe.inspect(DIR + "pipe_inspection.yml")
+# pipe.save(DIR + "mat.pipe")
 
 
 # %%
-pipe = amm.MatPipe.load("mat.pipe")
+pipe = MatPipe.load(DIR + "mat.pipe")
 
 
 # %%
@@ -74,9 +62,11 @@ pred_df = pipe.predict(screen_df, ignore=["database", "id"], output_col="zT_pred
 
 # %%
 pred_df["composition"] = screen_df.composition
+
 pred_df = pred_df[["composition", "T", "database", "id", "zT_pred"]]
-pred_df.to_csv("amm_preds.csv", index=False, float_format="%g")
-pred_df.sort_values(by="zT_pred", ascending=False)[:1000].to_csv(
-    "amm_top_preds.csv", index=False, float_format="%g"
-)
-pred_df.sort_values(by="zT_pred", ascending=False)
+
+pred_df.to_csv(DIR + "amm_preds.csv", index=False, float_format="%g")
+
+pred_df = pred_df.sort_values(by="zT_pred", ascending=False)
+
+pred_df[:1000].to_csv(DIR + "amm_top_preds.csv", index=False, float_format="%g")
