@@ -1,10 +1,9 @@
 # %%
-import automatminer as amm
-import matminer as mm
 import pandas as pd
 
 from data import dropna, load_gaultois, train_test_split
 from utils import ROOT
+from utils.amm import fit_pred_pipe
 from utils.evaluate import plot_output
 
 # %%
@@ -14,55 +13,13 @@ labels = dropna(labels)
 
 labels.rename(columns={"formula": "composition", "power_factor": "PF"}, inplace=True)
 
-[train_df], [test_df] = train_test_split(labels)
-
-
-# %%
-featurizers = {
-    "composition": [mm.featurizers.composition.ElementProperty.from_preset("magpie")],
-    "structure": [],
-}
-good_regressors = (
-    "ExtraTreesRegressor",
-    "GradientBoostingRegressor",
-    "RandomForestRegressor",
-)
-tpot_config = amm.automl.config.tpot_configs.TPOT_REGRESSOR_CONFIG
-# Only retain regressors that were among the best in unrestricted benchmarking.
-tpot_config = {
-    key: val for key, val in tpot_config.items() if key.endswith(good_regressors)
-}
-
-# pipe_config needs to be a function rather than a dict. Else differrent pipes
-# will all receive a reference to the same learner and overwrite each other's fitting.
-pipe_config = lambda: {
-    **amm.get_preset_config(),
-    "autofeaturizer": amm.AutoFeaturizer(
-        # preset="express",
-        featurizers=featurizers,
-        guess_oxistates=False,
-    ),
-    "learner": amm.TPOTAdaptor(max_time_mins=10),
-    # "learner": amm.SinglePipelineAdaptor(
-    #     regressor=forest.RandomForestRegressor(), classifier=None
-    # ),
-}
-
-
-# %%
-def fit_pred_pipe(target):
-    mat_pipe = amm.MatPipe(**pipe_config())
-    mat_pipe.fit(train_df[["T", "composition", target]], target)
-    pred_df = mat_pipe.predict(
-        test_df[["T", "composition"]], output_col=target + "_pred"
-    )
-    return mat_pipe, pred_df
+train_df, test_df = train_test_split(labels)
 
 
 # %%
 # !%%capture
 n_pipes = 5
-pipes, pred_dfs = zip(*[fit_pred_pipe("zT") for _ in range(n_pipes)])
+pipes, pred_dfs = zip(*[fit_pred_pipe(train_df, test_df, "zT") for _ in range(n_pipes)])
 
 
 # %%
