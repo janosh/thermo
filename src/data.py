@@ -13,9 +13,10 @@ from pymatgen import MPRester
 from pymatgen.ext.cod import COD
 
 from utils import ROOT
+from utils.decorators import squeeze
 
 
-def load_gaultois(target_cols=["rho", "seebeck", "kappa", "zT"]):
+def load_gaultois(target_cols: list = ["rho", "seebeck", "kappa", "zT"]):
     features = pd.read_csv(ROOT + "/data/gaultois_features.csv").drop(
         columns=["formula"]
     )
@@ -27,13 +28,22 @@ def load_gaultois(target_cols=["rho", "seebeck", "kappa", "zT"]):
     return features, labels
 
 
-def load_screening():
-    features = pd.read_csv(ROOT + "/data/screening_features.csv")
-    formulas = pd.read_csv(ROOT + "/data/screening_formulas.csv", skiprows=[0, 1])
-    # Drop rows (i.e. materials) with missing features.
-    return formulas.merge(features, on="formula").dropna()
+def load_screen(cols: list = None):
+    """Load material candidates into a dataframe for screening. Available columns
+    are formula, database ID and MagPie features for over 80,000 compositions pulled
+    from COD and ICSD.
+    """
+    features = pd.read_csv(ROOT + "/data/screen_features.csv")
+    formulas = pd.read_csv(ROOT + "/data/screen_formulas.csv", comment="#")
+
+    # Drop rows (materials) with missing features: leaves 81,913 out of 81,949
+    df = formulas.merge(features, on="formula").dropna()
+    if cols:
+        df = df[cols]
+    return df
 
 
+@squeeze
 def dropna(*args):
     """Accepts a list of arrays and/or dataframes. Removes all rows containing
     NaNs in the first array/dataframe from each list item.
@@ -42,11 +52,12 @@ def dropna(*args):
     mask = ~pd.isnull(args[0])
     if mask.ndim == 2:
         mask = mask.all(1)  # in 2d array, keep row only if all values are not NaN
-    args = [x.loc[mask] if isinstance(x, pd.DataFrame) else x[mask] for x in args]
-    return args[0] if len(args) == 1 else args
+
+    return [x.loc[mask] if isinstance(x, pd.DataFrame) else x[mask] for x in args]
 
 
-def train_test_split(*dfs, test_size=0.1, train=None):
+@squeeze
+def train_test_split(*dfs, test_size: float = 0.1, train=None):
     """Returns training set, test set or both set (split according to test_size)
     depending on train being True, False or None.
     """

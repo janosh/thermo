@@ -41,6 +41,25 @@ def run_once(func):
     return once_running_func
 
 
+def squeeze(func):
+    """unpacks single-entry lists from the decorated function's return value"""
+
+    isiter = lambda x: isinstance(x, (list, tuple))
+
+    @functools.wraps(func)
+    def squeezed_func(*args, **kwargs):
+        result = func(*args, **kwargs)
+
+        if isiter(result):
+            result = [x[0] if isiter(x) and len(x) == 1 else x for x in result]
+            if len(result) == 1:
+                result = result[0]
+
+        return result
+
+    return squeezed_func
+
+
 def handle_plot(func):
     """Decorator for plotting functions. In a regular script, it saves the plot to a path
     passed as `path` kwarg to the decorated function. If used in interactive Python,

@@ -36,18 +36,16 @@ def featurize_with_magpy(df, input_col_name="formula", retain_cols=["T"]):
 
 
 def generate_gaultois_features():
-    gaultois_labels = pd.read_csv(ROOT + "/data/gaultois_labels.csv", skiprows=[0])
+    gaultois_labels = pd.read_csv(ROOT + "/data/gaultois_labels.csv", comment="#")
     gaultois_features = featurize_with_magpy(gaultois_labels)
     gaultois_features.to_csv(
         ROOT + "/data/gaultois_features.csv", index=False, float_format="%g"
     )
 
 
-def generate_screening_features():
-    screening_formulas = pd.read_csv(
-        ROOT + "/data/screening_formulas.csv", skiprows=[0]
-    )
-    screening_features = featurize_with_magpy(screening_formulas, retain_cols=[])
-    screening_features.to_csv(
-        ROOT + "/data/screening_features.csv", index=False, float_format="%g"
+def generate_screen_features():
+    screen_formulas = pd.read_csv(ROOT + "/data/screen_formulas.csv", comment="#")
+    screen_features = featurize_with_magpy(screen_formulas, retain_cols=[])
+    screen_features.to_csv(
+        ROOT + "/data/screen_features.csv", index=False, float_format="%g"
     )
