@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 
 from utils import ROOT
 
-DIR = ROOT + "/results/screening/dft/"
+DIR = ROOT + "/results/screen/dft/"
 
 
 # %%

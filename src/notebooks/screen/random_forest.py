@@ -7,36 +7,38 @@ from gurobipy import GRB, Model, quicksum
 from matplotlib import pyplot as plt
 from plotly import express as px
 
-from data import load_gaultois, load_screening, normalize
+from data import load_gaultois, load_screen, normalize
 from rf import rf_predict
 from utils import ROOT, predict_multiple_labels
 from utils.evaluate import back_transform_labels
 
+DIR = ROOT + "/results/screen/"
+
 # %%
 features, labels = load_gaultois()
-screening_features = load_screening()
+screen_features = load_screen()
 
 
 # %%
-# Form Cartesian product between the screening features and the
+# Form Cartesian product between the screen features and the
 # 4 temperatures found in Gaultois' db. We'll predict each
 # material at all 4 temps.
 temps = pd.DataFrame([300, 400, 700, 1000], columns=["T"])
 
 # Create a temporary common key around which to compute the Cartesian product.
-screening_features["key"] = temps["key"] = 0
+screen_features["key"] = temps["key"] = 0
 
 # Perform Cartesian product.
-screening_features = temps.merge(screening_features, how="outer")
-for df in [temps, screening_features]:
+screen_features = temps.merge(screen_features, how="outer")
+for df in [temps, screen_features]:
     df.drop(columns=["key"], inplace=True)
 
-formulas = pd.concat([df.pop(x) for x in ["formula", "database", "id"]], 1)
-formulas["T"] = screening_features["T"]
+formulas = pd.concat([screen_features.pop(x) for x in ["formula", "database", "id"]], 1)
+formulas["T"] = screen_features["T"]
 
 
 # %%
-screening_features, [X_mean, X_std] = normalize(screening_features)
+screen_features, [X_mean, X_std] = normalize(screen_features)
 features, _ = normalize(features, X_mean, X_std)
 scd_labels, [y_mean, y_std] = normalize(labels)
 
@@ -47,7 +49,7 @@ scd_labels, [y_mean, y_std] = normalize(labels)
 
 # %%
 rf_y_preds_scd, rf_y_vars_scd, rf_models = predict_multiple_labels(
-    rf_predict, features, scd_labels.T, screening_features
+    rf_predict, features, scd_labels.T, screen_features
 )
 
 
@@ -84,22 +86,18 @@ def filter_low_risk_high_ret(
 # uncertainty to compare if uncertainty estimation reduces the false positive rate.
 formulas_hr = formulas.sort_values("zT_pred", ascending=False)[:20]
 formulas_hr[["formula", "database", "id", "T", "zT_pred", "zT_var"]].to_csv(
-    ROOT + "/results/screening/hr-materials.csv", index=False, float_format="%g"
+    DIR + "hr-materials.csv", index=False, float_format="%g"
 )
 
 # %%
-# formulas_lrhr.to_csv(
-#     "results/screening/lrhr_materials.csv", index=False, float_format="%g"
-# )
+# formulas_lrhr.to_csv(DIR + "lrhr_materials.csv", index=False, float_format="%g")
 # plt.rcParams.update(plt.rcParamsDefault)
 zT_var_lt_half = formulas_lrhr[formulas_lrhr.zT_var < 0.5]
 zT_var_lt_half.plot.scatter(x="zT_var", y="zT_pred")
 plt.xlabel("")
 plt.ylabel("")
 plt.savefig(
-    ROOT + "/results/screening/lrhr_materials.pdf",
-    bbox_inches="tight",
-    transparent=True,
+    DIR + "lrhr_materials.pdf", bbox_inches="tight", transparent=True,
 )
 pearson = zT_var_lt_half[["zT_var", "zT_pred"]].corr().iloc[0, 1]
 print(f"Pearson corr.: {pearson:.4g}")
@@ -112,14 +110,14 @@ px.scatter(formulas_lrhr, x="zT_var", y="zT_pred", hover_data=formulas_lrhr.colu
 
 # %%
 zT_forest = rf_models["zT_log_scd"]
-zT_corr = zT_forest.get_corr(screening_features.iloc[formulas_lrhr.index])
+zT_corr = zT_forest.get_corr(screen_features.iloc[formulas_lrhr.index])
 zT_corr = pd.DataFrame(
     zT_corr, columns=formulas_lrhr.formula, index=formulas_lrhr.formula
 )
 
 
 # %%
-zT_corr.to_csv("results/screening/correlation_matrix.csv", float_format="%g")
+zT_corr.to_csv(DIR + "correlation_matrix.csv", float_format="%g")
 
 # %%
 zT_corr_evals, zT_corr_evecs = pd.np.linalg.eig(zT_corr)
@@ -147,9 +145,7 @@ greedy_candidates = (
     .rename(columns={"index": "orig_index"})
     .sort_values(by="correlation")
 )
-greedy_candidates.to_csv(
-    "results/screening/greedy_candidates.csv", index=False, float_format="%g"
-)
+greedy_candidates.to_csv(DIR + "greedy_candidates.csv", index=False, float_format="%g")
 
 # %%
 # Set environment variable GRB_LICENSE_FILE so that Gurobi finds its license file.
@@ -159,7 +155,7 @@ os.environ["GRB_LICENSE_FILE"] = "hpc/gurobi.lic"
 # Create a model for solving the quadratic optimization problem of selecting p out of n
 # materials with least pairwise correlation according to the correlation matrix zT_corr.
 model = Model("quadratic_problem")
-model.params.LogFile = "results/screening/gurobi.log"
+model.params.LogFile = DIR + "gurobi.log"
 os.remove("gurobi.log")
 
 n_vars, n_select = len(formulas_lrhr), 20
@@ -183,7 +179,7 @@ model.optimize()
 # %%
 # Save selected materials to dataframe and CSV file.
 gurobi_candidates = formulas_lrhr.iloc[[bool(var.x) for var in dvar]]
-gurobi_candidates.to_csv("results/screening/gurobi_candidates.csv", index=False)
+gurobi_candidates.to_csv(DIR + "gurobi_candidates.csv", index=False)
 
 # %%
 for name, df in zip(
@@ -191,7 +187,7 @@ for name, df in zip(
     [gurobi_candidates, greedy_candidates.iloc[:20]],
 ):
     df.sort_values(["formula", "T"]).to_latex(
-        f"results/screening/{name}.tex",
+        f"{DIR}{name}.tex",
         columns=["formula", "database", "id", "T", "zT_pred", "zT_var"],
         float_format="%.3g",
         index=False,
@@ -204,7 +200,7 @@ for name, df in zip(
 # greedy_candidates contains all low-risk high-return materials sorted by their
 # sum of squared correlations with all other materials. Assuming that either
 # the greedy method or Gurobi (or both) picked materials entirely at random,
-# we would expect formulas choosen by Gurobi to have an average index in the list
+# we would expect formulas chosen by Gurobi to have an average index in the list
 # equal to the total list's average index. The degree to which this is not the case
 # is hence an indicator of agreement between the two methods.
 gurobi_in_greedy = greedy_candidates.orig_index.isin(gurobi_candidates.index)
@@ -257,7 +253,7 @@ def expec_random_obj_val():
 
 print(
     f"objective value of the greedy solution: {greedy_obj_val:.4g}'\n"
-    f"vs the Guroby solution: {model.objVal:.4g}'\n"
+    f"vs the Gurobi solution: {model.objVal:.4g}'\n"
     f"vs average of 50 random solutions: {random_obj_val_avr():.4g}'\n"
     f"vs expectation value of random solution: {expec_random_obj_val():.4g}"
 )
@@ -266,7 +262,7 @@ print(
 # ## Computing correlation between random forest and DFT predictions Seebeck coefficient
 
 # %%
-dft_seebeck = pd.read_csv("results/screening/dft/gurobi_seebeck.csv")[
+dft_seebeck = pd.read_csv(DIR + "dft/gurobi_seebeck.csv")[
     ["formula", "300", "400", "700", "1000"]
 ].set_index("formula")
 
@@ -297,7 +293,7 @@ seebeck_abs_preds_and_corrs = pd.concat(
 )
 seebeck_abs_preds_and_corrs.loc["mean"] = seebeck_abs_preds_and_corrs.mean()
 seebeck_abs_preds_and_corrs.to_latex(
-    "results/screening/rf_seebeck_abs_corr.tex",
+    DIR + "rf_seebeck_abs_corr.tex",
     escape=False,
     float_format="%.3g",
     multicolumn_format="c",
