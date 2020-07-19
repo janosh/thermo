@@ -28,7 +28,7 @@ def load_gaultois(target_cols: list = ["rho", "seebeck", "kappa", "zT"]):
     return features, labels
 
 
-def load_screen(cols: list = None):
+def load_screen():
     """Load material candidates into a dataframe for screening. Available columns
     are formula, database ID and MagPie features for over 80,000 compositions pulled
     from COD and ICSD.
@@ -36,11 +36,7 @@ def load_screen(cols: list = None):
     features = pd.read_csv(ROOT + "/data/screen_features.csv")
     formulas = pd.read_csv(ROOT + "/data/screen_formulas.csv", comment="#")
 
-    # Drop rows (materials) with missing features: leaves 81,913 out of 81,949
-    df = formulas.merge(features, on="formula").dropna()
-    if cols:
-        df = df[cols]
-    return df
+    return formulas, features
 
 
 @squeeze
