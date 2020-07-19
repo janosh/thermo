@@ -157,3 +157,11 @@ def back_transform_labels(mean, std, y_pred, y_var, to="log"):
     elif to != "log":
         raise ValueError(f"`to` must be log or orig, got {to}")
     return y_pred, y_var
+
+
+def filter_low_risk_high_ret(df, max_risk=0.25, min_ret=1, cols=["zT_pred", "zT_var"]):
+    y_pred, y_var = df[cols].to_numpy().T
+    y_pred_low_risk = y_pred[y_var < max_risk]
+    df = df[y_var < max_risk]
+    df = df[y_pred_low_risk > min_ret]
+    return df

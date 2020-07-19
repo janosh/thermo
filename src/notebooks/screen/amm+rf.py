@@ -6,18 +6,23 @@ from gurobipy import GRB, Model, quicksum
 from matplotlib import pyplot as plt
 from plotly import express as px
 
-from data import load_gaultois, load_screen, normalize
-from rf import rf_predict
-from utils import ROOT, predict_multiple_labels
+from data import load_gaultois, load_screen
+from rf.forest import RandomForestRegressor
+from utils import ROOT
+from utils.amm import MatPipe, featurize, fit_pred_pipe
 from utils.correlation import expected_rand_obj_val, rand_obj_val_avr
-from utils.evaluate import back_transform_labels, filter_low_risk_high_ret
+from utils.evaluate import filter_low_risk_high_ret
 
-DIR = ROOT + "/results/screen/"
+DIR = ROOT + "/results/screen/amm+rf/"
+os.makedirs(DIR, exist_ok=True)
 
 
 # %%
-features, labels = load_gaultois()
-formulas, screen_features = load_screen()
+_, train_df = load_gaultois(target_cols=["formula", "zT", "T"])
+screen_df, _ = load_screen()
+
+for df in [train_df, screen_df]:
+    df.rename(columns={"formula": "composition"}, inplace=True)
 
 
 # %%
@@ -25,39 +30,62 @@ formulas, screen_features = load_screen()
 # 1000] Kelvin) found in Gaultois' database. We'll predict each material at all 4 temps.
 # Note: None of the composition are predicted to achieve high zT at 300, 400 Kelvin.
 # Remove those to cut computation time in half.
-formulas, screen_features = [
+screen_df = (
     pd.DataFrame({"T": [700, 1000], "key": 1})
-    .merge(df.assign(key=1), on="key")
+    .merge(screen_df.assign(key=1), on="key")
     .drop("key", axis=1)
-    for df in [formulas, screen_features]
-]
-
-
-# %%
-screen_features, [X_mean, X_std] = normalize(screen_features)
-features, _ = normalize(features, X_mean, X_std)
-scd_labels, [y_mean, y_std] = normalize(labels)
-
-
-# %% [markdown]
-# # Random Forest Regression
-
-
-# %%
-rf_y_preds_scd, rf_y_vars_scd, rf_models = predict_multiple_labels(
-    rf_predict, features, scd_labels.T, screen_features
 )
 
 
 # %%
-rf_y_preds, rf_y_vars = back_transform_labels(
-    y_mean, y_std, rf_y_preds_scd, rf_y_vars_scd, to="orig"
+mat_pipe_zT, zT_pred = fit_pred_pipe(train_df, screen_df, "zT")
+os.remove(os.path.dirname(__file__) + "automatminer.log")
+
+
+# %%
+mat_pipe_zT = MatPipe.save(DIR + "mat.pipe")
+
+
+# %%
+mat_pipe_zT = MatPipe.load(DIR + "mat.pipe")
+
+
+# %%
+train_features = featurize(mat_pipe_zT, train_df[["T", "composition"]])
+
+screen_features = featurize(mat_pipe_zT, screen_df[["T", "composition"]])
+
+
+# %%
+# add composition column for duplicate detection so we save features for
+# every material only once
+screen_features["composition"] = screen_df.composition
+screen_features.drop_duplicates(subset=["composition"]).to_csv(
+    DIR + "screen_features.csv", float_format="%g", index=False
 )
 
 
 # %%
-formulas[[ln + "_pred" for ln in labels.columns]] = rf_y_preds
-formulas[[ln + "_var" for ln in labels.columns]] = rf_y_vars
+train_features = pd.read_csv(DIR + "train_features.csv")
+
+screen_features = pd.read_csv(DIR + "screen_features.csv")
+del screen_features["composition"]
+
+# reinstate temperature column, removed to save disk space
+screen_features = (
+    pd.DataFrame({"T": [700, 1000], "key": 1})
+    .merge(screen_features.assign(key=1), on="key")
+    .drop("key", axis=1)
+)
+
+# %%
+rf_zT = RandomForestRegressor()
+rf_zT.fit(train_features.iloc[train_df.dropna().index], train_df.zT.dropna())
+
+zT_pred, zT_var = rf_zT.predict(screen_features)
+
+screen_df["zT_pred"] = zT_pred
+screen_df["zT_var"] = zT_var
 
 
 # %% [markdown]
@@ -65,29 +93,16 @@ formulas[[ln + "_var" for ln in labels.columns]] = rf_y_vars
 
 
 # %%
-formulas_lrhr = filter_low_risk_high_ret(formulas)
-
-
-# %%
-# Get the 20 materials predicted to have the highest zT with no concern for estimated
-# uncertainty to compare if uncertainty estimation reduces the false positive rate.
-formulas_hr = formulas.sort_values("zT_pred", ascending=False)[:20]
-formulas_hr[["formula", "database", "id", "T", "zT_pred", "zT_var"]].to_csv(
-    DIR + "hr-materials.csv", index=False, float_format="%g"
+# Save to CSV the 20 materials predicted to have the highest zT with no concern for
+# estimated uncertainty. Baseline comparison to check if uncertainty estimation reduces
+# the false positive rate.
+screen_df.sort_values("zT_pred", ascending=False)[:20].to_csv(
+    ROOT + "/results/screen/hr-materials.csv", index=False, float_format="%g"
 )
 
 
 # %%
-# formulas_lrhr.to_csv(DIR + "lrhr_materials.csv", index=False, float_format="%g")
-zT_var_lt_half = formulas_lrhr[formulas_lrhr.zT_var < 0.5]
-zT_var_lt_half.plot.scatter(x="zT_var", y="zT_pred")
-plt.xlabel("")
-plt.ylabel("")
-plt.savefig(
-    DIR + "lrhr_materials.pdf", bbox_inches="tight", transparent=True,
-)
-pearson = zT_var_lt_half[["zT_var", "zT_pred"]].corr().iloc[0, 1]
-print(f"Pearson corr.: {pearson:.4g}")
+formulas_lrhr = filter_low_risk_high_ret(screen_df, min_ret=1.3)
 
 
 # %%
@@ -95,14 +110,13 @@ px.scatter(formulas_lrhr, x="zT_var", y="zT_pred", hover_data=formulas_lrhr.colu
 
 
 # %% [markdown]
-# # Compute correlations between low-risk high-return materials
+# # Correlation between low-risk high-return materials
 
 
 # %%
-zT_forest = rf_models["zT_log_scd"]
-zT_corr = zT_forest.get_corr(screen_features.iloc[formulas_lrhr.index])
+zT_corr = rf_zT.get_corr(screen_features.iloc[formulas_lrhr.index])
 zT_corr = pd.DataFrame(
-    zT_corr, columns=formulas_lrhr.formula, index=formulas_lrhr.formula
+    zT_corr, columns=formulas_lrhr.composition, index=formulas_lrhr.composition
 )
 
 
@@ -140,17 +154,16 @@ greedy_candidates = (
     .sort_values(by="rough_correlation")
 )
 
-greedy_candidates.to_csv(DIR + "greedy_candidates.csv", index=False, float_format="%g")
-
 
 # %%
-# Set environment variable GRB_LICENSE_FILE so that Gurobi finds its license file.
+# Set environment variable GRB_LICENSE_FILE so that Gurobi finds its license.
 # An academic license can be obtained for free at
 # https://www.gurobi.com/downloads/end-user-license-agreement-academic.
 os.environ["GRB_LICENSE_FILE"] = ROOT + "/hpc/gurobi.lic"
 # Create a model for solving the quadratic optimization problem of selecting p out of n
 # materials with least pairwise correlation according to the correlation matrix zT_corr.
 grb_model = Model("quadratic_problem")
+grb_model.params.TimeLimit = 300  # in sec
 grb_model.params.LogFile = DIR + "gurobi.log"
 os.remove(DIR + "gurobi.log")
 
@@ -178,8 +191,21 @@ grb_model.optimize()
 
 # %%
 # Save selected materials to dataframe and CSV file.
+assert (
+    sum([var.x for var in dvar]) == n_select
+), "Gurobi selected a different number of materials than specified by n_select"
+
 gurobi_candidates = formulas_lrhr.iloc[[bool(var.x) for var in dvar]]
-gurobi_candidates.to_csv(DIR + "gurobi_candidates.csv", index=False)
+
+
+# %%
+gurobi_candidates.to_csv(DIR + "gurobi_candidates.csv", float_format="%g")
+greedy_candidates.to_csv(DIR + "greedy_candidates.csv", float_format="%g")
+
+
+# %%
+gurobi_candidates = pd.read_csv(DIR + "gurobi_candidates.csv", index_col=0)
+greedy_candidates = pd.read_csv(DIR + "greedy_candidates.csv", index_col=0)
 
 
 # %%
@@ -236,50 +262,4 @@ print(
     f"- greedy: {greedy_obj_val:.4g}\n"
     f"- average of 50 random draws: {avr_rand_obj_val:.4g}\n"
     f"- expectation value of random solution: {exp_rand_obj_val:.4g}"
-)
-
-
-# %% [markdown]
-# # Correlation between low-risk high-return materials
-
-
-# %%
-dft_seebeck = pd.read_csv(DIR + "dft/gurobi_seebeck.csv")[
-    ["formula", "300", "400", "700", "1000"]
-].set_index("formula")
-
-
-# %%
-rf_seebeck = (
-    screen_features[["formula", "seebeck_abs_pred", "T"]]
-    .loc[screen_features.formula.isin(dft_seebeck.index)]
-    .pivot(index="formula", columns="T", values="seebeck_abs_pred")
-) * 1e6  # conversion from SI to common units (V/K -> uV/K)
-
-# rf_seebeck.seebeck_abs_pred = rf_seebeck.seebeck_abs_pred * 1e6
-
-
-# %%
-dft_seebeck.columns = rf_seebeck.columns
-methods = ["pearson", "spearman"]
-dft_rf_seebeck_abs_corr = pd.concat(
-    [rf_seebeck.corrwith(abs(dft_seebeck), axis=1, method=m) for m in methods],
-    axis=1,
-    keys=methods,
-)
-dft_rf_seebeck_abs_corr.mean()
-
-
-# %%
-seebeck_abs_preds_and_corrs = pd.concat(
-    [dft_rf_seebeck_abs_corr, rf_seebeck, abs(dft_seebeck)],
-    axis=1,
-    keys=["correlation", "RF", "DFT"],
-)
-seebeck_abs_preds_and_corrs.loc["mean"] = seebeck_abs_preds_and_corrs.mean()
-seebeck_abs_preds_and_corrs.to_latex(
-    DIR + "rf_seebeck_abs_corr.tex",
-    escape=False,
-    float_format="%.3g",
-    multicolumn_format="c",
 )
