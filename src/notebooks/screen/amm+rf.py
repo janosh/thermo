@@ -6,22 +6,22 @@ from gurobipy import GRB, Model, quicksum
 from matplotlib import pyplot as plt
 from plotly import express as px
 
-from data import load_gaultois, load_screen
+from data import dropna, load_gaultois, load_screen, train_test_split
 from rf.forest import RandomForestRegressor
 from utils import ROOT
 from utils.amm import MatPipe, featurize, fit_pred_pipe
 from utils.correlation import expected_rand_obj_val, rand_obj_val_avr
-from utils.evaluate import filter_low_risk_high_ret
+from utils.evaluate import filter_low_risk_high_ret, plot_output
 
 DIR = ROOT + "/results/screen/amm+rf/"
 os.makedirs(DIR, exist_ok=True)
 
 
 # %%
-_, train_df = load_gaultois(target_cols=["formula", "zT", "T"])
+magpie_features, gaultois_df = load_gaultois(target_cols=["formula", "zT", "T"])
 screen_df, _ = load_screen()
 
-for df in [train_df, screen_df]:
+for df in [gaultois_df, screen_df]:
     df.rename(columns={"formula": "composition"}, inplace=True)
 
 
@@ -38,8 +38,7 @@ screen_df = (
 
 
 # %%
-mat_pipe_zT, zT_pred = fit_pred_pipe(train_df, screen_df, "zT")
-os.remove(os.path.dirname(__file__) + "automatminer.log")
+mat_pipe_zT, zT_pred = fit_pred_pipe(gaultois_df, screen_df, "zT")
 
 
 # %%
@@ -51,38 +50,84 @@ mat_pipe_zT = MatPipe.load(DIR + "mat.pipe")
 
 
 # %%
-train_features = featurize(mat_pipe_zT, train_df[["T", "composition"]])
+amm_train_features = featurize(mat_pipe_zT, gaultois_df[["T", "composition"]])
 
-screen_features = featurize(mat_pipe_zT, screen_df[["T", "composition"]])
+amm_screen_features = featurize(mat_pipe_zT, screen_df[["T", "composition"]])
 
 
 # %%
 # add composition column for duplicate detection so we save features for
 # every material only once
-screen_features["composition"] = screen_df.composition
-screen_features.drop_duplicates(subset=["composition"]).to_csv(
-    DIR + "screen_features.csv", float_format="%g", index=False
+amm_screen_features["composition"] = screen_df.composition
+amm_screen_features.drop_duplicates(subset=["composition"]).to_csv(
+    DIR + "amm_screen_features.csv", float_format="%g", index=False
+)
+
+amm_train_features.to_csv(
+    DIR + "amm_train_features.csv", float_format="%g", index=False
 )
 
 
 # %%
-train_features = pd.read_csv(DIR + "train_features.csv")
+amm_train_features = pd.read_csv(DIR + "amm_train_features.csv")
 
-screen_features = pd.read_csv(DIR + "screen_features.csv")
-del screen_features["composition"]
+amm_screen_features = pd.read_csv(DIR + "amm_screen_features.csv")
+del amm_screen_features["composition"]
 
 # reinstate temperature column, removed to save disk space
-screen_features = (
+amm_screen_features = (
     pd.DataFrame({"T": [700, 1000], "key": 1})
-    .merge(screen_features.assign(key=1), on="key")
+    .merge(amm_screen_features.assign(key=1), on="key")
     .drop("key", axis=1)
 )
 
+
+# %% [markdown]
+# # Check AMM+RF performance on Gaultois data
+# Running cells in this section shows automatminer (AMM) features (which are just a
+# subset of less correlated MagPie features) performs about the same as the complete
+# MagPie set in accuracy but slightly better in uncertainty.
+
+
+# %%
+zT_series, magpie_features, check_features = dropna(
+    gaultois_df.zT, magpie_features, amm_train_features
+)
+
+[X_tr_amm, X_tr_magpie, y_tr], [X_test_amm, X_test_magpie, y_test] = train_test_split(
+    check_features, magpie_features, zT_series
+)
+
+
+# %%
+amm_rf_zT = RandomForestRegressor()
+
+amm_rf_zT.fit(X_tr_amm, y_tr)
+
+amm_check_pred, amm_check_var = amm_rf_zT.predict(X_test_amm)
+
+plot_output(y_test.values, amm_check_pred, amm_check_var)
+
+
+# %%
+magpie_rf_zT = RandomForestRegressor()
+
+magpie_rf_zT.fit(X_tr_magpie, y_tr)
+
+magpie_check_pred, magpie_check_var = magpie_rf_zT.predict(X_test_magpie)
+
+plot_output(y_test.values, magpie_check_pred, magpie_check_var)
+
+
+# %% [markdown]
+# # Train AMM+RF on entire Gaultois data, then screen ICSD+COD
+
+
 # %%
 rf_zT = RandomForestRegressor()
-rf_zT.fit(train_features.iloc[train_df.dropna().index], train_df.zT.dropna())
+rf_zT.fit(amm_train_features.iloc[gaultois_df.dropna().index], gaultois_df.zT.dropna())
 
-zT_pred, zT_var = rf_zT.predict(screen_features)
+zT_pred, zT_var = rf_zT.predict(amm_screen_features)
 
 screen_df["zT_pred"] = zT_pred
 screen_df["zT_var"] = zT_var
@@ -114,7 +159,7 @@ px.scatter(formulas_lrhr, x="zT_var", y="zT_pred", hover_data=formulas_lrhr.colu
 
 
 # %%
-zT_corr = rf_zT.get_corr(screen_features.iloc[formulas_lrhr.index])
+zT_corr = rf_zT.get_corr(amm_screen_features.iloc[formulas_lrhr.index])
 zT_corr = pd.DataFrame(
     zT_corr, columns=formulas_lrhr.composition, index=formulas_lrhr.composition
 )
