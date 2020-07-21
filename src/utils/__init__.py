@@ -5,7 +5,7 @@ import pandas as pd
 from tqdm import tqdm
 
 # absolute path to the project's root directory
-ROOT = os.path.abspath(__file__).split("/src", 1)[0]
+ROOT = os.getcwd().split("/src", 1)[0]
 
 
 def pd_to_np(*args):
