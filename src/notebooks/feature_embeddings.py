@@ -6,6 +6,7 @@ from sklearn.manifold import TSNE
 from umap import UMAP
 
 from data import load_gaultois
+from utils.plots import hist_elemental_prevalence, ptable_elemental_prevalence
 
 # %%
 features, labels = load_gaultois(
@@ -91,3 +92,13 @@ pca_3d = pd.DataFrame(pca_3d, columns=pca_cols)
 # %%
 pca_3d[labels.columns] = labels
 px.scatter_3d(pca_3d, *pca_cols, hover_data=labels.columns)
+
+
+# %%
+ptable_elemental_prevalence(labels.formula.values)
+ptable_elemental_prevalence(labels.formula.values, log_scale=True)
+
+
+# %%
+hist_elemental_prevalence(labels.formula.values)
+hist_elemental_prevalence(labels.formula.values, log_scale=True)
