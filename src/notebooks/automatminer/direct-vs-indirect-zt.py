@@ -117,7 +117,7 @@ print(f"- MAE: {mae(test_df.zT, pred_df_zT.zT_pred_computed):.3g}")
 
 
 # %%
-plots.test_vs_pred(test_df.zT.values, pred_df_zT.zT_pred.values)
+plots.true_vs_pred(test_df.zT.values, pred_df_zT.zT_pred.values)
 
 
 # %%

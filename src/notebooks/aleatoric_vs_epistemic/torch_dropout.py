@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader
 
 from bnn.torch_dropout import DropoutModel, GaultoisData
 from utils.evaluate import r2_score
-from utils.plots import test_vs_pred
+from utils.plots import true_vs_pred
 
 plt.rcParams["figure.figsize"] = [12, 8]
 
@@ -39,7 +39,7 @@ both_total_std = (both_pred.std(0) ** 2 + both_std.mean(0) ** 2) ** 0.5
 
 # %%
 title = f"$R^2$ score: {r2_score(y_true, both_pred.mean(0)):.4g}"
-test_vs_pred(y_true, both_pred.mean(0), both_total_std, title=title)
+true_vs_pred(y_true, both_pred.mean(0), both_total_std, title=title)
 
 
 # %% [markdown]
@@ -60,7 +60,7 @@ epistemic_pred = epistemic_net.predict(test_set.features)
 
 # %%
 title = f"$R^2$ score: {r2_score(y_true, epistemic_pred.mean(0)):.4g}"
-test_vs_pred(y_true, epistemic_pred.mean(0), epistemic_pred.std(0), title=title)
+true_vs_pred(y_true, epistemic_pred.mean(0), epistemic_pred.std(0), title=title)
 
 
 # %% [markdown]
@@ -80,4 +80,4 @@ aleatoric_pred, aleatoric_std = aleatoric_net.predict(test_set.features).T
 
 # %%
 title = f"$R^2$ score: {r2_score(y_true, aleatoric_pred):.4g}"
-test_vs_pred(y_true, aleatoric_pred, aleatoric_std, title=title)
+true_vs_pred(y_true, aleatoric_pred, aleatoric_std, title=title)
