@@ -63,20 +63,20 @@ def get_err_decay(y_true, y_pred, y_std, err_func=mse):
 
 
 def plot_output(y_test, y_pred, y_std=None, err_funcs=[mse], **kwargs):
-    plots.test_vs_pred(y_test, y_pred, y_std=None, **kwargs)
+    """ Convenience function for generating multiple plots in one go for
+    analyzing the output of an ML model.
+    """
+    plots.true_vs_pred(y_test, y_pred, y_std=None, **kwargs)
     if y_std is None:
         return
 
-    # for a model with good uncertainty estimation, removing the most
-    # uncertain predictions should make the mean error decay similarly
-    # to how it decays when removing the predictions of largest error
     for fn in err_funcs:
         decay_by_std, decay_by_err = get_err_decay(y_test, y_pred, y_std, fn)
         plots.err_decay(
             *[fn.__name__, decay_by_std, decay_by_err], **kwargs,
         )
 
-    abs_err = np.abs(y_test - y_pred)
+    abs_err = abs(y_test - y_pred)
     plots.abs_err_vs_std(abs_err, y_std, **kwargs)
 
 

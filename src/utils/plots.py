@@ -11,7 +11,6 @@ from pymatgen.core import Composition
 from scipy.stats import pearsonr, spearmanr
 
 from utils import ROOT
-from utils.decorators import handle_plot
 
 # plt.rcParams.update({"font.size": 14, "font.serif": "Computer Modern Roman"})
 
@@ -47,14 +46,25 @@ def display_err_decay_avr_dist(decay_by_std, decay_by_err):
     display_corr(decay_by_std, decay_by_err, prefix=text)
 
 
-@handle_plot
 def err_decay(err_name, *args, title=None, bare=False):
+    """Plot for assessing the quality of uncertainty estimates. If a model's
+    uncertainty is well calibrated, i.e. strongly correlated with its error,
+    removing the most uncertain predictions should make the mean error decay
+    similarly to how it decays when removing the predictions of largest error
+
+    Args:
+        err_name (str): usually MAE or MSE
+        title (str, optional): plot title
+        bare (bool, optional): whether to include title and axis labels
+    """
     for arg in args:
         countdown = range(len(arg), 0, -1)
         plt.plot(countdown, arg)
+
     plt.gca().invert_xaxis()
     decay_by_std, decay_by_err = args[:2]
     display_err_decay_avr_dist(decay_by_std, decay_by_err)
+
     if not bare:
         # n: Number of excluded points starting with points of largest
         # error/uncertainty, resp.
@@ -62,11 +72,15 @@ def err_decay(err_name, *args, title=None, bare=False):
         plt.ylabel(f"$\\epsilon_\\mathrm{{{err_name}}}$")
         plt.title(title)
 
+    plt.show()
 
-def add_identity(axes, *line_args, **line_kwargs):
-    # add parity line (y = x) (add zorder=0 to display data on top of line)
-    default_kwargs = dict(alpha=0.3, zorder=0, linestyle="dashed", color="black")
-    (identity,) = axes.plot([], [], *line_args, **default_kwargs, **line_kwargs)
+
+def add_identity(axis, **line_kwargs):
+    """Add a parity line (y = x) (aka identity) to the provided axis.
+    """
+    # zorder=0 ensures other plotted data displays on top of line
+    default_kwargs = dict(alpha=0.5, zorder=0, linestyle="dashed", color="black")
+    (identity,) = axis.plot([], [], **default_kwargs, **line_kwargs)
 
     def callback(axes):
         low_x, high_x = axes.get_xlim()
@@ -75,15 +89,14 @@ def add_identity(axes, *line_args, **line_kwargs):
         high = min(high_x, high_y)
         identity.set_data([low, high], [low, high])
 
-    callback(axes)
+    callback(axis)
     # Update identity line when moving the plot in interactive
     # viewing mode to always extend to the plot's edges.
-    axes.callbacks.connect("xlim_changed", callback)
-    axes.callbacks.connect("ylim_changed", callback)
-    return axes
+    axis.callbacks.connect("xlim_changed", callback)
+    axis.callbacks.connect("ylim_changed", callback)
+    return axis
 
 
-@handle_plot
 def abs_err_vs_std(abs_err, y_std, title=None, bare=False, log_log=False):
     plt.scatter(abs_err, y_std, s=10)  # s: markersize
     if not bare:
@@ -97,9 +110,10 @@ def abs_err_vs_std(abs_err, y_std, title=None, bare=False, log_log=False):
     add_identity(plt.gca())
     display_corr(abs_err, y_std)
 
+    plt.show()
 
-@handle_plot
-def test_vs_pred(y_test, y_pred, y_std=None, title=None, bare=False):
+
+def true_vs_pred(y_test, y_pred, y_std=None, title=None, bare=False):
     styles = dict(markersize=6, fmt="o", ecolor="g", capthick=2, elinewidth=2)
     plt.errorbar(y_test, y_pred, yerr=y_std, **styles)
     if not bare:
@@ -110,16 +124,18 @@ def test_vs_pred(y_test, y_pred, y_std=None, title=None, bare=False):
     prefix = f"$\\epsilon_\\mathrm{{mae}} = {np.abs(y_test - y_pred).mean():.3g}$\n"
     display_corr(y_test, y_pred, x=0.15, halign="left", prefix=prefix)
 
+    plt.show()
 
-@handle_plot
+
 def std_vs_pred(y_std, y_pred, title=None):
     plt.scatter(y_std, y_pred)
     plt.xlabel("$y_\\mathrm{std}$")
     plt.ylabel("$y_\\mathrm{pred}$")
     plt.title(title)
 
+    plt.show()
 
-@handle_plot
+
 def loss_history(loss_histories):
     for name, loss in loss_histories.items():
         plt.plot(loss, label=name)
@@ -127,8 +143,9 @@ def loss_history(loss_histories):
     plt.xlabel("epoch")
     plt.ylabel("loss")
 
+    plt.show()
 
-@handle_plot
+
 def log_probs(log_probs, text=None, title=None):
     for legend_label, log_prob in log_probs:
         plt.plot(log_prob, label=legend_label)
@@ -139,15 +156,17 @@ def log_probs(log_probs, text=None, title=None):
     if text:
         plt.gcf().text(*(0.5, -0.1), text, horizontalalignment="center")
 
+    plt.show()
 
-@handle_plot
+
 def step_sizes(step_sizes):
     plt.plot(step_sizes)
     plt.xlabel("step")
     plt.ylabel("step size")
 
+    plt.show()
 
-@handle_plot
+
 def mse_boxes(df, title=None, bare=False):
     # showfliers=False: Take outliers in the data into account but don't display them.
     ax = sns.boxplot(data=df, width=0.6, showfliers=False)
@@ -160,8 +179,9 @@ def mse_boxes(df, title=None, bare=False):
         plt.xlabel("model")
         plt.ylabel("$\\epsilon_\\mathrm{mse}$")
 
+    plt.show()
 
-@handle_plot
+
 def cv_mse_decay(df, title=None, bare=False):
     ax = sns.lineplot(data=df[["err_decay_by_std", "true_err_decay"]])
     display_err_decay_avr_dist(df.err_decay_by_std, df.true_err_decay)
@@ -171,6 +191,8 @@ def cv_mse_decay(df, title=None, bare=False):
         ax.get_legend().remove()
         plt.xlabel("")
         plt.ylabel("")
+
+    plt.show()
 
 
 def count_elements(formulas):
