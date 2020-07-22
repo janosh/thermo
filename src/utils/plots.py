@@ -8,7 +8,7 @@ from matplotlib.cm import YlGn
 from matplotlib.colors import Normalize
 from matplotlib.patches import Rectangle
 from pymatgen.core import Composition
-from scipy.stats import pearsonr, spearmanr
+from scipy.stats import gaussian_kde, pearsonr, spearmanr
 
 from utils import ROOT
 
@@ -323,3 +323,71 @@ def hist_elemental_prevalence(formulas, log_scale=False):
     plt.ylabel = "Element Count" if log_scale else "log(Element Count)"
     if log_scale:
         plt.yscale("log")
+
+
+def true_vs_pred_with_hist(y_true, y_pred, x_hist=True, y_hist=True):
+    plt.figure(figsize=(8, 8))
+
+    left, width = 0.1, 0.65
+
+    bottom, height = 0.1, 0.65
+    bottom_h = left_h = left + width
+    rect_scatter = [left, bottom, width, height]
+    rect_histx = [left, bottom_h, width, 0.15]
+    rect_histy = [left_h, bottom, 0.15, height]
+
+    ax1 = plt.axes(rect_scatter)
+    ax1.tick_params(direction="in", length=7, top=True, right=True)
+
+    ax1.plot(y_true, y_pred, "o", alpha=0.5, label=None, mew=1.2, ms=5.2)
+
+    add_identity(plt.gca(), label="ideal")
+
+    x_range = max(y_true) - min(y_true)
+    ax1.set_xlim(max(y_true) - x_range * 1.05, min(y_true) + x_range * 1.05)
+    ax1.set_ylim(max(y_true) - x_range * 1.05, min(y_true) + x_range * 1.05)
+
+    ax1.set_ylabel("Predicted value (Units)")
+    ax1.set_xlabel("Actual value (Units)")
+    ax1.legend(loc=2, framealpha=0.5, handlelength=1.5)
+
+    if x_hist:
+        ax2 = plt.axes(rect_histx)
+        ax2.hist(y_true, bins=25, rwidth=0.8)
+        ax2.axis("off")
+
+    if y_hist:
+        ax3 = plt.axes(rect_histy)
+        ax3.hist(y_pred, bins=25, orientation="horizontal", rwidth=0.8)
+        ax3.axis("off")
+
+
+def residual(y_true, y_pred):
+    plt.figure(figsize=(8, 8))
+
+    y_err = y_pred - y_true
+
+    xmin = np.min(y_true) * 0.9
+    xmax = np.max(y_true) / 0.9
+
+    plt.plot(y_true, y_err, "o", alpha=0.5, label=None, mew=1.2, ms=5.2)
+    plt.plot([xmin, xmax], [0, 0], "k--", alpha=0.5, label="ideal")
+
+    plt.ylabel("Residual error (Units)")
+    plt.xlabel("Actual value (Units)")
+    plt.legend(loc="lower right")
+
+
+def residual_hist(y_true, y_pred):
+    plt.figure(figsize=(8, 8))
+
+    y_err = y_pred - y_true
+    plt.hist(y_err, bins=35, density=True, edgecolor="black")
+
+    kde_true = gaussian_kde(y_err)  # kernel density estimation
+    x_range = np.linspace(min(y_err), max(y_err), 100)
+
+    plt.plot(x_range, kde_true(x_range), lw=2, color="red", label="kde")
+
+    plt.xlabel("Residual error (Units)")
+    plt.legend(loc=2, framealpha=0.5, handlelength=1)
