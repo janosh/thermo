@@ -1,7 +1,7 @@
 # %%
 from data import dropna, load_gaultois, normalize, train_test_split
 from rf import rf_predict
-from utils.evaluate import mse, plot_output
+from utils.evaluate import plot_output, rmse
 
 # %%
 features, labels = load_gaultois()
@@ -27,7 +27,7 @@ rho_ep_pred, rho_ep_var, rho_ep_model = rf_predict(
 )
 
 # %%
-print(f"rho epistemic mse: {mse(rho_ep_pred, seebeck_test):.4g}\n")
+print(f"rho epistemic rmse: {rmse(rho_ep_pred, seebeck_test):.4g}\n")
 
 plot_output(seebeck_test, rho_ep_pred, rho_ep_var ** 0.5, title="rho")
 
@@ -43,7 +43,7 @@ rho_al_ep_pred, rho_al_ep_var, rho_al_ep_model = rf_predict(
 
 
 # %%
-print(f"rho aleatoric_epistemic mse: {mse(rho_al_ep_pred, rho_test):.4g}\n")
+print(f"rho aleatoric_epistemic rmse: {rmse(rho_al_ep_pred, rho_test):.4g}\n")
 plot_output(rho_test, rho_al_ep_pred, rho_al_ep_var ** 0.5, title="rho")
 
 
@@ -58,7 +58,7 @@ see_ep_pred, see_ep_var, see_ep_model = rf_predict(
 
 
 # %%
-print(f"Seebeck epistemic mse: {mse(see_ep_pred, seebeck_test):.4g}\n")
+print(f"Seebeck epistemic rmse: {rmse(see_ep_pred, seebeck_test):.4g}\n")
 plot_output(seebeck_test, see_ep_pred, see_ep_var ** 0.5, title="seebeck")
 
 
@@ -78,7 +78,7 @@ see_al_pred, see_al_var, see_al_model = rf_predict(
 
 
 # %%
-print(f"Seebeck aleatoric mse: {mse(see_al_pred, seebeck_test):.4g}\n")
+print(f"Seebeck aleatoric rmse: {rmse(see_al_pred, seebeck_test):.4g}\n")
 plot_output(seebeck_test, see_al_pred, see_al_var ** 0.5, title="seebeck")
 
 
@@ -93,7 +93,7 @@ see_al_ep_pred, see_al_ep_var, see_al_ep_model = rf_predict(
 
 
 # %%
-print(f"seebeck aleatoric_epistemic mse: {mse(see_al_ep_pred, seebeck_test):.4g}\n")
+print(f"seebeck aleatoric_epistemic rmse: {rmse(see_al_ep_pred, seebeck_test):.4g}\n")
 plot_output(seebeck_test, see_al_ep_pred, see_al_ep_var ** 0.5, title="seebeck")
 
 
@@ -117,7 +117,7 @@ kappa_ep_pred, kappa_ep_var, kappa_ep_model = rf_predict(
 
 
 # %%
-print(f"kappa epistemic mse: {mse(kappa_ep_pred, kappa_test):.4g}\n")
+print(f"kappa epistemic rmse: {rmse(kappa_ep_pred, kappa_test):.4g}\n")
 plot_output(kappa_test, kappa_ep_pred, kappa_ep_var ** 0.5, title="kappa")
 
 
@@ -139,7 +139,7 @@ kappa_al_pred, kappa_al_var, kappa_al_model = rf_predict(
 
 
 # %%
-print(f"kappa aleatoric mse: {mse(kappa_al_pred, kappa_test):.4g}\n")
+print(f"kappa aleatoric rmse: {rmse(kappa_al_pred, kappa_test):.4g}\n")
 plot_output(kappa_test, kappa_al_pred, kappa_al_var ** 0.5, title="kappa")
 
 
@@ -154,7 +154,7 @@ kappa_al_ep_pred, kappa_al_ep_var, _ = rf_predict(
 
 
 # %%
-print(f"kappa aleatoric_epistemic mse: {mse(kappa_al_ep_pred, kappa_test):.4g}\n")
+print(f"kappa aleatoric_epistemic rmse: {rmse(kappa_al_ep_pred, kappa_test):.4g}\n")
 plot_output(kappa_test, kappa_al_ep_pred, kappa_al_ep_var ** 0.5, title="kappa")
 
 
@@ -169,7 +169,7 @@ zT_ep_pred, zT_ep_var, zT_ep_model = rf_predict(
 
 
 # %%
-print(f"zT epistemic mse: {mse(zT_ep_pred, zT_test):.4g}\n")
+print(f"zT epistemic rmse: {rmse(zT_ep_pred, zT_test):.4g}\n")
 plot_output(zT_test, zT_ep_pred, zT_ep_var ** 0.5, title="zT")
 
 
@@ -184,7 +184,7 @@ zT_al_pred, zT_al_var, zT_al_model = rf_predict(
 
 
 # %%
-print(f"zT aleatoric mse: {mse(zT_al_pred, zT_test):.4g}\n")
+print(f"zT aleatoric rmse: {rmse(zT_al_pred, zT_test):.4g}\n")
 plot_output(zT_test, zT_al_pred, zT_al_var ** 0.5, title="zT")
 
 
@@ -199,5 +199,5 @@ zT_al_ep_pred, zT_al_ep_var, _ = rf_predict(
 
 
 # %%
-print(f"zT aleatoric_epistemic mse: {mse(zT_al_ep_pred, zT_test):.4g}\n")
+print(f"zT aleatoric_epistemic rmse: {rmse(zT_al_ep_pred, zT_test):.4g}\n")
 plot_output(zT_test, zT_al_ep_pred, zT_al_ep_var ** 0.5, title="zT")

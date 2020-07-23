@@ -16,8 +16,8 @@ from utils.evaluate import (
     back_transform_labels,
     compute_zT,
     mae,
-    mse,
     plot_output,
+    rmse,
 )
 
 # %%
@@ -52,8 +52,8 @@ rf_y_pred_orig, rf_y_var_orig = back_transform_labels(
 
 # %%
 rf_mae = mae(y_test, rf_y_pred).rename("MAE")
-rf_mse = mse(y_test, rf_y_pred).rename("MSE")
-rf_mae.to_frame().join(rf_mse)
+rf_rmse = rmse(y_test, rf_y_pred).rename("RMSE")
+rf_mae.to_frame().join(rf_rmse)
 
 
 # %%
@@ -72,9 +72,9 @@ rf_y_pred_orig["zT_computed"] = compute_zT(
     features["T"].loc[y_test.index],
 )
 
-zT_mse = mse(labels.zT.loc[y_test.index], rf_y_pred_orig.zT_computed)
+zT_rmse = rmse(labels.zT.loc[y_test.index], rf_y_pred_orig.zT_computed)
 
-print(f"zT_log_computed mse: {zT_mse:.4g}")
+print(f"zT_log_computed mse: {zT_rmse:.4g}")
 
 
 # %% [markdown]
@@ -103,8 +103,8 @@ map_y_pred_orig, map_y_var_orig = back_transform_labels(
 
 # %%
 map_mae = mae(y_test, map_y_pred).rename("MAE")
-map_mse = mse(y_test, map_y_pred).rename("MSE")
-map_mae.to_frame().join(map_mse)
+map_rmse = rmse(y_test, map_y_pred).rename("RMSE")
+map_mae.to_frame().join(map_rmse)
 
 
 # %%
@@ -126,8 +126,8 @@ map_y_pred_orig["zT_log_computed"] = compute_zT(
     *map_y_pred_orig.values[:3].T, y_test["T_log"]
 ).reset_index(drop=True)
 
-zT_mse = mse(y_test["zT_log"], map_y_pred_orig["zT_log_computed"])
-print(f"zT_log_computed mse: {zT_mse:.4g}")
+zT_rmse = rmse(y_test["zT_log"], map_y_pred_orig["zT_log_computed"])
+print(f"zT_log_computed mse: {zT_rmse:.4g}")
 
 
 # %% [markdown]
@@ -153,8 +153,8 @@ gp_y_pred_orig, gp_y_var_orig = back_transform_labels(
 
 # %%
 gp_mae = mae(y_test, gp_y_pred).rename("MAE")
-gp_mse = mse(y_test, gp_y_pred).rename("MSE")
-gp_mae.to_frame().join(gp_mse)
+gp_rmse = rmse(y_test, gp_y_pred).rename("RMSE")
+gp_mae.to_frame().join(gp_rmse)
 
 
 # %%
@@ -187,8 +187,8 @@ do_y_pred_orig, do_y_var_orig = back_transform_labels(
 
 # %%
 do_mae = mae(y_test, do_y_pred).rename("MAE")
-do_mse = mse(y_test, do_y_pred).rename("MSE")
-do_mae.to_frame().join(do_mse)
+do_rmse = rmse(y_test, do_y_pred).rename("RMSE")
+do_mae.to_frame().join(do_rmse)
 
 
 # %%

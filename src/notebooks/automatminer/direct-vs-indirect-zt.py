@@ -5,7 +5,7 @@ from data import dropna, load_gaultois, train_test_split
 from rf.forest import RandomForestRegressor
 from utils import ROOT, plots
 from utils.amm import MatPipe, fit_pred_pipe
-from utils.evaluate import mae, mse, plot_output
+from utils.evaluate import mae, plot_output, rmse
 
 SAVE_TO = ROOT + "/results/amm/zT_direct_vs_indirect/"
 os.makedirs(SAVE_TO, exist_ok=True)
@@ -103,7 +103,7 @@ automatminer's feature relevance determination selected the following descriptor
 - Magpie avg_dev SpaceGroupNumber
 """
 print("predicting zT directly")
-print(f"- MSE: {mse(test_df.zT, pred_df_zT.zT_pred):.3g}")
+print(f"- RMSE: {rmse(test_df.zT, pred_df_zT.zT_pred):.3g}")
 print(f"- MAE: {mae(test_df.zT, pred_df_zT.zT_pred):.3g}")
 
 
@@ -112,7 +112,7 @@ pred_df_zT["zT_pred_computed"] = (
     pred_df_PF.PF_pred / pred_df_kappa.kappa_pred * test_df["T"]
 )
 print("predicting power factor and kappa individually")
-print(f"- MSE: {mse(test_df.zT, pred_df_zT.zT_pred_computed):.3g}")
+print(f"- RMSE: {rmse(test_df.zT, pred_df_zT.zT_pred_computed):.3g}")
 print(f"- MAE: {mae(test_df.zT, pred_df_zT.zT_pred_computed):.3g}")
 
 
