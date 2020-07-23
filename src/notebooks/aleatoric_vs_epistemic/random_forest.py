@@ -8,7 +8,7 @@ from sklearn.model_selection import KFold
 from data import dropna, load_gaultois, normalize
 from rf import rf_predict
 from utils import ROOT, cross_val_predict
-from utils.evaluate import df_corr, mae, mse, plot_output
+from utils.evaluate import df_corr, mae, plot_output, rmse
 
 # %%
 features, labels = load_gaultois()
@@ -40,7 +40,7 @@ al_y_pred, al_y_var, al_models = cross_val_predict(kfold, *Xy, rf_al_predict)
 
 # %%
 pd.concat(
-    [mae(al_y_pred, y_norm), mse(al_y_pred, y_norm)], axis=1, keys=["MAE", "MSE"],
+    [mae(al_y_pred, y_norm), rmse(al_y_pred, y_norm)], axis=1, keys=["MAE", "RMSE"],
 )
 
 
@@ -67,7 +67,7 @@ ep_y_pred, ep_y_var, ep_models = cross_val_predict(kfold, *Xy, rf_predict)
 
 # %%
 pd.concat(
-    [mae(ep_y_pred, y_norm), mse(ep_y_pred, y_norm)], axis=1, keys=["MAE", "MSE"],
+    [mae(ep_y_pred, y_norm), rmse(ep_y_pred, y_norm)], axis=1, keys=["MAE", "RMSE"],
 )
 
 
@@ -98,7 +98,9 @@ al_ep_y_pred, al_ep_y_var, al_ep_models = cross_val_predict(
 
 # %%
 pd.concat(
-    [mae(al_ep_y_pred, y_norm), mse(al_ep_y_pred, y_norm)], axis=1, keys=["MAE", "MSE"],
+    [mae(al_ep_y_pred, y_norm), rmse(al_ep_y_pred, y_norm)],
+    axis=1,
+    keys=["MAE", "RMSE"],
 )
 
 

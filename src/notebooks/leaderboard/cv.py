@@ -14,7 +14,7 @@ from data import dropna, load_gaultois, normalize
 from gp import gp_predict
 from rf import rf_predict
 from utils import ROOT, cross_val_predict
-from utils.evaluate import ci_mse_decay_plots, mae, mse, plot_output
+from utils.evaluate import ci_mse_decay_plots, mae, plot_output, rmse
 
 # %%
 features, labels = load_gaultois()
@@ -44,7 +44,7 @@ rf_y_pred, rf_y_var, rf_models = cross_val_predict(kfold, *Xy, rf_predict)
 
 # %%
 pd.concat(
-    [mae(rf_y_pred, y_norm), mse(rf_y_pred, y_norm)], axis=1, keys=["MAE", "MSE"],
+    [mae(rf_y_pred, y_norm), rmse(rf_y_pred, y_norm)], axis=1, keys=["MAE", "RMSE"],
 )
 
 
@@ -80,7 +80,7 @@ map_y_pred, map_y_var, map_log_probs, map_initial_states = cross_val_predict(
 
 # %%
 pd.concat(
-    [mae(map_y_pred, y_norm), mse(map_y_pred, y_norm)], axis=1, keys=["MAE", "MSE"],
+    [mae(map_y_pred, y_norm), rmse(map_y_pred, y_norm)], axis=1, keys=["MAE", "RMSE"],
 )
 
 
@@ -111,7 +111,7 @@ do_y_pred, do_y_var, do_histories, do_models = cross_val_predict(kfold, *Xy, do_
 
 # %%
 pd.concat(
-    [mae(do_y_pred, y_norm), mse(do_y_pred, y_norm)], axis=1, keys=["MAE", "MSE"],
+    [mae(do_y_pred, y_norm), rmse(do_y_pred, y_norm)], axis=1, keys=["MAE", "RMSE"],
 )
 
 
@@ -136,7 +136,7 @@ gp_y_pred, gp_y_var, gp_models = cross_val_predict(kfold, *Xy, gp_predict)
 
 # %%
 pd.concat(
-    [mae(gp_y_pred, y_norm), mse(gp_y_pred, y_norm)], axis=1, keys=["MAE", "MSE"],
+    [mae(gp_y_pred, y_norm), rmse(gp_y_pred, y_norm)], axis=1, keys=["MAE", "RMSE"],
 )
 
 
@@ -182,7 +182,7 @@ with open(ROOT + "/results/hmc_results.pkl", "wb") as file:
 
 # %%
 pd.concat(
-    [mae(hmc_y_pred, y_norm), mse(hmc_y_pred, y_norm)], axis=1, keys=["MAE", "MSE"],
+    [mae(hmc_y_pred, y_norm), rmse(hmc_y_pred, y_norm)], axis=1, keys=["MAE", "RMSE"],
 )
 
 

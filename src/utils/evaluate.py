@@ -8,6 +8,10 @@ def mse(arr1, arr2, axis=0):
     return ((arr1 - arr2) ** 2).mean(axis)
 
 
+def rmse(arr1, arr2, axis=0):
+    return np.sqrt(mse(arr1, arr2, axis))
+
+
 def mae(arr1, arr2, axis=0):
     return abs(arr1 - arr2).mean(axis)
 
