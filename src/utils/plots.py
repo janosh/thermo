@@ -391,3 +391,21 @@ def residual_hist(y_true, y_pred):
 
     plt.xlabel("Residual error (Units)")
     plt.legend(loc=2, framealpha=0.5, handlelength=1)
+
+
+def show_bar_values(ax, offset=15):
+    """Add labels to the end of each bar in a bar chart.
+
+    Args:
+        ax (matplotlib.axes.Axes): The matplotlib object containing the axes
+            of the plot to annotate.
+        offset (int): The distance between the labels and the bars.
+    """
+    for rect in ax.patches:
+        y_val = rect.get_height()
+        x_val = rect.get_x() + rect.get_width() / 2
+
+        # place label at end of the bar and center horizontally
+        ax.annotate(y_val, (x_val, y_val + offset), ha="center")
+        # ensure enough vertical space to display label above highest bar
+        ax.margins(y=0.1)
