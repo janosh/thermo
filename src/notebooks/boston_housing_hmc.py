@@ -1,3 +1,8 @@
+"""
+This notebook essentially runs an end-to-end test comparing RF vs MAP NN vs HMC
+NN performance on the simple Boston housing dataset.
+"""
+
 # %%
 import tensorflow as tf
 import tensorflow_probability as tfp

@@ -70,7 +70,7 @@ def plot_output(y_test, y_pred, y_std=None, err_funcs=[mse], **kwargs):
     """ Convenience function for generating multiple plots in one go for
     analyzing the output of an ML model.
     """
-    plots.true_vs_pred(y_test, y_pred, y_std=None, **kwargs)
+    plots.true_vs_pred(y_test, y_pred, y_std=y_std, **kwargs)
     if y_std is None:
         return
 
