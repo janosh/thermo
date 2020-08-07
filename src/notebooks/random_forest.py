@@ -1,3 +1,11 @@
+"""
+This notebook evaluates the accuracy and uncertainty estimates of random forest
+(RF) trained with Magpie features on predicting electrical resistivity (rho),
+Seebeck coefficient (S), thermal conductivity (kappa) and thermoelectric figure
+of merit (zT).
+"""
+
+
 # %%
 from data import dropna, load_gaultois, normalize, train_test_split
 from rf import rf_predict

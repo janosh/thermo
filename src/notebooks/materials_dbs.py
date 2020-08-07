@@ -1,3 +1,9 @@
+"""
+This notebook plots the number of materials databases over time and writes them
+to LaTeX tables.
+"""
+
+
 # %%
 import matplotlib.pyplot as plt
 import numpy as np

@@ -1,3 +1,11 @@
+"""
+This notebook plots the Magpie feature space for the Gaultois database with
+several dimensional reduction algorithms (t-SNE, UMAP) to check for clustering.
+It also plots the prevalence of different chemical elements in the Gaultois
+database in a histogram and onto the periodic table.
+"""
+
+
 # %%
 import matplotlib.pyplot as plt
 import numpy as np
@@ -40,6 +48,7 @@ px.scatter(tsne_2d, *tsne_cols[:-1], hover_data=labels.columns)
 # %% 3D
 tsne_3d = TSNE(n_components=3).fit_transform(features)
 tsne_3d = pd.DataFrame(tsne_3d, columns=tsne_cols)
+
 
 # %%
 # Consider using IHS transformation to shrink outlier spread.

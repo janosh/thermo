@@ -1,3 +1,10 @@
+"""
+This notebook compares the performance of neural networks trained with maximum a
+posteriori (MAP) (i.e. maximum likelihood regularized by a prior) and
+Hamiltonian Monte Carlo (HMC).
+"""
+
+
 # %%
 from functools import partial
 
@@ -19,24 +26,28 @@ labels, [y_mean, y_std] = normalize(labels)
 
 data_sets = [X_train, y_train, X_test, y_test]
 
+
 # %% [markdown]
 # # Maximum A Posteriori Neural Network
 
-# %%
-# Per-label weight and bias priors in the order rho, seebeck, kappa, zT.
+
+# %% Per-label weight and bias priors in the order rho, seebeck, kappa, zT.
 weight_priors = [tfp.distributions.Normal(0, std) for std in [0.1, 0.1, 0.1, 0.1]]
 bias_priors = [tfp.distributions.Normal(0, std) for std in [0.1, 1.0, 1.0, 1.0]]
 map_predictors = [
     partial(map_predict, *priors) for priors in zip(weight_priors, bias_priors)
 ]
 
+
 # %%
 map_results = predict_multiple_labels(map_predictors, *data_sets)
 map_y_preds_scd, map_y_vars_scd, map_log_probs, map_initial_states = map_results
 
+
 # %%
 map_mses = get_mses_as_df([y_test, map_y_preds_scd])
 map_mses
+
 
 # # %% Single-label calculation.
 # bnn_log_prob_fn = bnn_fn.target_log_prob_fn_factory(
@@ -55,11 +66,14 @@ map_mses
 #     current_state=list(map_initial_states.log_rho_scd),
 # )
 
+
 # # %%
 # y_pred, y_var = predict_from_chain(samples, X_test.values.astype("float32"))
 
+
 # # %%
 # ((y_pred.numpy() - y_test.log_rho_scd.values) ** 2).mean()
+
 
 # %%
 hmc_predictors = [
@@ -69,9 +83,11 @@ hmc_predictors = [
     )
 ]
 
+
 # %%
 hmc_results = predict_multiple_labels(hmc_predictors, *data_sets[:3])
 hmc_y_preds_scd, hmc_y_vars_scd, *hmc_rest = hmc_results
+
 
 # %%
 hmc_mses = get_mses_as_df([y_test, hmc_y_preds_scd])
