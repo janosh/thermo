@@ -66,19 +66,16 @@ def get_err_decay(y_true, y_pred, y_std, err_func=mse):
     return np.array([decay_by_std, decay_by_err])
 
 
-def plot_output(y_test, y_pred, y_std=None, err_funcs=[mse], **kwargs):
-    """ Convenience function for generating multiple plots in one go for
-    analyzing the output of an ML model.
+def plot_output(y_test, y_pred, y_std=None, **kwargs):
+    """Convenience function for generating multiple plots in one go for
+    analyzing a model's accuracy and quality of uncertainty estimates.
     """
     plots.true_vs_pred(y_test, y_pred, y_std=y_std, **kwargs)
     if y_std is None:
         return
 
-    for fn in err_funcs:
-        decay_by_std, decay_by_err = get_err_decay(y_test, y_pred, y_std, fn)
-        plots.err_decay(
-            *[fn.__name__, decay_by_std, decay_by_err], **kwargs,
-        )
+    decay_by_std, decay_by_err = get_err_decay(y_test, y_pred, y_std, mse)
+    plots.err_decay("mse", decay_by_std, decay_by_err, **kwargs)
 
     abs_err = abs(y_test - y_pred)
     plots.abs_err_vs_std(abs_err, y_std, **kwargs)

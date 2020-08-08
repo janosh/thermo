@@ -7,7 +7,7 @@ import tensorflow_probability as tfp
 from IPython.display import Markdown, display
 
 from bnn.map import map_predict
-from bnn.tf_dropout import do_predict, save_loss_history
+from bnn.tf_dropout import do_predict
 from data import dropna, load_gaultois, normalize, train_test_split
 from gp import gp_predict
 from rf import rf_predict
@@ -201,6 +201,6 @@ for label, y_true, y_pred, y_std, hist in zip(
     # models,
 ):
     display(Markdown(f"# {label}"))
-    save_loss_history(hist)
+    plots.loss_history(hist)
     plot_output(y_true, y_pred, y_std, title=label)
     # plot_model(model, log_dir)

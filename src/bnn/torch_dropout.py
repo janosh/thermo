@@ -34,7 +34,7 @@ class GaultoisData(Dataset):
         return self.features[idx], self.labels[idx]
 
 
-class DropoutModel(nn.Module):
+class TorchDropoutModel(nn.Module):
     """
     Constructs a dropout network with aleatoric and/or epistemic uncertainty estimation.
     """
@@ -48,7 +48,7 @@ class DropoutModel(nn.Module):
         optimizer=None,
         **kwargs,
     ):
-        err_msg = "length mismatch in DropoutModel hyperparams"
+        err_msg = "length mismatch in TorchDropoutModel hyperparams"
         assert len(sizes) == len(drop_rates) == len(activations), err_msg
 
         err_msg = f"unexpected uncertainty type: {uncertainty}"
@@ -64,9 +64,8 @@ class DropoutModel(nn.Module):
         self.net = nn.Sequential(*layers, final)
         self.uncertainty = uncertainty
 
-        self.writer = SummaryWriter(
-            f"{ROOT}/runs/dropout/{uncertainty}/{datetime.now():%Y-%m-%d_%H:%M:%S}"
-        )
+        now = f"{datetime.now():%Y-%m-%d_%H:%M:%S}"
+        self.writer = SummaryWriter(f"{ROOT}/runs/torch_dropout/{uncertainty}/{now}")
         self.epoch = 0
         self.optimizer = optimizer or torch.optim.Adam(self.parameters())
 
@@ -100,6 +99,7 @@ class DropoutModel(nn.Module):
 
     def predict(self, samples, n_preds=100):
         # We're not calling self.eval() here to ensure nn.Dropout remains active.
+        self.train()
 
         if "epistemic" in self.uncertainty:
             preds = torch.stack([self(samples) for _ in range(n_preds)])
