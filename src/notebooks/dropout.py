@@ -32,36 +32,36 @@ rho_test, seebeck_test, kappa_test, zT_test = y_test.to_numpy().T
 
 # %%
 rho_ep_pred, rho_ep_var, rho_ep_history, rho_ep_model = do_predict(
-    X_train, seebeck_train, X_test, seebeck_test, uncertainty="epistemic"
+    X_train, rho_train, X_test, rho_test, uncertainty="epistemic"
 )
 
 
 # %%
-print(f"rho epistemic rmse: {rmse(rho_ep_pred, seebeck_test)}")
+print(f"rho epistemic rmse: {rmse(rho_ep_pred, rho_test)}")
 
 plots.loss_history(rho_ep_history)
 
-plot_output(seebeck_test, rho_ep_pred, rho_ep_var ** 0.5, title="rho")
+plot_output(rho_test, rho_ep_pred, rho_ep_var ** 0.5, title="rho")
 
 
 # %% [markdown]
-# ## Resistivity model with aleatoric and epistemic uncertainty
+# # Resistivity model with aleatoric and epistemic uncertainty
 
 
 # %%
 rho_al_ep_pred, rho_al_ep_var, rho_al_ep_history, rho_al_ep_model = do_predict(
-    X_train, seebeck_train, X_test, seebeck_test
+    X_train, rho_train, X_test, rho_test
 )
 
 
 # %%
-print(f"rho aleatoric_epistemic rmse: {rmse(rho_al_ep_pred, seebeck_test)}")
+print(f"rho aleatoric_epistemic rmse: {rmse(rho_al_ep_pred, rho_test)}")
 plots.loss_history(rho_al_ep_history)
-plot_output(seebeck_test, rho_al_ep_pred, rho_al_ep_var ** 0.5, title="rho")
+plot_output(rho_test, rho_al_ep_pred, rho_al_ep_var ** 0.5, title="rho")
 
 
 # %% [markdown]
-# ## Seebeck model with epistemic uncertainty
+# # Seebeck model with epistemic uncertainty
 
 
 # %%
@@ -77,7 +77,7 @@ plot_output(seebeck_test, see_ep_pred, see_ep_var ** 0.5, title="seebeck")
 
 
 # %% [markdown]
-# ## Seebeck model with aleatoric and epistemic uncertainty
+# # Seebeck model with aleatoric and epistemic uncertainty
 
 
 # %%
@@ -93,7 +93,7 @@ plot_output(seebeck_test, see_al_ep_pred, see_al_ep_var ** 0.5, title="seebeck")
 
 
 # %% [markdown]
-# ## Thermal conductivity model with epistemic uncertainty
+# # Thermal conductivity model with epistemic uncertainty
 
 
 # %%
@@ -109,7 +109,7 @@ plot_output(kappa_test, kappa_ep_pred, kappa_ep_var ** 0.5, title="kappa")
 
 
 # %% [markdown]
-# ## Thermal conductivity model with aleatoric and epistemic uncertainty
+# # Thermal conductivity model with aleatoric and epistemic uncertainty
 
 
 # %%

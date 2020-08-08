@@ -1,16 +1,14 @@
-import numpy as np
 import tensorflow as tf
 
-from utils import plots
 from utils.decorators import timed
 
 
 class Dropout(tf.keras.layers.Layer):
-    """Always-on dropout layer, i.e. does not respect the training flag
-    set to true by model.fit but false by model.predict.
-    Unlike tf.keras.layers.Dropout, this layer does not return input
-    unchanged if training=true, but always randomly drops a fraction specified
-    by self.size of the input nodes.
+    """Always-on dropout layer. Disregards the training flag flag set
+    to true in model.fit() and false in model.predict(). Unlike
+    tf.keras.layers.Dropout, this layer does not return its input
+    unchanged if training=false, but always randomly drops input nodes
+    with probability self.rate.
     """
 
     def __init__(self, rate, **kwargs):
@@ -21,77 +19,61 @@ class Dropout(tf.keras.layers.Layer):
         return tf.nn.dropout(inputs, self.rate)
 
     def get_config(self):
-        """enables model.save and restoration through tf.keras.models.load_model"""
+        """Enables model.save and restoration through tf.keras.models.load_model.
+        """
         config = super().get_config()
         config["rate"] = self.rate
         return config
 
 
-def build_model(n_features, hyperparams=None, uncertainty="aleatoric_epistemic"):
-    """
-    Build fully-connected neural network with aleatoric and/or epistemic
+class TFDropoutModel(tf.keras.Model):
+    """Build fully-connected dropout neural network with aleatoric and/or epistemic
     uncertainty estimation.
-
-    n_features (int): number of features (columns in the matrix X)
     """
-    if not hyperparams:
-        nodes = (100, 50, 25, 10)
-        dropout_rates = (0.5, 0.3, 0.3, 0.3)
-        activations = ("tanh", "relu", "relu", "relu")
-        hyperparams = zip(nodes, dropout_rates, activations)
 
-    inputs = head = tf.keras.Input(shape=(n_features,), name="input")
+    def __init__(
+        self,
+        n_features,  # (int) number of features (columns in the input matrix X)
+        h_sizes=(100, 50, 25, 10),  # (List[int]) size of hidden layers
+        drop_rates=(0.5, 0.3, 0.3, 0.3),  # dropout rates after each hidden layer
+        activations=("tanh", "relu", "relu", "relu"),
+        uncertainty="aleatoric_epistemic",
+        optim="adam",
+    ):
+        assert (
+            len(h_sizes) == len(drop_rates) == len(activations)
+        ), "length mismatch in hypers"
 
-    for nodes, drop_rate, act_func in hyperparams:
-        head = tf.keras.layers.Dense(nodes, activation=act_func)(head)
-        head = Dropout(drop_rate)(head)
+        valid_uncert = ["aleatoric", "epistemic", "aleatoric_epistemic"]
+        assert uncertainty in valid_uncert, f"unexpected uncertainty: {uncertainty}"
 
-    if uncertainty == "epistemic":
-        outputs = tf.keras.layers.Dense(1, activation="linear", name="output")(head)
-        loss = "mse"
-    elif "aleatoric" in uncertainty:
-        # Standard predictive (mean) output. Same as with epistemic uncertainty.
-        pred_output = tf.keras.layers.Dense(1, activation="linear", name="pred_output")(
-            head
+        self.uncertainty = uncertainty
+
+        inputs = head = tf.keras.Input(shape=[n_features])
+
+        for size, drop_rate, act_func in zip(h_sizes, drop_rates, activations):
+            head = tf.keras.layers.Dense(size, activation=act_func)(head)
+            head = Dropout(drop_rate)(head)
+
+        # If "aleatoric" in uncertainty, first node gives predictive mean (same as with
+        # epistemic uncertainty), second node gives data-dependent/heteroscedastic
+        # uncertainty (variance).
+        outputs = tf.keras.layers.Dense(
+            1 if uncertainty == "epistemic" else 2, activation="linear"
+        )(head)
+        super().__init__(inputs, outputs, name=uncertainty + "_dropout_model")
+
+        aleatoric_loss = lambda y_true, output: robust_mse(
+            y_true, *tf.unstack(output, axis=-1)
         )
-        # Data-dependent uncertainty output.
-        var_output = tf.keras.layers.Dense(1, activation="linear", name="var_output")(
-            head
+        self.compile(
+            optimizer=optim,
+            loss="mse" if uncertainty == "epistemic" else aleatoric_loss,
         )
-        outputs = [pred_output, var_output]
-
-        pred_loss = lambda y_true, y_pred: robust_mse(y_true, y_pred, var_output)
-        var_loss = lambda y_true, y_log_var: robust_mse(y_true, pred_output, y_log_var)
-        loss = {"pred_output": pred_loss, "var_output": var_loss}
-    else:
-        raise ValueError(f"build_model received unexpected uncertainty {uncertainty}")
-
-    model = tf.keras.Model(
-        inputs=inputs, outputs=outputs, name=uncertainty + "_dropout_model"
-    )
-    model.compile(optimizer="adam", loss=loss)
-
-    model.uncertainty = uncertainty
-    return model
 
 
 @timed
-def train_model(model, X_train, y_train, epochs=500, **kwargs):
-    if "aleatoric" in model.uncertainty:
-        history = model.fit(
-            X_train,
-            {"pred_output": y_train, "var_output": y_train},
-            epochs=epochs,
-            validation_split=0.1,
-            **kwargs,
-        )
-    elif model.uncertainty == "epistemic":
-        history = model.fit(X_train, y_train, epochs=epochs, validation_split=0.1)
-    return history.history
-
-
-@timed
-def predict(model, X_test, n_preds=500):
+def predict(model, X_test, n_preds=100):
     """
     perform n_preds Monte Carlo predictions (i.e. with dropout)
     save and return predictive mean and total uncertainty
@@ -108,8 +90,7 @@ def predict(model, X_test, n_preds=500):
             y_pred, y_var = tf.nn.moments(output, axes=0)
         if model.uncertainty == "aleatoric_epistemic":
             # compute predictive mean and total uncertainty of n_preds forward passes
-            preds, log_vars = tf.unstack(tf.squeeze(output), axis=1)
-            # preds, log_vars = tf.unstack(tf.squeeze(output), axis=-1)
+            preds, log_vars = tf.unstack(output, axis=-1)
             y_pred, y_var_epist = tf.nn.moments(preds, axes=0)
             y_var_aleat = tf.reduce_mean(tf.exp(log_vars), axis=0)
             # total variance given by sum of aleatoric and epistemic contribution
@@ -120,24 +101,21 @@ def predict(model, X_test, n_preds=500):
 
 def do_predict(X_train, y_train, X_test, y_test, **kwargs):
     defaults = [
-        ("hyperparams", None),
-        ("epochs", 500),
-        ("n_preds", 500),
+        ("epochs", 100),
+        ("n_preds", 100),
         ("cbs", []),
         ("uncertainty", "aleatoric_epistemic"),
     ]
-    hyperparams, epochs, n_preds, cbs, uncertainty = [
-        kwargs.pop(*kw) for kw in defaults
+    epochs, n_preds, cbs, uncertainty = [
+        kwargs.pop(key, default) for key, default in defaults
     ]
 
-    model = build_model(
-        X_train.shape[1], uncertainty=uncertainty, hyperparams=hyperparams
-    )
-    history = train_model(
-        model, X_train, y_train, callbacks=cbs, epochs=epochs, verbose=0, **kwargs
+    model = TFDropoutModel(X_train.shape[1], uncertainty=uncertainty)
+    history = model.fit(
+        X_train, y_train, epochs=epochs, validation_split=0.1, callbacks=cbs, **kwargs
     )
     y_pred, y_var = predict(model, X_test, n_preds=n_preds)
-    return y_pred, y_var, history, model
+    return y_pred, y_var, history.history, model
 
 
 def plot_model(model, path):
@@ -151,22 +129,9 @@ def plot_model(model, path):
 
 
 def load_model(path, filename="model.h5"):
-    restored_model = tf.keras.models.load_model(
+    return tf.keras.models.load_model(
         path + filename, custom_objects={"Dropout": Dropout}
     )
-    return restored_model
-
-
-def save_loss_history(loss_history, path):
-    if hasattr(loss_history, "val_loss"):
-        loss_history["validation loss"] = loss_history.pop("val_loss")
-        loss_history["training loss"] = loss_history.pop("loss")
-
-    plots.loss_history(loss_history)
-    header, cols = zip(*loss_history.items())
-    header, cols = ", ".join(header), np.transpose(cols)
-    to_file = path + "loss_history.csv"
-    np.savetxt(to_file, cols, header=header, delimiter=", ", fmt="%5g")
 
 
 def robust_mse(y_true, y_pred, y_log_var):
