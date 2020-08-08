@@ -97,7 +97,7 @@ def normalize(df, mean=None, std=None):
     # ensure we don't divide by zero in columns with zero std (all entries identical)
     try:
         # if df was a 1d array or pd.Series to begin with, std will be a
-        # non-subscriptable float
+        # non-subscriptable float, so we handle that case in except
         std[std == 0] = 1
     except TypeError:
         std = std if std > 0 else 1
