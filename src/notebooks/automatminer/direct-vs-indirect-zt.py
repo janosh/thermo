@@ -4,7 +4,7 @@ import os
 from data import dropna, load_gaultois, train_test_split
 from rf.forest import RandomForestRegressor
 from utils import ROOT, plots
-from utils.amm import MatPipe, fit_pred_pipe
+from utils.amm import MatPipe, featurize, fit_pred_pipe
 from utils.evaluate import mae, plot_output, rmse
 
 SAVE_TO = ROOT + "/results/amm/zT_direct_vs_indirect/"
@@ -23,17 +23,17 @@ train_df, test_df = train_test_split(labels)
 
 # %%
 # !%%capture
-mat_pipe_zT, pred_df_zT = fit_pred_pipe("zT")
+mat_pipe_zT, pred_df_zT = fit_pred_pipe(train_df, test_df, "zT")
 
 
 # %%
 # !%%capture
-mat_pipe_PF, pred_df_PF = fit_pred_pipe("PF")
+mat_pipe_PF, pred_df_PF = fit_pred_pipe(train_df, test_df, "PF")
 
 
 # %%
 # !%%capture
-mat_pipe_kappa, pred_df_kappa = fit_pred_pipe("kappa")
+mat_pipe_kappa, pred_df_kappa = fit_pred_pipe(train_df, test_df, "kappa")
 
 
 # %%
@@ -56,7 +56,7 @@ MAE: 0.0644).
 If running without **pipe_config() (see amm.fit_pred_pipe), predicting zT directly
 actually performs slightly better. zT_direct: (MSE: 0.02031, MAE: 0.06547),
 zT_computed: (MSE: 0.02541, MAE: 0.06609). This may be due to the directly fitted
-TPOTAdapter ran to completion while those for PF and kappa both timed out after 60 min.
+TPOTAdapter running to completion while those for PF and kappa timed out after 60 min.
 
 If running with preset "debug" (optimized for speed), predicting zT directly noticeably
 outperforms kappa & power factor individually. zT_direct: (MSE: 0.02084, MAE: 0.06684),
@@ -121,18 +121,15 @@ plots.true_vs_pred(test_df.zT.values, pred_df_zT.zT_pred.values)
 
 
 # %%
-def featurize(pipe, df):
-    df = pipe.autofeaturizer.transform(df, pipe.target)
-    df = pipe.cleaner.transform(df, pipe.target)
-    df = pipe.reducer.transform(df, pipe.target)
-    return df
+# !%%capture
+amm_train_fea = featurize(mat_pipe_zT, train_df[["T", "composition"]])
+amm_test_fea = featurize(mat_pipe_zT, test_df[["T", "composition"]])
 
 
 # %%
-# !%%capture
 rf = RandomForestRegressor()
-rf.fit(featurize(mat_pipe_zT, train_df[["T", "composition"]]), train_df.zT)
-rf_y_pred, rf_y_var = rf.predict(featurize(mat_pipe_zT, test_df[["T", "composition"]]))
+rf.fit(amm_train_fea, train_df.zT)
+rf_y_pred, rf_y_var = rf.predict(amm_test_fea)
 
 
 # %%

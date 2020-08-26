@@ -47,17 +47,22 @@ class RandomForestRegressor(RFR):
 
     def get_var(self, X_test, y_pred, uncertainty="both"):
         """Uses law of total variance to compute var(Y|X_test) as
-        E[Var(Y|Tree)] + Var(E[Y|Tree]). In other words, we sum the variance
-        across the means predicted by individual trees (epistemic uncertainty:
-        increases if the trees disagree) with the variance from each tree (aleatoric
-        uncertainty: increases if predictions made by individual trees vary more).
+        E[Var(Y|Tree)] + Var(E[Y|Tree]). The first term represents epistemic uncertainty
+        and is captured by the variance over the means predicted by individual trees.
+        This uncertainty increases the more different trees disagree. The second term
+        represents aleatoric uncertainty and is captured by the average impurity across
+        all leaf nodes that a given samples ends up in for different trees. This is
+        only a proxy for aleatoric uncertainty but is motivated by the interpretation
+        that a less pure node means the tree is less certain about how to draw decision
+        boundaries for that sample.
         See https://arxiv.org/abs/1211.0906 (sec. 4.3.2) and
         https://arxiv.org/abs/1710.07283 (paragraphs following eq. 3).
 
         HINT: If including aleatoric uncertainty, consider increasing min_samples_leaf
         to say 10 (default: 1) to improve uncertainty quality. Unfortunately, this
-        worsens predictive performance. Might be worth training two separate models
-        when including aleatoric, one for y_var, one for y_pred.
+        worsens predictive performance. TODO: Might be worth training two separate
+        models when including aleatoric uncertainty, one solely to estimate y_var_aleat
+        with min_samples_leaf > 1 and one solely for y_pred.
 
         Note: Another option for estimating confidence intervals is the prediction
         variability, i.e. how influential training set is for producing observed

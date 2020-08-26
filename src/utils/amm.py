@@ -31,22 +31,26 @@ for key in list(tpot_config):
     if not key.endswith(good_regressors):
         del tpot_config[key]
 
+
 # pipe_config needs to be a function rather than a dict. Else multiple pipes
 # running concurrently will receive a handle to the same learner (pipe.learner)
 # and overwrite each other's fitting.
-pipe_config = lambda preset="express": {
-    **amm.get_preset_config(preset),
-    "autofeaturizer": amm.AutoFeaturizer(
-        # preset="express",
-        featurizers=featurizers,
-        guess_oxistates=False,
-    ),
-    "learner": amm.TPOTAdaptor(max_time_mins=10),  # config_dict=tpot_config
-}
+def pipe_config(preset="express", **tpot_kwargs):
+    tpot_default = {"max_time_mins": 10}  # "config_dict": tpot_config
+    tpot_default.update(tpot_kwargs)
+    return {
+        **amm.get_preset_config(preset),
+        "autofeaturizer": amm.AutoFeaturizer(
+            # preset="express",
+            featurizers=featurizers,
+            guess_oxistates=False,
+        ),
+        "learner": amm.TPOTAdaptor(**tpot_default),
+    }
 
 
-def fit_pred_pipe(train_df, test_df, target):
-    mat_pipe = MatPipe(**pipe_config())
+def fit_pred_pipe(train_df, test_df, target, **kwargs):
+    mat_pipe = MatPipe(**pipe_config(**kwargs))
     mat_pipe.fit(train_df[["T", "composition", target]], target)
     pred_df = mat_pipe.predict(
         test_df[["T", "composition"]], output_col=target + "_pred"
