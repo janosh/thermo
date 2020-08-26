@@ -15,8 +15,7 @@ def with_attr(key, val):
 
 
 def timed(func):
-    """Measures execution time (wall clock time) of
-    decorated functions."""
+    """Measures execution time of decorated functions."""
 
     @functools.wraps(func)
     def timed_func(*args, **kwargs):
