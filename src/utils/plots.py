@@ -1,52 +1,45 @@
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import sklearn
-import sklearn.preprocessing
 from matplotlib import pyplot as plt
 from matplotlib.cm import YlGn
 from matplotlib.colors import Normalize
+from matplotlib.offsetbox import AnchoredText
 from matplotlib.patches import Rectangle
 from pymatgen.core import Composition
-from scipy.stats import gaussian_kde, pearsonr, spearmanr
+from scipy.stats import gaussian_kde, pearsonr
 
-from utils import ROOT
-
-# plt.rcParams.update({"font.size": 14, "font.serif": "Computer Modern Roman"})
+from utils import ROOT, pd_to_np
 
 
-def text_box(text, x=0.87, y=0.84, halign="right", valign="top", bbox=None):
+def add_text_box(text):
     # Add lw=0 to remove the black edge around the bounding box.
-    bbox = bbox or dict(facecolor="white", pad=3, lw=1)
-    plt.gcf().text(x, y, text, ha=halign, va=valign, bbox=bbox)
+    # prop: keyword params passed to the Text instance inside AnchoredText.
+    prop = {"bbox": {"lw": 0.5, "facecolor": "white"}}
+    text_box = AnchoredText(text, borderpad=1, prop=prop, loc="upper right", pad=0.2)
+    plt.gca().add_artist(text_box)
 
 
-def get_corr_p(seq1, seq2):
-    [rp, pp], [rs, ps] = [r_fn(seq1, seq2) for r_fn in [pearsonr, spearmanr]]
-    return [rp, pp], [rs, ps]
+def corr_text(seq1, seq2):
+    rp, _ = pearsonr(seq1, seq2)
+    text = f"$r_P = {rp:.2g}$"
+    return text
 
 
-def display_corr(seq1, seq2, prefix="", postfix="", **kwds):
-    [rp, _], [rs, _] = get_corr_p(seq1, seq2)
-    text = f"$r_\\mathrm{{P}} = {rp:.2g}$\n"
-    text += f"$r_\\mathrm{{S}} = {rs:.2g}$"
-    text_box(prefix + text + postfix, **kwds)
+def show_err_decay_dist(decay_by_std, decay_by_err):
+    """Displays the average distance between the decay curves of
+    discarding points by uncertainty and discarding points by error.
+    Lower is better.
+    """
+    decay_by_std, decay_by_err = pd_to_np(decay_by_std, decay_by_err)
+    dist = (decay_by_std - decay_by_err).mean()
+
+    text = f"$d = {dist:.2g}$\n"
+    text += corr_text(decay_by_std, decay_by_err)
+    add_text_box(text)
 
 
-def display_err_decay_avr_dist(decay_by_std, decay_by_err):
-    if isinstance(decay_by_std, (pd.DataFrame, pd.Series)):
-        decay_by_std, decay_by_err = (decay_by_std.values, decay_by_err.values)
-    dist = np.sum(decay_by_std - decay_by_err) / len(decay_by_std)
-    scaler = sklearn.preprocessing.StandardScaler()
-    decay_by_std_scd = scaler.fit_transform(decay_by_std.reshape(-1, 1))
-    decay_scd_by_err = scaler.transform(decay_by_err.reshape(-1, 1))
-    dist_scd = np.sum(decay_by_std_scd - decay_scd_by_err) / len(decay_by_std)
-    text = f"$d_\\mathrm{{avg}} = {dist:.2g}$\n"
-    text += f"$d_\\mathrm{{norm}} = {dist_scd:.2g}$\n"
-    display_corr(decay_by_std, decay_by_err, prefix=text)
-
-
-def err_decay(err_name, *args, title=None, bare=False):
+def err_decay(err_name, decay_by_std, decay_by_err, title=None):
     """Plot for assessing the quality of uncertainty estimates. If a model's
     uncertainty is well calibrated, i.e. strongly correlated with its error,
     removing the most uncertain predictions should make the mean error decay
@@ -55,24 +48,23 @@ def err_decay(err_name, *args, title=None, bare=False):
     Args:
         err_name (str): usually MAE or MSE
         title (str, optional): plot title
-        bare (bool, optional): whether to include title and axis labels
     """
-    for arg in args:
-        countdown = range(len(arg), 0, -1)
-        plt.plot(countdown, arg)
+    countdown = range(len(decay_by_std), 0, -1)
+    plt.plot(countdown, decay_by_std)
+    plt.plot(countdown, decay_by_err)
 
     plt.gca().invert_xaxis()
-    decay_by_std, decay_by_err = args[:2]
-    display_err_decay_avr_dist(decay_by_std, decay_by_err)
+    show_err_decay_dist(decay_by_std, decay_by_err)
 
-    if not bare:
-        # n: Number of excluded points starting with points of largest
-        # error/uncertainty, resp.
-        plt.xlabel("$n$")
-        plt.ylabel(f"$\\epsilon_\\mathrm{{{err_name}}}$")
-        plt.title(title)
+    # n: Number of excluded points starting with points of largest
+    # error/uncertainty, resp.
+    plt.xlabel("$n$")
+    plt.ylabel(f"$\\epsilon_\\mathrm{{{err_name}}}$")
+    plt.title(title)
 
+    fig = plt.gcf()
     plt.show()
+    return fig
 
 
 def add_identity(axis, **line_kwargs):
@@ -97,34 +89,40 @@ def add_identity(axis, **line_kwargs):
     return axis
 
 
-def abs_err_vs_std(abs_err, y_std, title=None, bare=False, log_log=False):
+def abs_err_vs_std(abs_err, y_std, title=None):
     plt.scatter(abs_err, y_std, s=10)  # s: markersize
-    if not bare:
-        plt.xlabel("$\\epsilon_\\mathrm{abs} = |y_\\mathrm{true} - y_\\mathrm{pred}|$")
-        plt.ylabel("$y_\\mathrm{std}$")
-        plt.title(title)
-    if log_log:
-        plt.yscale("log")
-        plt.xscale("log")
 
+    plt.xlabel("$\\epsilon_\\mathrm{abs} = |y_\\mathrm{true} - y_\\mathrm{pred}|$")
+    plt.ylabel("$y_\\mathrm{std}$")
+    plt.title(title)
+
+    # plt.axis("scaled")
     add_identity(plt.gca())
-    display_corr(abs_err, y_std)
+    text = corr_text(abs_err, y_std)
+    add_text_box(text)
 
+    fig = plt.gcf()
     plt.show()
+    return fig
 
 
-def true_vs_pred(y_test, y_pred, y_std=None, title=None, bare=False):
+def true_vs_pred(y_test, y_pred, y_std=None, title=None):
     styles = dict(markersize=6, fmt="o", ecolor="g", capthick=2, elinewidth=2)
     plt.errorbar(y_test, y_pred, yerr=y_std, **styles)
-    if not bare:
-        plt.xlabel("$y_\\mathrm{test}$")
-        plt.ylabel("$y_\\mathrm{pred}$")
-        plt.title(title)
-    add_identity(plt.gca())
-    prefix = f"$\\epsilon_\\mathrm{{mae}} = {np.abs(y_test - y_pred).mean():.3g}$\n"
-    display_corr(y_test, y_pred, x=0.15, halign="left", prefix=prefix)
 
+    plt.xlabel("$y_\\mathrm{test}$")
+    plt.ylabel("$y_\\mathrm{pred}$")
+    plt.title(title)
+
+    add_identity(plt.gca())
+    text = f"$\\epsilon_\\mathrm{{mae}} = {np.abs(y_test - y_pred).mean():.3g}$\n"
+
+    text += corr_text(y_test, y_pred)
+    add_text_box(text)
+
+    fig = plt.gcf()
     plt.show()
+    return fig
 
 
 def std_vs_pred(y_std, y_pred, title=None):
@@ -136,12 +134,20 @@ def std_vs_pred(y_std, y_pred, title=None):
     plt.show()
 
 
-def loss_history(loss_histories):
-    for name, loss in loss_histories.items():
-        plt.plot(loss, label=name)
-    plt.legend()
-    plt.xlabel("epoch")
-    plt.ylabel("loss")
+def loss_history(hist):
+    fig = plt.figure(figsize=[12, 5])
+    for key, data in hist.items():
+        if "loss" in key:
+            ax1 = fig.add_subplot(1, 2, 1)
+            ax1.plot(data, label=key)
+            ax1.set(xlabel="epoch")
+        else:  # plot other metrics like accuracy or loss without
+            # regularizers on a separate axis
+            ax2 = fig.add_subplot(1, 2, 2)
+            ax2.plot(data, label=key)
+            ax2.set(xlabel="epoch")
+
+    [ax.legend() for ax in fig.axes]
 
     plt.show()
 
@@ -167,30 +173,26 @@ def step_sizes(step_sizes):
     plt.show()
 
 
-def mse_boxes(df, title=None, bare=False):
+def mse_boxes(df, title=None):
     # showfliers=False: Take outliers in the data into account but don't display them.
     ax = sns.boxplot(data=df, width=0.6, showfliers=False)
     ax.set_ylim(0, None)
     for patch in ax.artists:
         *rgb, a = patch.get_facecolor()
         patch.set_facecolor((*rgb, 0.8))
-    if not bare:
-        plt.title(title)
-        plt.xlabel("model")
-        plt.ylabel("$\\epsilon_\\mathrm{mse}$")
+
+    plt.title(title)
+    plt.xlabel("model")
+    plt.ylabel("$\\epsilon_\\mathrm{mse}$")
 
     plt.show()
 
 
-def cv_mse_decay(df, title=None, bare=False):
-    ax = sns.lineplot(data=df[["err_decay_by_std", "true_err_decay"]])
-    display_err_decay_avr_dist(df.err_decay_by_std, df.true_err_decay)
+def cv_mse_decay(df, title=None):
+    sns.lineplot(data=df[["err_decay_by_std", "true_err_decay"]])
+    show_err_decay_dist(df.err_decay_by_std, df.true_err_decay)
     if title:
         plt.title(title)
-    if bare:
-        ax.get_legend().remove()
-        plt.xlabel("")
-        plt.ylabel("")
 
     plt.show()
 
@@ -363,7 +365,7 @@ def true_vs_pred_with_hist(y_true, y_pred, x_hist=True, y_hist=True):
 
 
 def residual(y_true, y_pred):
-    plt.figure(figsize=(8, 8))
+    fig = plt.figure(figsize=(8, 8))
 
     y_err = y_pred - y_true
 
@@ -376,10 +378,11 @@ def residual(y_true, y_pred):
     plt.ylabel("Residual error (Units)")
     plt.xlabel("Actual value (Units)")
     plt.legend(loc="lower right")
+    return fig
 
 
 def residual_hist(y_true, y_pred):
-    plt.figure(figsize=(8, 8))
+    fig = plt.figure(figsize=(8, 8))
 
     y_err = y_pred - y_true
     plt.hist(y_err, bins=35, density=True, edgecolor="black")
@@ -391,6 +394,8 @@ def residual_hist(y_true, y_pred):
 
     plt.xlabel("Residual error (Units)")
     plt.legend(loc=2, framealpha=0.5, handlelength=1)
+    plt.show()
+    return fig
 
 
 def show_bar_values(ax, offset=15):
