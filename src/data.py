@@ -7,6 +7,7 @@ Label units (in /data/gaultois_labels.csv):
 - thermoelectric figure of merit (zT): dimensionless
 """
 
+
 import numpy as np
 import pandas as pd
 from pymatgen import MPRester
@@ -14,6 +15,16 @@ from pymatgen.ext.cod import COD
 
 from utils import ROOT
 from utils.decorators import squeeze
+
+
+def to_type(df, dtype="float32"):
+    """Convert all non-string columns to a different data type.
+    E.g. float64 and int to float32.
+    """
+    df_not_str = df.select_dtypes(exclude=object).astype(dtype)
+    df_str = df.select_dtypes(include=object)
+
+    return df_not_str.join(df_str)
 
 
 def load_gaultois(target_cols: list = ["rho", "seebeck", "kappa", "zT"]):
@@ -25,7 +36,7 @@ def load_gaultois(target_cols: list = ["rho", "seebeck", "kappa", "zT"]):
     if target_cols:
         labels = labels[target_cols]
 
-    return features, labels
+    return to_type(features), to_type(labels)
 
 
 def load_screen():
@@ -36,7 +47,7 @@ def load_screen():
     features = pd.read_csv(ROOT + "/data/screen_features.csv")
     formulas = pd.read_csv(ROOT + "/data/screen_formulas.csv", comment="#")
 
-    return formulas, features
+    return to_type(formulas), to_type(features)
 
 
 @squeeze
