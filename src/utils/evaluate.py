@@ -70,15 +70,18 @@ def plot_output(y_test, y_pred, y_std=None, **kwargs):
     """Convenience function for generating multiple plots in one go for
     analyzing a model's accuracy and quality of uncertainty estimates.
     """
-    plots.true_vs_pred(y_test, y_pred, y_std=y_std, **kwargs)
+    fig1 = plots.true_vs_pred(y_test, y_pred, y_std=y_std, **kwargs)
+    # fig4 = plots.residual(y_test, y_pred)
+    # fig5 = plots.residual_hist(y_test, y_pred)
     if y_std is None:
         return
 
     decay_by_std, decay_by_err = get_err_decay(y_test, y_pred, y_std, mse)
-    plots.err_decay("mse", decay_by_std, decay_by_err, **kwargs)
+    fig2 = plots.err_decay("mse", decay_by_std, decay_by_err, **kwargs)
 
     abs_err = abs(y_test - y_pred)
-    plots.abs_err_vs_std(abs_err, y_std, **kwargs)
+    fig3 = plots.abs_err_vs_std(abs_err, y_std, **kwargs)
+    return fig1, fig2, fig3
 
 
 def dfs_have_same_col_names(dfs, sort=False):
