@@ -8,47 +8,44 @@ from tqdm import tqdm
 ROOT = os.getcwd().split("/src", 1)[0]
 
 
-def pd_to_np(*args):
-    args = [a.values if isinstance(a, (pd.DataFrame, pd.Series)) else a for a in args]
-    # astype("float32") converts booleans (like "compound possible" in features) to
-    # 0.0/1.0. It's also needed for integer values which prevent conversion to tensors
-    # (when running TF models) unless previously converted to floats.
-    return [a.astype("float32") for a in args]
+def pd2np(*args):
+    return [a.values if isinstance(a, (pd.DataFrame, pd.Series)) else a for a in args]
 
 
-def predict_multiple_labels(pred_func, X_train, y_train, X_test, *args):
+def predict_multiple_labels(pred_func, X_train, y_train, X_test, y_test=None):
     """Train and run multiple models in sequence on a list of labels (e.g. rho, Seebeck,
     kappa, zT) passed as columns in the dataframe y_train. *args can contain
     additional arguments passed to the predictor function such as y_test for
     performance monitoring, e.g. calculating the log probability of weights in a BNN.
     """
     # Save column names and original dataframe index before converting to arrays.
-    n_labels, col_names, idx = len(y_train), y_train.index, X_test.index
+    n_labels = len(y_train.columns)
+    col_names, idx = y_train.columns, X_test.index
 
-    X_train, y_train, X_test, *args = pd_to_np(X_train, y_train, X_test, *args)
+    X_train, y_train, X_test, y_test = pd2np(X_train, y_train, X_test, y_test)
 
     if not callable(pred_func):
         # If pred_func is not a function, it must be a list of functions,
         # one for each label.
         assert (
             len(pred_func) == n_labels
-        ), "pred_func must be callable or a list of callables, one for each label"
+        ), f"len(pred_func) == {len(pred_func)} != len(y_train.columns) == {n_labels}"
         assert all(callable(fn) for fn in pred_func), "Received non-callable pred_func"
     else:
         pred_func = [pred_func] * n_labels
 
     # Calculate predictions (where all the work happens).
-    results = [
-        fn(X_train, y_tr, X_test, *arg)
-        for fn, y_tr, *arg in zip(pred_func, y_train, *args)
-    ]
+    iters = zip(pred_func, y_train.T, y_test.T if y_test else [None] * n_labels)
+    results = [fn(X_train, y_tr, X_test, y_te) for fn, y_tr, y_te in iters]
 
     processed = [
         # convert lists and arrays to dataframes, restoring former label names and index
-        pd.DataFrame(x, index=col_names, columns=idx).T
-        if isinstance(x[0], (np.ndarray, list, tuple))
+        pd.DataFrame(np.array(x).T, columns=col_names, index=idx)
+        if isinstance(x[0], np.ndarray)
         # convert single-entry results (e.g. trained models) to dicts named by label
         else dict(zip(col_names, x))
+        # transpose results so first dim is different result types (y_pred, y_var, etc.)
+        # where before first dim was different labels
         for x in zip(*results)
     ]
 

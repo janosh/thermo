@@ -9,7 +9,7 @@ from matplotlib.patches import Rectangle
 from pymatgen.core import Composition
 from scipy.stats import gaussian_kde, pearsonr
 
-from utils import ROOT, pd_to_np
+from utils import ROOT, pd2np
 
 
 def add_text_box(text):
@@ -31,7 +31,7 @@ def show_err_decay_dist(decay_by_std, decay_by_err):
     discarding points by uncertainty and discarding points by error.
     Lower is better.
     """
-    decay_by_std, decay_by_err = pd_to_np(decay_by_std, decay_by_err)
+    decay_by_std, decay_by_err = pd2np(decay_by_std, decay_by_err)
     dist = (decay_by_std - decay_by_err).mean()
 
     text = f"$d = {dist:.2g}$\n"
