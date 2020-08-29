@@ -13,7 +13,7 @@ from gurobipy import GRB, Model, quicksum
 from matplotlib import pyplot as plt
 from plotly import express as px
 
-from data import load_gaultois, load_screen, normalize
+from data import dropna, load_gaultois, load_screen, normalize
 from rf import rf_predict
 from utils import ROOT, predict_multiple_labels
 from utils.correlation import expected_rand_obj_val, rand_obj_val_avr
@@ -24,6 +24,7 @@ DIR = ROOT + "/results/screen/"
 
 # %%
 features, labels = load_gaultois()
+labels, features = dropna(labels, features)
 formulas, screen_features = load_screen()
 
 
@@ -52,7 +53,7 @@ scd_labels, [y_mean, y_std] = normalize(labels)
 
 # %%
 rf_y_preds_scd, rf_y_vars_scd, rf_models = predict_multiple_labels(
-    rf_predict, features, scd_labels.T, screen_features
+    rf_predict, features, scd_labels, screen_features
 )
 
 

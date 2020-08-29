@@ -92,7 +92,7 @@ def run_hmc(
             step_size_getter_fn=lambda pkr: pkr.step_size,
             log_accept_prob_getter_fn=lambda pkr: pkr.log_accept_ratio,
         )
-    elif sampler == "hmc":
+    else:  # sampler == "hmc"
         kernel = tfp.mcmc.HamiltonianMonteCarlo(
             target_log_prob_fn,
             step_size=step_size,
