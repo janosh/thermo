@@ -1,95 +1,180 @@
 """
-MNF vs dropout vs RF, all with Magpie features
+MNF vs. RF (vs. dropout) using Magpie and AMM features
 
 This notebook compares performance of Multiplicative Normalizing Flow (MNF)
-against random forest (RF), both using Magpie features.
+against random forest (RF) (and dropout), testing first Magpie, then
+automatminer features.
 """
 
 
 # %%
-from datetime import datetime
+import os
 
 import tensorflow as tf
 from tf_mnf.models import MNFFeedForward
 from torch.utils.data.dataloader import DataLoader
-from tqdm import tqdm
 
 from bnn.torch_dropout import GaultoisData, TorchDropoutModel
 from data import dropna, load_gaultois, normalize, train_test_split
 from rf import rf_predict
-from utils import ROOT
+from utils import ROOT, amm, plots
 from utils.evaluate import plot_output
 
 # %%
-features, labels = load_gaultois()
-labels, features = dropna(labels, features)
-
-features, [X_mean, X_std] = normalize(features)
-labels, [y_mean, y_std] = normalize(labels)
-
-[X_train, y_train], [X_test, y_test] = train_test_split(features, labels)
+SAVE_TO = ROOT + "/results/mnf/"
+os.makedirs(SAVE_TO, exist_ok=True)
+tf.random.set_seed(0)
 
 
 # %%
-mnf_model = MNFFeedForward(layer_dims=(100, 50, 10, 1))
+magpie_fea, labels = load_gaultois(target_cols=["formula", "zT", "T"])
+labels, magpie_fea = dropna(labels, magpie_fea)
+zT = labels.pop("zT")
+
+
+# %%
+mat_pipe = amm.MatPipe.load(ROOT + "/results/amm/amm_vs_magpie/mat.pipe")
+amm_fea = amm.featurize(mat_pipe, labels.rename(columns={"formula": "composition"}))
+
+
+# %%
+# zT is already order 1, ran tests and appears to be unnecessary to normalize
+# zT, [zT_mean, zT_std] = normalize(zT)
+magpie_fea, [mp_mean, mp_std] = normalize(magpie_fea)
+amm_fea, [amm_mean, amm_std] = normalize(amm_fea)
+
+train_set, test_set = train_test_split(magpie_fea, amm_fea, labels, zT)
+
+mp_train, amm_train, y_train, zT_train = train_set
+mp_test, amm_test, y_test, zT_test = test_set
+
+
+# %% [markdown]
+# # Multiplicative Normalizing Flow
+
+
+# %%
+mp_mnf_model = MNFFeedForward(layer_sizes=(100, 50, 10, 1))
+amm_mnf_model = MNFFeedForward(layer_sizes=(100, 50, 10, 1))
 adam = tf.optimizers.Adam()
-batch_size = 32
+n_samples = len(mp_train)
 
 
 # %%
-def loss_fn(y_true, y_pred):
-    mse_loss = tf.metrics.mse(y_true, y_pred)
-    kl_loss = mnf_model.kl_div() / (2 * batch_size)
-    return mse_loss + kl_loss
+def loss_factory(model):
+    def loss_fn(y_true, y_pred):
+        mse = tf.metrics.mse(y_true, y_pred)
+        # KL div is reweighted such that it's applied once per epoch
+        kl_loss = model.kl_div() / n_samples * 1e-3
+        return mse + kl_loss
+
+    return loss_fn
 
 
 # %%
-mnf_model.compile(loss=loss_fn, optimizer=adam, metrics=["mse"])
+mp_mnf_model.compile(adam, loss_factory(mp_mnf_model), metrics=["mse"])
+
+amm_mnf_model.compile(adam, loss_factory(amm_mnf_model), metrics=["mse"])
 
 
 # %%
-cb = tf.keras.callbacks.TensorBoard(
-    log_dir=ROOT + f"/runs/mnf-bnn/{datetime.now():%m-%d_%H:%M:%S}"
-)
-mnf_hist = mnf_model.fit(
-    X_train.values.astype("float32"),
-    y_train.zT.values.astype("float32"),
-    validation_split=0.1,
-    callbacks=[cb],
-    batch_size=batch_size,
-    epochs=100,
+stop_early = tf.keras.callbacks.EarlyStopping(
+    monitor="val_mse", patience=50, restore_best_weights=True
 )
 
 
 # %%
-def predict_mnf_lenet(X, n_samples=50):
-    preds = []
-    for _ in tqdm(range(n_samples), desc="Sampling"):
-        preds.append(mnf_model(X, training=False))
-    return tf.squeeze(preds)
+mp_mnf_hist = mp_mnf_model.fit(
+    mp_train,
+    zT_train,
+    validation_data=(mp_test, zT_test),
+    batch_size=32,
+    epochs=200,
+    verbose=0,
+    callbacks=[stop_early],
+)
 
 
 # %%
-mnf_preds = predict_mnf_lenet(X_test.values.astype("float32")).numpy()
+plots.loss_history(mp_mnf_hist.history)
 
 
 # %%
-plot_output(y_test.zT.values, mnf_preds.mean(0), mnf_preds.std(0), title="MNF")
+amm_mnf_hist = amm_mnf_model.fit(
+    amm_train,
+    zT_train,
+    validation_data=(amm_test, zT_test),
+    batch_size=32,
+    epochs=200,
+    verbose=0,
+    callbacks=[stop_early],
+)
 
 
 # %%
-rf_pred, rf_var, _ = rf_predict(X_train, y_train.zT, X_test, y_test.zT)
+plots.loss_history(amm_mnf_hist.history)
 
 
 # %%
-plot_output(y_test.zT.values, rf_pred, rf_var * 0.5, title="RF")
+n_preds = 500
+mp_mnf_preds = mp_mnf_model(mp_test.values.repeat(n_preds, axis=0))
+mp_mnf_preds = mp_mnf_preds.numpy().reshape(-1, n_preds).T
+
+
+# %%
+amm_mnf_preds = amm_mnf_model(amm_test.values.repeat(n_preds, axis=0))
+amm_mnf_preds = amm_mnf_preds.numpy().reshape(-1, n_preds).T
+
+
+# %%
+mp_mnf_figs = plot_output(
+    zT_test.values, mp_mnf_preds.mean(0), mp_mnf_preds.std(0), title="Magpie + MNF"
+)
+
+
+# %%
+amm_mnf_figs = plot_output(
+    zT_test.values, amm_mnf_preds.mean(0), amm_mnf_preds.std(0), title="AMM + MNF"
+)
+
+
+# %%
+fig_titles = ["true_vs_pred", "decay_by_std", "abs_err_vs_std"]
+for fig, name in zip(mp_mnf_figs, fig_titles):
+    fig.savefig(SAVE_TO + name + "-mp-mnf.pdf", bbox_inches="tight")
+
+
+# %% [markdown]
+# # Random Forest
+
+
+# %%
+mp_rf_pred, mp_rf_var, _ = rf_predict(mp_train, zT_train, mp_test)
+
+
+# %%
+figs_rf = plot_output(zT_test.values, mp_rf_pred, mp_rf_var ** 0.5, title="Magpie + RF")
+
+
+# %%
+amm_rf_pred, amm_rf_var, _ = rf_predict(amm_train, zT_train, amm_test)
+
+
+# %%
+figs_rf = plot_output(zT_test.values, amm_rf_pred, amm_rf_var ** 0.5, title="AMM + RF")
+
+
+# %%
+for fig, name in zip(figs_rf, fig_titles):
+    fig.savefig(SAVE_TO + name + "-mp-rf.pdf", bbox_inches="tight")
+
+
+# %% [markdown]
+# # PyTorch Dropout
 
 
 # %%
 do_model = TorchDropoutModel()
-
-
-# %%
 
 train_set = GaultoisData(target_cols=["zT"], train=True)
 test_set = GaultoisData(target_cols=["zT"], train=False)
@@ -111,4 +196,4 @@ do_var *= test_set.y_std ** 2
 
 
 # %%
-plot_output(test_set.labels.values, do_pred, do_var * 0.5, title="DO")
+plot_output(test_set.labels.values, do_pred, do_var * 0.5, title="Dropout")
