@@ -25,6 +25,12 @@ rho_train, seebeck_train, kappa_train, zT_train = y_train.to_numpy().T
 rho_test, seebeck_test, kappa_test, zT_test = y_test.to_numpy().T
 
 
+# %%
+# Remove NaNs from kappa and zT
+kappa_train, zT_train, X_train_no_nan = dropna(kappa_train, zT_train, X_train)
+kappa_test, zT_test, X_test_no_nan = dropna(kappa_test, zT_test, X_test)
+
+
 # %% [markdown]
 # ## Resistivity model with epistemic uncertainty
 
@@ -103,15 +109,6 @@ see_al_ep_pred, see_al_ep_var, see_al_ep_model = rf_predict(
 # %%
 print(f"seebeck aleatoric_epistemic rmse: {rmse(see_al_ep_pred, seebeck_test):.4g}\n")
 plot_output(seebeck_test, see_al_ep_pred, see_al_ep_var ** 0.5, title="seebeck")
-
-
-# %% [markdown]
-# # Remove NaNs from kappa and zT
-
-
-# %%
-kappa_train, zT_train, X_train_no_nan = dropna(kappa_train, zT_train, X_train)
-kappa_test, zT_test, X_test_no_nan = dropna(kappa_test, zT_test, X_test)
 
 
 # %% [markdown]

@@ -1,5 +1,5 @@
 # %%
-import functools as ft
+from functools import partial
 
 import numpy as np
 import pandas as pd
@@ -33,7 +33,7 @@ kfold = KFold(n_splits=5, shuffle=True, random_state=0)
 
 
 # %%
-al_predict = ft.partial(do_predict, uncertainty="aleatoric", epochs=1000, n_preds=1000)
+al_predict = partial(do_predict, uncertainty="aleatoric", epochs=1000, n_preds=1000)
 
 al_y_pred, al_y_var, al_histories, al_models = cross_val_predict(kfold, *Xy, al_predict)
 
@@ -64,7 +64,7 @@ al_err_std_corr
 
 
 # %%
-ep_predict = ft.partial(do_predict, uncertainty="epistemic", epochs=1000, n_preds=1000)
+ep_predict = partial(do_predict, uncertainty="epistemic", epochs=1000, n_preds=1000)
 
 ep_y_pred, ep_y_var, ep_histories, ep_models = cross_val_predict(kfold, *Xy, ep_predict)
 
@@ -95,7 +95,7 @@ ep_err_std_corr
 
 
 # %%
-al_ep_predict = ft.partial(
+al_ep_predict = partial(
     do_predict, uncertainty="aleatoric_epistemic", epochs=1000, n_preds=1000
 )
 
@@ -164,7 +164,7 @@ ep_al_ep_corr
 pd.concat(
     [al_ep_corr, al_al_ep_corr, ep_al_ep_corr],
     axis=1,
-    keys=["aleatoric vs epistemic", "aleatoric vs both", "epistemic vs both"],
+    keys=["aleatoric vs epistemic", "aleatoric vs full", "epistemic vs full"],
 ).to_latex(
     ROOT + "/results/al_vs_ep/do/al_ep_corr.tex",
     escape=False,
