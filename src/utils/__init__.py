@@ -35,7 +35,7 @@ def predict_multiple_labels(pred_func, X_train, y_train, X_test, y_test=None):
         pred_func = [pred_func] * n_labels
 
     # Calculate predictions (where all the work happens).
-    iters = zip(pred_func, y_train.T, y_test.T if y_test else [None] * n_labels)
+    iters = zip(pred_func, y_train.T, [None] * n_labels if y_test is None else y_test.T)
     results = [fn(X_train, y_tr, X_test, y_te) for fn, y_tr, y_te in iters]
 
     processed = [
@@ -63,18 +63,17 @@ def sequence_to_df(dfs, swap_index_levels=False):
 
 def cross_val_predict(splitter, features, labels, predict_fn):
     results = []
-    desc = f"{splitter.n_splits}-fold CV"
-
-    for train_idx, test_idx in tqdm(splitter.split(features), desc=desc):
+    for train_idx, test_idx in tqdm(
+        splitter.split(features), desc=f"{splitter.n_splits}-fold CV"
+    ):
 
         X_train, X_test = features.iloc[train_idx], features.iloc[test_idx]
         y_train, y_test = labels.iloc[train_idx], labels.iloc[test_idx]
 
-        output = predict_multiple_labels(
-            predict_fn, X_train, y_train.T, X_test, y_test.T
-        )
+        output = predict_multiple_labels(predict_fn, X_train, y_train, X_test, y_test)
         results.append(output)
 
     return [
-        pd.concat(x) if isinstance(x[0], pd.DataFrame) else x for x in zip(*results)
+        pd.concat(x).sort_index() if isinstance(x[0], pd.DataFrame) else x
+        for x in zip(*results)
     ]

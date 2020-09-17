@@ -1,4 +1,4 @@
-import functools as ft
+from functools import partial
 
 import tensorflow as tf
 import tensorflow_probability as tfp
@@ -65,7 +65,7 @@ def target_log_prob_fn_factory(w_prior, b_prior, X_train, y_train):
 
 
 def tracer_factory(X, y):
-    return lambda params: ft.partial(bnn_log_prob_fn, X, y, get_mean=True)(params)
+    return lambda params: partial(bnn_log_prob_fn, X, y, get_mean=True)(params)
 
 
 def chunks(lst, n):
