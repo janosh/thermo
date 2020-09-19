@@ -37,7 +37,7 @@ kappa_test, zT_test, X_test_no_nan = dropna(kappa_test, zT_test, X_test)
 
 # %%
 rho_ep_pred, rho_ep_var, rho_ep_model = rf_predict(
-    X_train, rho_train, X_test, rho_test, uncertainty="epistemic"
+    X_train, rho_train, X_test, uncertainty="epistemic"
 )
 
 # %%
@@ -51,9 +51,7 @@ plot_output(seebeck_test, rho_ep_pred, rho_ep_var ** 0.5, title="rho")
 
 
 # %%
-rho_al_ep_pred, rho_al_ep_var, rho_al_ep_model = rf_predict(
-    X_train, rho_train, X_test, rho_test
-)
+rho_al_ep_pred, rho_al_ep_var, rho_al_ep_model = rf_predict(X_train, rho_train, X_test)
 
 
 # %%
@@ -67,7 +65,7 @@ plot_output(rho_test, rho_al_ep_pred, rho_al_ep_var ** 0.5, title="rho")
 
 # %%
 see_ep_pred, see_ep_var, see_ep_model = rf_predict(
-    X_train, seebeck_train, X_test, seebeck_test, uncertainty="epistemic"
+    X_train, seebeck_train, X_test, uncertainty="epistemic"
 )
 
 
@@ -82,12 +80,7 @@ plot_output(seebeck_test, see_ep_pred, see_ep_var ** 0.5, title="seebeck")
 
 # %%
 see_al_pred, see_al_var, see_al_model = rf_predict(
-    X_train,
-    seebeck_train,
-    X_test,
-    seebeck_test,
-    uncertainty="aleatoric",
-    min_samples_leaf=10,
+    X_train, seebeck_train, X_test, uncertainty="aleatoric", min_samples_leaf=10,
 )
 
 
@@ -102,7 +95,7 @@ plot_output(seebeck_test, see_al_pred, see_al_var ** 0.5, title="seebeck")
 
 # %%
 see_al_ep_pred, see_al_ep_var, see_al_ep_model = rf_predict(
-    X_train, seebeck_train, X_test, seebeck_test
+    X_train, seebeck_train, X_test
 )
 
 
@@ -117,7 +110,7 @@ plot_output(seebeck_test, see_al_ep_pred, see_al_ep_var ** 0.5, title="seebeck")
 
 # %%
 kappa_ep_pred, kappa_ep_var, kappa_ep_model = rf_predict(
-    X_train_no_nan, kappa_train, X_test_no_nan, kappa_test, uncertainty="epistemic"
+    X_train_no_nan, kappa_train, X_test_no_nan, uncertainty="epistemic"
 )
 
 
@@ -137,7 +130,6 @@ kappa_al_pred, kappa_al_var, kappa_al_model = rf_predict(
     X_train_no_nan,
     kappa_train,
     X_test_no_nan,
-    kappa_test,
     uncertainty="aleatoric",
     min_samples_leaf=10,
 )
@@ -154,7 +146,7 @@ plot_output(kappa_test, kappa_al_pred, kappa_al_var ** 0.5, title="kappa")
 
 # %%
 kappa_al_ep_pred, kappa_al_ep_var, _ = rf_predict(
-    X_train_no_nan, kappa_train, X_test_no_nan, kappa_test
+    X_train_no_nan, kappa_train, X_test_no_nan
 )
 
 
@@ -169,7 +161,7 @@ plot_output(kappa_test, kappa_al_ep_pred, kappa_al_ep_var ** 0.5, title="kappa")
 
 # %%
 zT_ep_pred, zT_ep_var, zT_ep_model = rf_predict(
-    X_train_no_nan, zT_train, X_test_no_nan, zT_test, uncertainty="epistemic"
+    X_train_no_nan, zT_train, X_test_no_nan, uncertainty="epistemic"
 )
 
 
@@ -184,7 +176,7 @@ plot_output(zT_test, zT_ep_pred, zT_ep_var ** 0.5, title="zT")
 
 # %%
 zT_al_pred, zT_al_var, zT_al_model = rf_predict(
-    X_train_no_nan, zT_train, X_test_no_nan, zT_test, uncertainty="aleatoric",
+    X_train_no_nan, zT_train, X_test_no_nan, uncertainty="aleatoric",
 )
 
 
@@ -198,9 +190,7 @@ plot_output(zT_test, zT_al_pred, zT_al_var ** 0.5, title="zT")
 
 
 # %%
-zT_al_ep_pred, zT_al_ep_var, _ = rf_predict(
-    X_train_no_nan, zT_train, X_test_no_nan, zT_test
-)
+zT_al_ep_pred, zT_al_ep_var, _ = rf_predict(X_train_no_nan, zT_train, X_test_no_nan)
 
 
 # %%

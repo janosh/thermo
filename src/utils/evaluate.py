@@ -24,8 +24,7 @@ def compute_zT(rho, seebeck, kappa, temperature):
 
 
 def compute_log_zT(log_rho, log_seebeck, log_kappa, log_temperature):
-    """Returns the log of the thermoelectric figure of merit.
-    """
+    """Returns the log of the thermoelectric figure of merit."""
     return 2 * log_seebeck + log_temperature - log_rho - log_kappa
 
 
@@ -128,8 +127,7 @@ def df_corr(df1, df2, methods=["pearson", "spearman"]):
 
 
 def ci_mse_decay_plots(y_test, y_pred, y_var, **kwargs):
-    """MSE decay/drop-off curves with confidence intervals.
-    """
+    """MSE decay curves with confidence intervals."""
     rho, seebeck_abs, kappa, zT = nxm_to_mxn_cols(
         [y_test, y_pred, y_var], keys=["y_test", "y_pred", "y_var"]
     )
