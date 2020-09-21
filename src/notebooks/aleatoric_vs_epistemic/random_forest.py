@@ -156,7 +156,7 @@ ep_al_ep_corr
 pd.concat(
     [al_ep_corr, al_al_ep_corr, ep_al_ep_corr],
     axis=1,
-    keys=["aleatoric vs epistemic", "aleatoric vs both", "epistemic vs both"],
+    keys=["aleatoric vs epistemic", "aleatoric vs full", "epistemic vs full"],
 ).to_latex(
     ROOT + "/results/al_vs_ep/rf/al_ep_corr.tex",
     escape=False,
