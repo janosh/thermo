@@ -46,22 +46,21 @@ def get_df_stats(df):
 
 
 def get_err_decay(y_true, y_pred, y_std, err_func=mse):
-    # Get indices that sort y_std in ascending uncertainty.
-    y_std_sort = np.argsort(y_std)
-    # Get indices that sort y_pred in ascending absolute error.
-    y_err_sort = np.argsort(np.abs(y_pred - y_true))
+    abs_err = np.abs(y_pred - y_true)
+    y_std_sort = np.argsort(y_std)  # indices that sort y_std in ascending uncertainty
+    y_err_sort = np.argsort(abs_err)  # indices that sort y_pred in ascending abs err
 
     decay_by_std, decay_by_err = [], []
     # Loop over [n, n-1, ..., 2, 1].
     for idx in range(y_true.size, 0, -1):
-        # Compute error (e.g. MSE) with the n = (y_true.size - idx) most uncertain
-        # points excluded.
-        less_y_std = y_std_sort[:idx]
-        decay_by_std.append(err_func(y_pred[less_y_std], y_true[less_y_std]))
+        # Compute error (e.g. MSE) of n = (y_true.size - idx) least uncertain points.
+        less_std = y_std_sort[:idx]
+        decay_by_std.append(err_func(y_pred[less_std], y_true[less_std]))
 
-        # Compute error with the n = (y_true.size - idx) largest error points excluded.
+        # Compute error of n = (y_true.size - idx) smallest error points.
         less_err = y_err_sort[:idx]
         decay_by_err.append(err_func(y_pred[less_err], y_true[less_err]))
+
     return np.array([decay_by_std, decay_by_err])
 
 

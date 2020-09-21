@@ -41,11 +41,11 @@ class RandomForestRegressor(RFR):
         assert self.criterion == "mse", f"impurity must be 'mse', got {self.criterion}"
 
         y_pred = super().predict(X_test)
-        y_var = self.get_var(X_test, y_pred, uncertainty or "both")
+        y_var = self.get_var(X_test, y_pred, uncertainty or "full")
 
         return y_pred, y_var
 
-    def get_var(self, X_test, y_pred, uncertainty="both"):
+    def get_var(self, X_test, y_pred, uncertainty="full"):
         """Uses law of total variance to compute var(Y|X_test) as
         E[Var(Y|Tree)] + Var(E[Y|Tree]). The first term represents epistemic uncertainty
         and is captured by the variance over the means predicted by individual trees.
@@ -80,7 +80,7 @@ class RandomForestRegressor(RFR):
             array-like, shape=(n_samples,): variance of y_pred given X_test.
                 Since self.criterion is set to "mse", var[i] ~= var(y | X_test[i]).
         """
-        valid_uncert = ["epistemic", "aleatoric", "both"]
+        valid_uncert = ["epistemic", "aleatoric", "full"]
         assert (
             uncertainty in valid_uncert
         ), f"uncertainty must be one of {valid_uncert}, got {uncertainty}"
@@ -95,7 +95,7 @@ class RandomForestRegressor(RFR):
             # leaf indices that each sample is predicted as.
             leaf_idx = tree.apply(X_test)
             # Grab the impurity of assigned leafs.
-            y_var_tree = tree.tree_.impurity[leaf_idx] ** 2
+            y_var_tree = tree.tree_.impurity[leaf_idx]
             y_var_aleat += y_var_tree
 
             y_pred_tree = tree.predict(X_test)
