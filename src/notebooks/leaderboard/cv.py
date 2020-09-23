@@ -1,3 +1,6 @@
+"""Cross-validated benchmarks"""
+
+
 # %%
 import pickle
 from functools import partial
@@ -13,8 +16,8 @@ from bnn.tf_dropout import do_predict
 from data import dropna, load_gaultois, normalize
 from gp import gp_predict
 from rf import rf_predict
-from utils import ROOT, cross_val_predict
-from utils.evaluate import ci_mse_decay_plots, mae, plot_output, rmse
+from utils import ROOT, cross_val_predict, plots
+from utils.evaluate import mae, nxm_to_mxn_cols, plot_output, rmse
 
 # %%
 features, labels = load_gaultois()
@@ -56,7 +59,11 @@ for label, y_test, y_pred, y_std in zip(
 
 
 # %%
-ci_mse_decay_plots(y_norm, rf_y_pred, rf_y_var)
+rf_out_by_label = nxm_to_mxn_cols(
+    [y_norm, rf_y_pred, rf_y_var], keys=["y_test", "y_pred", "y_var"]
+)
+for df in rf_out_by_label:
+    plots.ci_err_decay(df, kfold.n_splits)
 
 
 # %% [markdown]
@@ -97,7 +104,12 @@ for label, y_test, y_pred, y_std in zip(
 
 
 # %%
-ci_mse_decay_plots(y_norm, map_y_pred, map_y_var)
+
+rf_out_by_label = nxm_to_mxn_cols(
+    [y_norm, map_y_pred, map_y_var], keys=["y_test", "y_pred", "y_var"]
+)
+for df in rf_out_by_label:
+    plots.ci_err_decay(df, kfold.n_splits)
 
 
 # %% [markdown]
@@ -123,7 +135,12 @@ for label, y_test, y_pred, y_std in zip(
 
 
 # %%
-ci_mse_decay_plots(y_norm, do_y_pred, do_y_var)
+
+rf_out_by_label = nxm_to_mxn_cols(
+    [y_norm, do_y_pred, do_y_var], keys=["y_test", "y_pred", "y_var"]
+)
+for df in rf_out_by_label:
+    plots.ci_err_decay(df, kfold.n_splits)
 
 
 # %% [markdown]
@@ -148,7 +165,11 @@ for label, y_test, y_pred, y_std in zip(
 
 
 # %%
-ci_mse_decay_plots(y_norm, gp_y_pred, gp_y_var)
+rf_out_by_label = nxm_to_mxn_cols(
+    [y_norm, gp_y_pred, gp_y_var], keys=["y_test", "y_pred", "y_var"]
+)
+for df in rf_out_by_label:
+    plots.ci_err_decay(df, kfold.n_splits)
 
 
 # %% [markdown]
@@ -194,7 +215,12 @@ for label, y_test, y_pred, y_std in zip(
 
 
 # %%
-ci_mse_decay_plots(y_norm, hmc_y_pred, hmc_y_var)
+
+rf_out_by_label = nxm_to_mxn_cols(
+    [y_norm, hmc_y_pred, hmc_y_var], keys=["y_test", "y_pred", "y_var"]
+)
+for df in rf_out_by_label:
+    plots.ci_err_decay(df, kfold.n_splits)
 
 
 # %% [markdown]
@@ -220,8 +246,7 @@ all_results = [
 with open(ROOT + "/results/leaderboard_cv.pkl", "wb") as file:
     pickle.dump(all_results, file)
 
-#
-#
+
 # # %%
 # # Load all numerical results.
 # with open(ROOT + "/results/leaderboard_cv.pkl", "rb") as file:
