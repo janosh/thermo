@@ -1,7 +1,6 @@
 from random import shuffle
 
 import numpy as np
-import pandas as pd
 
 
 def rand_obj_val_avr(corr_mat, n_select, repeats=50):
@@ -36,12 +35,12 @@ def expected_rand_obj_val(corr_mat, n_select):
         corr_mat = corr_mat.to_numpy()
 
     try:
-        zT_chol = pd.np.linalg.cholesky(corr_mat)
+        zT_chol = np.linalg.cholesky(corr_mat)
     except np.linalg.LinAlgError:
         # Handle correlation matrices that are only slightly non-positive definite
         # due to rounding errors.
         np.fill_diagonal(corr_mat, corr_mat.diagonal() + 1e-10)
-        zT_chol = pd.np.linalg.cholesky(corr_mat)
+        zT_chol = np.linalg.cholesky(corr_mat)
         print(
             "Warning: a small offset (1e-10) was added to the diagonal "
             "of the correlation matrix to make it positive definite"

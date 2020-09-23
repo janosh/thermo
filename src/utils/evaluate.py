@@ -74,8 +74,7 @@ def plot_output(y_test, y_pred, y_std=None, **kwargs):
     if y_std is None:
         return
 
-    decay_by_std, decay_by_err = get_err_decay(y_test, y_pred, y_std, mse)
-    fig2 = plots.err_decay("mse", decay_by_std, decay_by_err, **kwargs)
+    fig2 = plots.err_decay(y_test, y_pred, y_std, **kwargs)
 
     abs_err = abs(y_test - y_pred)
     fig3 = plots.abs_err_vs_std(abs_err, y_std, **kwargs)
