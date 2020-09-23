@@ -45,25 +45,6 @@ def get_df_stats(df):
     return stats
 
 
-def get_err_decay(y_true, y_pred, y_std, err_func=mse):
-    abs_err = np.abs(y_pred - y_true)
-    y_std_sort = np.argsort(y_std)  # indices that sort y_std in ascending uncertainty
-    y_err_sort = np.argsort(abs_err)  # indices that sort y_pred in ascending abs err
-
-    decay_by_std, decay_by_err = [], []
-    # Loop over [n, n-1, ..., 2, 1].
-    for idx in range(y_true.size, 0, -1):
-        # Compute error (e.g. MSE) of n = (y_true.size - idx) least uncertain points.
-        less_std = y_std_sort[:idx]
-        decay_by_std.append(err_func(y_pred[less_std], y_true[less_std]))
-
-        # Compute error of n = (y_true.size - idx) smallest error points.
-        less_err = y_err_sort[:idx]
-        decay_by_err.append(err_func(y_pred[less_err], y_true[less_err]))
-
-    return np.array([decay_by_std, decay_by_err])
-
-
 def plot_output(y_test, y_pred, y_std=None, **kwargs):
     """Convenience function for generating multiple plots in one go for
     analyzing a model's accuracy and quality of uncertainty estimates.
@@ -122,20 +103,6 @@ def mse_boxes(mse_dfs, x_axis_labels, **kwargs):
 
 def df_corr(df1, df2, methods=["pearson", "spearman"]):
     return pd.DataFrame([df1.corrwith(df2, method=m) for m in methods], index=methods)
-
-
-def ci_mse_decay_plots(y_test, y_pred, y_var, **kwargs):
-    """MSE decay curves with confidence intervals."""
-    rho, seebeck_abs, kappa, zT = nxm_to_mxn_cols(
-        [y_test, y_pred, y_var], keys=["y_test", "y_pred", "y_var"]
-    )
-    for df in [rho, seebeck_abs, kappa, zT]:
-        for col, values in zip(
-            ["err_decay_by_std", "true_err_decay"],
-            zip(*[get_err_decay(*arr.values.T) for arr in pd.np.array_split(df, 5)]),
-        ):
-            df[col] = pd.np.concatenate(values)
-        plots.cv_mse_decay(df, **kwargs)
 
 
 def r2_score(true, pred):
