@@ -1,25 +1,33 @@
 #!/bin/bash
-#!
-#! Example SLURM job script for Wilkes2 (Broadwell, ConnectX-4, P100)
+
+#! SLURM job script for Wilkes2 (Broadwell, ConnectX-4, P100)
 #! Last updated: Mon 13 Nov 12:06:57 GMT 2017
 
-#! sbatch directives begin here ###############################
+#! sbatch directives start ###############################
 #! Name of the job:
 #SBATCH -J amm-testing-heavy
+
 #! Which project should be charged (NB Wilkes2 projects end in '-GPU'):
-#SBATCH -A LEE-SL3-GPU
+#SBATCH -A LEE-JR769-SL2-GPU
+
 #! How many whole nodes should be allocated?
 #SBATCH --nodes=1
+
 #! How many (MPI) tasks will there be in total?
 #! Note probably this should not exceed the total number of GPUs in use.
 #SBATCH --ntasks=1
+
 #! Specify the number of GPUs per node (between 1 and 4; must be 4 if nodes>1).
 #! Note that the job submission script will enforce no more than 3 cpus per GPU.
 #SBATCH --gres=gpu:1
-#! How much wallclock time will be required?
-#SBATCH --time=10:00:00
-#! What types of email messages do you wish to receive?
-#SBATCH --mail-type=BEGIN,END,FAIL
+
+#! How much wallclock time will be required? (h:m:s)
+#SBATCH --time=1:0:0
+
+#! What types of email messages to receive. Valid values include
+#! NONE, BEGIN, END, FAIL, REQUEUE, ALL. See https://slurm.schedmd.com/sbatch.html.
+#SBATCH --mail-type=END,FAIL
+
 #! Uncomment this to prevent the job from being requeued (e.g. if
 #! interrupted by node failure or system downtime):
 ##SBATCH --no-requeue
@@ -27,7 +35,7 @@
 #! Do not change:
 #SBATCH -p pascal
 
-#! sbatch directives end here (put any additional directives above this line)
+#! sbatch directives end (put any additional directives above this line)
 
 #! Notes: Charging is determined by GPU number*walltime.
 
@@ -41,18 +49,12 @@ module load rhel7/default-gpu              # REQUIRED - loads the basic environm
 
 #! Insert additional module load commands after this line if needed:
 
-# cd into project directory and activate conda env
-cd ~/thermo && conda activate thermo
-
-#! Full path to application executable:
-application="python"
-
-#! Run options for the application:
 #! --- Single Job ---
-options="-m src.notebooks.leaderboard.automatminer"
+CMD="python src/notebooks/leaderboard/automatminer.py"
 #! submit with `sbatch hpc/gpu_submit`
+
 # --- Array Job ---
-# options="-m src.job_array $SLURM_ARRAY_TASK_ID"
+# CMD="-m src.job_array $SLURM_ARRAY_TASK_ID"
 #! submit with `sbatch --array=0-15 hpc/gpu_submit`
 #! then in the Python script, read the task id via:
 #! task_id = int(sys.argv[1])
@@ -60,15 +62,13 @@ options="-m src.notebooks.leaderboard.automatminer"
 #! models, labels = ["RF", "MAP", "HMC", "Dropout"], ["rho", "seebeck", "kappa", "zT"]
 #! model, label = tuple(itertools.product(models, labels))[task_id]
 
-CMD="$application $options"
-
 cd $SLURM_SUBMIT_DIR
 
 echo -e "JobID: $SLURM_JOB_ID\n"
 echo "Time: `date`"
 echo "Running on master node: `hostname`"
 echo "Current directory: `pwd`"
-echo -e "\nNodes allocated: numtasks=$numtasks, numnodes=$numnodes"
-echo -e "\nExecuting command: $CMD\n\n=================="
+echo -e "\nNodes allocated: num_tasks=$SLURM_NTASKS, num_nodes=$SLURM_JOB_NUM_NODES"
+echo -e "\nExecuting command: $CMD\n\n==================\n"
 
 eval $CMD

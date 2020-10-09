@@ -9,6 +9,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from data import dropna, load_gaultois, normalize, train_test_split
 from utils import ROOT
+from utils.decorators import interruptable
 
 
 class GaultoisData(Dataset):
@@ -74,6 +75,7 @@ class TorchDropoutModel(nn.Sequential):
         self.epoch = 0
         self.optimizer = optimizer or torch.optim.Adam(self.parameters())
 
+    @interruptable
     def fit(
         self, loader, epochs=100, print_every=10, write_loss=True, write_params=False
     ):
