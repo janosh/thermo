@@ -4,6 +4,8 @@ import automatminer as amm
 import matminer as mm
 from automatminer import MatPipe  # make MatPipe importable from this file
 
+from utils.decorators import interruptable
+
 try:
     os.remove(os.getcwd() + "/automatminer.log")  # delete since not needed
 except FileNotFoundError:
@@ -49,6 +51,7 @@ def pipe_config(preset="express", **tpot_kwargs):
     }
 
 
+@interruptable
 def fit_pred_pipe(train_df, test_df, target, **kwargs):
     mat_pipe = MatPipe(**pipe_config(**kwargs))
     mat_pipe.fit(train_df[["T", "composition", target]], target)
