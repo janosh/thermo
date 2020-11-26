@@ -1,4 +1,4 @@
-# Data-Driven Risk-Conscious Thermoelectric Materials Discovery
+# Data-Driven Risk-Conscious Thermoelectric Materials Discovery [![License](https://img.shields.io/github/license/janosh/thermo?label=License)](/license) ![GitHub Repo Size](https://img.shields.io/github/repo-size/janosh/thermo?label=Repo+Size) ![GitHub last commit](https://img.shields.io/github/last-commit/janosh/thermo?label=Last+Commit)
 
 ## Project description
 
