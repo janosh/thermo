@@ -357,41 +357,33 @@ def hist_elemental_prevalence(formulas, log_scale=False):
         plt.yscale("log")
 
 
-def true_vs_pred_with_hist(y_true, y_pred, x_hist=True, y_hist=True):
+def scatter_with_hist(xs, ys, ax=None, bins=100, xlabel=None, ylabel=None, **kwargs):
     plt.figure(figsize=(8, 8))
 
-    left, width = 0.1, 0.65
+    bottom, height = left, width = 0.1, 0.65
 
-    bottom, height = 0.1, 0.65
-    bottom_h = left_h = left + width
     rect_scatter = [left, bottom, width, height]
-    rect_histx = [left, bottom_h, width, 0.15]
-    rect_histy = [left_h, bottom, 0.15, height]
+    rect_histx = [left, left + width, width, 0.1]
+    rect_histy = [left + width, bottom, 0.1, height]
 
-    ax1 = plt.axes(rect_scatter)
-    ax1.tick_params(direction="in", length=7, top=True, right=True)
+    ax_scatter = plt.axes(ax or rect_scatter)
+    ax_scatter.plot(xs, ys, "o", alpha=0.5, **kwargs)
 
-    ax1.plot(y_true, y_pred, "o", alpha=0.5, label=None, mew=1.2, ms=5.2)
+    add_identity(ax, label="ideal")
 
-    add_identity(plt.gca(), label="ideal")
+    ax.set_ylabel(ylabel or "predicted")
+    ax.set_xlabel(xlabel or "actual")
+    ax.legend(loc=2, frameon=False)
 
-    x_range = max(y_true) - min(y_true)
-    ax1.set_xlim(max(y_true) - x_range * 1.05, min(y_true) + x_range * 1.05)
-    ax1.set_ylim(max(y_true) - x_range * 1.05, min(y_true) + x_range * 1.05)
+    # x_hist
+    ax_histx = plt.axes(rect_histx)
+    ax_histx.hist(xs, bins=bins, rwidth=0.8)
+    ax_histx.axis("off")
 
-    ax1.set_ylabel("Predicted value (Units)")
-    ax1.set_xlabel("Actual value (Units)")
-    ax1.legend(loc=2, framealpha=0.5, handlelength=1.5)
-
-    if x_hist:
-        ax2 = plt.axes(rect_histx)
-        ax2.hist(y_true, bins=25, rwidth=0.8)
-        ax2.axis("off")
-
-    if y_hist:
-        ax3 = plt.axes(rect_histy)
-        ax3.hist(y_pred, bins=25, orientation="horizontal", rwidth=0.8)
-        ax3.axis("off")
+    # y_hist
+    ax_histy = plt.axes(rect_histy)
+    ax_histy.hist(ys, bins=bins, orientation="horizontal", rwidth=0.8)
+    ax_histy.axis("off")
 
 
 def residual(y_true, y_pred):
