@@ -116,37 +116,52 @@ def normalize(df, mean=None, std=None):
     return (df - mean) / std, [mean, std]
 
 
-def fetch_mp():
-    """Fetch data from the Materials Project (MP). Docs at
-    https://pymatgen.org/_modules/pymatgen/ext/matproj
+# Materials Project API keys available at https://materialsproject.org/dashboard.
+API_KEY = "X2UaF2zkPMcFhpnMN"
 
-    Disclaimer: ICSD is a database of materials that actually exist whereas MP has
-    all structures where DFT+U converges. Those can be thermo-dynamically unstable
-    if they lie above the convex hull.
+
+def fetch_mp(criteria={}, properties=[], save_to=None):
+    """Fetch data from the Materials Project (MP).
+    Docs at https://docs.materialsproject.org.
+    Pymatgen MP source at https://pymatgen.org/_modules/pymatgen/ext/matproj.
+
+    Note: Unlike ICSD - a database of materials that actually exist - MP has
+    all structures where DFT+U converges. Those can be thermodynamically
+    unstable if they lie above the convex hull. Set criteria = {"e_above_hull": 0}
+    to get stable materials only.
+
+    Args:
+        criteria (dict, optional): filter criteria which returned items must
+            satisfy, e.g. criteria = {"material_id": {"$in": ["mp-7988", "mp-69"]}}.
+            Supports all features of the Mongo query syntax.
+        properties (list, optional): quantities of interest, can be selected from
+            https://materialsproject.org/docs/api#resources_1 or
+            MPRester().supported_properties.
+        save_to (str, optional): Pass a file path to save the data returned by MP
+            API as CSV. Defaults to None.
+
+    Returns:
+        df: pandas DataFrame with a column for each requested property
     """
 
-    # Obtain a Materials Project API key by creating an account at
-    # https://materialsproject.org/dashboard.
-    API_KEY = "X2UaF2zkPMcFhpnMN"
+    properties = list({*properties, "material_id"})  # use set to remove dupes
 
     # MPRester connects to the Material Project REST interface.
     with MPRester(API_KEY) as mp:
         # mp.query performs the actual API call.
-        # The first argument is a dictionary of filter criteria which returned items
-        # must satisfy, e.g. criteria = {"material_id": {"$in": ["mp-7988", "mp-69"]}}.
-        # Supports all features of the Mongo query syntax.
-        # The second argument is a list of quantities of interest which can be
-        # selected from https://materialsproject.org/docs/api#Resources_2.
-        properties = ["material_id", "pretty_formula", "icsd_ids"]
-        # e_above_hull = 0 ensures that all returned materials lie directly on the
-        # convex hull and hence are thermodynamically stable.
-        criteria = {"e_above_hull": 0}
         data = mp.query(criteria, properties)
 
-    # df[properties] ensures the column order is the same as in the list.
-    data = pd.DataFrame(data)[properties].rename(columns={"pretty_formula": "formula"})
-    data.to_csv(ROOT + "/data/mp_formulas.csv", index=False, float_format="%g")
-    return data
+    if data:
+        df = pd.DataFrame(data)[properties]  # ensure same column order as in properties
+
+        df = df.set_index("material_id")
+
+        if save_to:
+            data.to_csv(ROOT + save_to, float_format="%g")
+
+        return df
+    else:
+        raise ValueError("query returned no data")
 
 
 def fetch_cod(formulas=None, ids=None, get_ids_for=None):
@@ -162,4 +177,4 @@ def fetch_cod(formulas=None, ids=None, get_ids_for=None):
         return [cod.get_structure_by_formula(i) for i in ids]
     if get_ids_for:
         return [cod.get_cod_ids(i) for i in get_ids_for]
-    raise ValueError("fetch_cod needs to be passed formulas or ids.")
+    raise ValueError("fetch_cod() requires formulas or ids.")
