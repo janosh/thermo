@@ -65,9 +65,10 @@ def normalize(df, mean=None, std=None):
     zero mean and unit std. Else use mean and std as provided for normalization.
     """
 
-    # return mean and std to be able to revert normalization later
-    mean = mean if mean is not None else df.mean(0)
-    std = std if std is not None else df.std(0)
+    if mean is None:
+        mean = df.mean(0)
+    if std is None:
+        std = df.std(0)
 
     # ensure we don't divide by zero in columns with zero std (all entries identical)
     try:
@@ -77,4 +78,5 @@ def normalize(df, mean=None, std=None):
     except TypeError:
         std = std if std > 0 else 1
 
+    # return mean and std to be able to revert normalization later
     return (df - mean) / std, [mean, std]

@@ -79,7 +79,7 @@ The environment `thermo` was originally created by running the command:
 conda create -n thermo python pip \
   && conda activate thermo \
   && pip install numpy pandas tensorflow tensorflow-probability automatminer scikit-learn scikit-optimize jupyter matplotlib seaborn plotly umap-learn pytest ipykernel
-  && conda install pytorch torchvision -c pytorch
+  && conda install pytorch -c pytorch
   && conda install gurobi -c http://conda.anaconda.org/gurobi
 ```
 
