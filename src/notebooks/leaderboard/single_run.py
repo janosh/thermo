@@ -58,7 +58,7 @@ rf_mae.to_frame().join(rf_rmse)
 
 # %%
 for label, y_true, y_pred, y_var in zip(
-    y_test.columns, y_test.values.T, rf_y_pred.values.T, rf_y_var.values.T,
+    y_test.columns, y_test.values.T, rf_y_pred.values.T, rf_y_var.values.T
 ):
     display(Markdown(f"# {label}"))
     plot_output(y_true, y_pred, y_var ** 0.5, title=label)
@@ -159,7 +159,7 @@ gp_mae.to_frame().join(gp_rmse)
 
 # %%
 for label, y_true, y_pred, y_std in zip(
-    labels.columns, y_test.values.T, gp_y_pred.values.T, gp_y_var.values.T ** 0.5,
+    labels.columns, y_test.values.T, gp_y_pred.values.T, gp_y_var.values.T ** 0.5
 ):
     display(Markdown(f"# {label}"))
     plot_output(y_true, y_pred, y_std, title=label)
@@ -175,7 +175,7 @@ do_uncertainty = "aleatoric_epistemic"
 tb_cb = tf.keras.callbacks.TensorBoard(log_dir=ROOT + "/logs/leaderboard/single-runs")
 
 do_y_pred, do_y_var, do_histories, do_models = predict_multiple_labels(
-    partial(do_predict, uncertainty=do_uncertainty, cbs=[tb_cb], epochs=500), *Xy,
+    partial(do_predict, uncertainty=do_uncertainty, cbs=[tb_cb], epochs=500), *Xy
 )
 
 
@@ -201,6 +201,5 @@ for label, y_true, y_pred, y_std, hist in zip(
     # models,
 ):
     display(Markdown(f"# {label}"))
-    plots.loss_history(hist)
     plot_output(y_true, y_pred, y_std, title=label)
     # plot_model(model, log_dir)

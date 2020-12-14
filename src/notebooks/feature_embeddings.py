@@ -17,7 +17,7 @@ from sklearn.manifold import TSNE
 from umap import UMAP
 
 from data import load_gaultois
-from utils.plots import (
+from plots import (
     hist_elemental_prevalence,
     ptable_elemental_prevalence,
     show_bar_values,
@@ -111,25 +111,19 @@ px.scatter_3d(pca_3d, *pca_cols, hover_data=labels.columns)
 
 
 # %%
-ptable_elemental_prevalence(labels.formula.values)
 ptable_elemental_prevalence(labels.formula.values, log_scale=True)
 
 
 # %%
-hist_elemental_prevalence(labels.formula.values)
 hist_elemental_prevalence(labels.formula.values, log_scale=True)
 
 
 # %%
 labels["composition"] = [Composition(x) for x in labels.formula]
-
-
-# %%
 # Histogram of the number of elements in each composition
 x_labels, y_counts = np.unique(
     labels.composition.apply(lambda x: len(x.elements)), return_counts=True
 )
 ax = plt.bar(x_labels, y_counts, align="center")
 plt.xticks(x_labels)
-
 show_bar_values(plt.gca())

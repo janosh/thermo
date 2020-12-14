@@ -3,7 +3,8 @@ from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader
 
 from bnn.torch_dropout import GaultoisData, TorchDropoutModel
-from utils.evaluate import plot_output, r2_score
+from plots import plot_output
+from utils.evaluate import r2_score
 
 plt.rcParams["figure.figsize"] = [12, 8]
 

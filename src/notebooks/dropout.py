@@ -7,10 +7,11 @@ figure of merit (zT).
 
 
 # %%
+import plots
 from bnn.tf_dropout import do_predict
 from data import load_gaultois, normalize, train_test_split
-from utils import plots
-from utils.evaluate import plot_output, rmse
+from plots import plot_output
+from utils.evaluate import rmse
 
 # %%
 features, labels = load_gaultois()

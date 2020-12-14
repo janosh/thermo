@@ -2,9 +2,9 @@
 import pandas as pd
 
 from data import dropna, load_gaultois, train_test_split
+from plots import plot_output
 from utils import ROOT
 from utils.amm import fit_pred_pipe
-from utils.evaluate import plot_output
 
 # %%
 _, labels = load_gaultois(target_cols=["T", "formula", "zT", "kappa", "power_factor"])

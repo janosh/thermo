@@ -16,9 +16,9 @@ from torch.utils.data.dataloader import DataLoader
 
 from bnn.torch_dropout import GaultoisData, TorchDropoutModel
 from data import dropna, load_gaultois, normalize, train_test_split
+from plots import plot_output
 from rf import rf_predict
-from utils import ROOT, amm, plots
-from utils.evaluate import plot_output
+from utils import ROOT, amm
 
 # %%
 SAVE_TO = ROOT + "/results/mnf/"
@@ -96,10 +96,6 @@ mp_mnf_hist = mp_mnf_model.fit(
 
 
 # %%
-plots.loss_history(mp_mnf_hist.history)
-
-
-# %%
 amm_mnf_hist = amm_mnf_model.fit(
     amm_train,
     zT_train,
@@ -109,10 +105,6 @@ amm_mnf_hist = amm_mnf_model.fit(
     verbose=0,
     callbacks=[stop_early],
 )
-
-
-# %%
-plots.loss_history(amm_mnf_hist.history)
 
 
 # %%

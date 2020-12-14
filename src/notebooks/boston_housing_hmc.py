@@ -9,8 +9,8 @@ import tensorflow_probability as tfp
 
 from bnn.hmc import hmc_predict
 from bnn.map import map_predict
+from plots import plot_output
 from rf import rf_predict
-from utils.evaluate import plot_output
 
 # %%
 # About the data: https://kaggle.com/c/boston-housing
