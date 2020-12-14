@@ -10,8 +10,9 @@ of merit (zT).
 import numpy as np
 
 from data import dropna, load_gaultois, train_test_split
+from plots import plot_output
 from rf import rf_predict
-from utils.evaluate import plot_output, rmse
+from utils.evaluate import rmse
 
 # %%
 features, labels = load_gaultois()
@@ -177,7 +178,7 @@ plot_output(zT_test, zT_ep_pred, zT_ep_var ** 0.5, title="zT")
 
 # %%
 zT_al_pred, zT_al_var, _ = rf_predict(
-    X_train_no_nan, zT_train, X_test_no_nan, uncertainty="aleatoric",
+    X_train_no_nan, zT_train, X_test_no_nan, uncertainty="aleatoric"
 )
 
 

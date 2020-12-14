@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from utils import plots
+import plots
 
 
 def mse(arr1, arr2, axis=0):
@@ -43,23 +43,6 @@ def get_df_stats(df):
     stats.index = ["mean", "median", "std", "min", "max"]
     stats.columns = df.columns
     return stats
-
-
-def plot_output(y_test, y_pred, y_std=None, **kwargs):
-    """Convenience function for generating multiple plots in one go for
-    analyzing a model's accuracy and quality of uncertainty estimates.
-    """
-    fig1 = plots.true_vs_pred(y_test, y_pred, y_std=y_std, **kwargs)
-    # fig4 = plots.residual(y_test, y_pred)
-    # fig5 = plots.residual_hist(y_test, y_pred)
-    if y_std is None:
-        return
-
-    fig2 = plots.err_decay(y_test, y_pred, y_std, **kwargs)
-
-    abs_err = abs(y_test - y_pred)
-    fig3 = plots.abs_err_vs_std(abs_err, y_std, **kwargs)
-    return fig1, fig2, fig3
 
 
 def dfs_have_same_col_names(dfs, sort=False):

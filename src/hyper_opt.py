@@ -5,8 +5,8 @@ import skopt
 from sklearn.metrics import mean_squared_error as mse
 
 from data import Data
+from plots import plot_output
 from utils import ROOT
-from utils.evaluate import plot_output
 
 
 def run_hyper_opt(
