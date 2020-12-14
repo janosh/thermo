@@ -1,13 +1,9 @@
 automatminer
-flake8
 gurobipy
-jupyter
 matminer
 matplotlib
-notebook
 numpy
 pandas
-pytest
 scikit-learn
 scikit-optimize
 scipy
@@ -15,5 +11,7 @@ seaborn
 tensorflow
 tensorflow-probability
 torch
-torchvision
 tqdm
+
+# dev dependencies
+pytest
