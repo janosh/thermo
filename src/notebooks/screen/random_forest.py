@@ -92,7 +92,9 @@ zT_var_lt_half.plot.scatter(x="zT_var", y="zT_pred")
 plt.xlabel("")
 plt.ylabel("")
 plt.savefig(
-    DIR + "lrhr_materials.pdf", bbox_inches="tight", transparent=True,
+    DIR + "lrhr_materials.pdf",
+    bbox_inches="tight",
+    transparent=True,
 )
 pearson = zT_var_lt_half[["zT_var", "zT_pred"]].corr().iloc[0, 1]
 print(f"Pearson corr.: {pearson:.4g}")

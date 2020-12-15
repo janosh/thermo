@@ -19,8 +19,7 @@ class Dropout(tf.keras.layers.Layer):
         return tf.nn.dropout(inputs, self.rate)
 
     def get_config(self):
-        """Enables model.save and restoration through tf.keras.models.load_model.
-        """
+        """Enables model.save and restoration through tf.keras.models.load_model."""
         config = super().get_config()
         config["rate"] = self.rate
         return config
@@ -135,7 +134,6 @@ def load_model(path, filename="model.h5"):
 
 
 def robust_mse(y_true, y_pred, y_log_var):
-    """See torch_dropout.py for docstring.
-    """
+    """See torch_dropout.py for docstring."""
     loss = 0.5 * tf.square(y_true - y_pred) * tf.exp(-y_log_var) + 0.5 * y_log_var
     return tf.reduce_mean(loss)

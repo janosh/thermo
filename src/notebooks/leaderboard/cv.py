@@ -47,7 +47,9 @@ rf_y_pred, rf_y_var, rf_models = cross_val_predict(kfold, *Xy, rf_predict)
 
 # %%
 pd.concat(
-    [mae(rf_y_pred, y_norm), rmse(rf_y_pred, y_norm)], axis=1, keys=["MAE", "RMSE"],
+    [mae(rf_y_pred, y_norm), rmse(rf_y_pred, y_norm)],
+    axis=1,
+    keys=["MAE", "RMSE"],
 )
 
 
@@ -87,7 +89,9 @@ map_y_pred, map_y_var, map_log_probs, map_initial_states = cross_val_predict(
 
 # %%
 pd.concat(
-    [mae(map_y_pred, y_norm), rmse(map_y_pred, y_norm)], axis=1, keys=["MAE", "RMSE"],
+    [mae(map_y_pred, y_norm), rmse(map_y_pred, y_norm)],
+    axis=1,
+    keys=["MAE", "RMSE"],
 )
 
 
@@ -98,7 +102,10 @@ with open(ROOT + "/results/map_initial_states.pkl", "wb") as file:
 
 # %%
 for label, y_test, y_pred, y_std in zip(
-    labels.columns, y_norm.values.T, map_y_pred.values.T, map_y_var.values.T ** 0.5,
+    labels.columns,
+    y_norm.values.T,
+    map_y_pred.values.T,
+    map_y_var.values.T ** 0.5,
 ):
     plot_output(y_test, y_pred, y_std, title=label)
 
@@ -123,7 +130,9 @@ do_y_pred, do_y_var, do_histories, do_models = cross_val_predict(kfold, *Xy, do_
 
 # %%
 pd.concat(
-    [mae(do_y_pred, y_norm), rmse(do_y_pred, y_norm)], axis=1, keys=["MAE", "RMSE"],
+    [mae(do_y_pred, y_norm), rmse(do_y_pred, y_norm)],
+    axis=1,
+    keys=["MAE", "RMSE"],
 )
 
 
@@ -153,7 +162,9 @@ gp_y_pred, gp_y_var, gp_models = cross_val_predict(kfold, *Xy, gp_predict)
 
 # %%
 pd.concat(
-    [mae(gp_y_pred, y_norm), rmse(gp_y_pred, y_norm)], axis=1, keys=["MAE", "RMSE"],
+    [mae(gp_y_pred, y_norm), rmse(gp_y_pred, y_norm)],
+    axis=1,
+    keys=["MAE", "RMSE"],
 )
 
 
@@ -203,13 +214,18 @@ with open(ROOT + "/results/hmc_results.pkl", "wb") as file:
 
 # %%
 pd.concat(
-    [mae(hmc_y_pred, y_norm), rmse(hmc_y_pred, y_norm)], axis=1, keys=["MAE", "RMSE"],
+    [mae(hmc_y_pred, y_norm), rmse(hmc_y_pred, y_norm)],
+    axis=1,
+    keys=["MAE", "RMSE"],
 )
 
 
 # %%
 for label, y_test, y_pred, y_std in zip(
-    labels.columns, y_norm.values.T, hmc_y_pred.values.T, hmc_y_var.values.T ** 0.5,
+    labels.columns,
+    y_norm.values.T,
+    hmc_y_pred.values.T,
+    hmc_y_var.values.T ** 0.5,
 ):
     plot_output(y_test, y_pred, y_std, title=label)
 

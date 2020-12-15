@@ -40,7 +40,9 @@ al_y_pred, al_y_var, al_models = cross_val_predict(kfold, *Xy, rf_al_predict)
 
 # %%
 pd.concat(
-    [mae(al_y_pred, y_norm), rmse(al_y_pred, y_norm)], axis=1, keys=["MAE", "RMSE"],
+    [mae(al_y_pred, y_norm), rmse(al_y_pred, y_norm)],
+    axis=1,
+    keys=["MAE", "RMSE"],
 )
 
 
@@ -67,7 +69,9 @@ ep_y_pred, ep_y_var, ep_models = cross_val_predict(kfold, *Xy, rf_predict)
 
 # %%
 pd.concat(
-    [mae(ep_y_pred, y_norm), rmse(ep_y_pred, y_norm)], axis=1, keys=["MAE", "RMSE"],
+    [mae(ep_y_pred, y_norm), rmse(ep_y_pred, y_norm)],
+    axis=1,
+    keys=["MAE", "RMSE"],
 )
 
 

@@ -84,7 +84,11 @@ plot_output(seebeck_test, see_ep_pred, see_ep_var ** 0.5, title="seebeck")
 
 # %%
 see_al_pred, see_al_var, _ = rf_predict(
-    X_train, seebeck_train, X_test, uncertainty="aleatoric", min_samples_leaf=10,
+    X_train,
+    seebeck_train,
+    X_test,
+    uncertainty="aleatoric",
+    min_samples_leaf=10,
 )
 
 
