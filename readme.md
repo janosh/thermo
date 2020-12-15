@@ -1,4 +1,9 @@
-# Data-Driven Risk-Conscious Thermoelectric Materials Discovery [![License](https://img.shields.io/github/license/janosh/thermo?label=License)](/license) ![GitHub Repo Size](https://img.shields.io/github/repo-size/janosh/thermo?label=Repo+Size) ![GitHub last commit](https://img.shields.io/github/last-commit/janosh/thermo?label=Last+Commit)
+# Data-Driven Risk-Conscious Thermoelectric Materials Discovery
+
+[![License](https://img.shields.io/github/license/janosh/thermo?label=License)](/license)
+[![GitHub Repo Size](https://img.shields.io/github/repo-size/janosh/thermo?label=Repo+Size)](https://github.com/janosh/thermo/graphs/contributors)
+[![GitHub last commit](https://img.shields.io/github/last-commit/janosh/thermo?label=Last+Commit)](https://github.com/janosh/thermo/commits)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/janosh/thermo/master.svg)](https://results.pre-commit.ci/latest/github/janosh/thermo/master)
 
 ## Project description
 

@@ -90,7 +90,7 @@ def data_to_latex(subset="experiment"):
     dbs[dbs.data_source == subset][
         ["linked_name", "abbreviation", "year", "num_size"]
     ].rename(columns={"linked_name": "name", "num_size": "size"}).to_latex(
-        f"~/Desktop/{subset}-dbs.tex", escape=False, index=False, na_rep="n/a",
+        f"{subset}-dbs.tex", escape=False, index=False, na_rep="n/a"
     )
 
 

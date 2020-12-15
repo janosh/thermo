@@ -48,7 +48,7 @@ map_y_preds, map_y_vars, map_log_probs, map_initial_states = map_results
 
 # %% Single-label calculation.
 bnn_log_prob_fn = target_log_prob_fn_factory(
-    weight_priors[0], bias_priors[0], X_train.values, y_train.rho.values,
+    weight_priors[0], bias_priors[0], X_train.values, y_train.rho.values
 )
 
 

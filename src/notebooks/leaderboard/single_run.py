@@ -115,7 +115,10 @@ for label, map_log_prob in zip(labels.columns, map_log_probs.values.T):
 
 # %%
 for label, y_true, y_pred, y_var in zip(
-    labels.columns, y_test.values.T, map_y_pred.values.T, map_y_var.values.T,
+    labels.columns,
+    y_test.values.T,
+    map_y_pred.values.T,
+    map_y_var.values.T,
 ):
     display(Markdown(f"# {label}"))
     plot_output(y_true, y_pred, y_var ** 0.5, title=label)

@@ -40,8 +40,7 @@ def trace_fn(current_state, kernel_results, summary_freq=10, callbacks=[]):
 
 @tf.function(experimental_compile=True)
 def sample_chain(*args, **kwargs):
-    """Compile static graph for tfp.mcmc.sample_chain to improve performance.
-    """
+    """Compile static graph for sample_chain to improve performance."""
     return tfp.mcmc.sample_chain(*args, **kwargs)
 
 
@@ -159,7 +158,7 @@ def predict_from_chain(chain, X_test, uncertainty="aleatoric_epistemic"):
             return y_pred, y_var
 
         preds = [predict(chunks(params, 2)) for params in restructured_chain]
-        y_pred_mc_samples, y_var_mc_samples = tf.unstack(preds, axis=1,)
+        y_pred_mc_samples, y_var_mc_samples = tf.unstack(preds, axis=1)
         y_pred, y_var_epist = tf.nn.moments(y_pred_mc_samples, axes=0)
         y_var_aleat = tf.reduce_mean(y_var_mc_samples, axis=0)
         y_var_tot = y_var_epist + y_var_aleat
@@ -204,8 +203,7 @@ def ess(chains, **kwargs):
 
 
 def r_hat(tensors):
-    """https://tensorflow.org/probability/api_docs/python/tfp/mcmc/potential_scale_reduction
-    """
+    """ TFP docs: http://tiny.cc/5bq6tz """
     return [tfp.mcmc.diagnostic.potential_scale_reduction(t) for t in tensors]
 
 
