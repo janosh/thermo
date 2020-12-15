@@ -21,5 +21,8 @@ def build_model_and_run(params, X_train, y_train, X_test):
 
 
 run_hyper_opt(
-    build_model_and_run, space=space, log_dir_model="rf/hyper_opt", label="resistivity",
+    build_model_and_run,
+    space=space,
+    log_dir_model="rf/hyper_opt",
+    label="resistivity",
 )
