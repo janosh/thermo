@@ -1,6 +1,6 @@
 import numpy as np
 
-from data import dropna, normalize
+from thermo.data import dropna, normalize
 
 
 def all_eq(arr1, arr2):
