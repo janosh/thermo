@@ -1,4 +1,4 @@
-from utils.decorators import run_once, with_attr
+from thermo.utils.decorators import run_once, with_attr
 
 
 def test_with_attr():

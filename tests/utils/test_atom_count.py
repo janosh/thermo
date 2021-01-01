@@ -1,6 +1,10 @@
 from collections import Counter
 
-from utils.atom_count import flatten_formula, formula_to_dict, total_atom_count
+from thermo.utils.atom_count import (
+    flatten_formula,
+    formula_to_dict,
+    total_atom_count,
+)
 
 formulas = ["(H2O)2Ge", "(H2(GaKSb4)2O2)2Ge", "GaKSb4", "Bi2Te3"]
 counts = [7, 33, 6, 5]
