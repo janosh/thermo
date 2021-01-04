@@ -9,22 +9,16 @@ from thermo.data import dropna, load_gaultois, normalize, train_test_split
 from thermo.utils import ROOT
 
 
-class GaultoisData(Dataset):
-    def __init__(self, test_size=0.1, train=True, target_cols=None, **kwargs):
-        super().__init__(**kwargs)
+class Normalized(Dataset):
+    def __init__(self, features, targets):
+        super().__init__()
+        self.features, self.targets = features, targets
 
-        features, targets = load_gaultois(target_cols=target_cols)
-        targets, features = dropna(targets.squeeze(), features)
-
-        self.features, self.targets = train_test_split(
-            features, targets, train=train, test_size=test_size
-        )
-
-        X, [X_mean, X_std] = normalize(self.features)
+        X, [X_mean, X_std] = normalize(features)
         self.X_mean, self.X_std = torch.tensor(X_mean), torch.tensor(X_std)
 
         # transpose targets to make target_cols the first dimension
-        y, [y_mean, y_std] = normalize(self.targets)
+        y, [y_mean, y_std] = normalize(targets)
         self.y_mean, self.y_std = torch.tensor(y_mean), torch.tensor(y_std)
 
         self.X = torch.tensor(X.to_numpy())
@@ -41,6 +35,24 @@ class GaultoisData(Dataset):
         if is_std:
             return tensor * self.y_std
         return tensor * self.y_std + self.y_mean
+
+    def denorm_X(self, tensor, is_std=False):
+        """ Revert z-scoring/normalization. """
+        if is_std:
+            return tensor * self.X_std
+        return tensor * self.X_std + self.X_mean
+
+
+class GaultoisData(Normalized):
+    def __init__(self, test_size=0.1, train=True, target_cols=None):
+
+        features, targets = load_gaultois(target_cols=target_cols)
+        targets, features = dropna(targets, features)
+
+        features, targets = train_test_split(
+            features, targets, train=train, test_size=test_size
+        )
+        super().__init__(features, targets)
 
 
 def robust_l1_loss(targets, preds, log_stds):
@@ -68,7 +80,7 @@ class TorchDropoutModel(nn.Sequential):
         self,
         sizes=[146, 100, 50, 25, 10],
         drop_rates=[0.5, 0.3, 0.3, 0.3],
-        activations=["Tanh", "ReLU", "ReLU", "ReLU"],
+        activations=["LeakyReLU"] * 4,
         robust=True,  # whether to use robust loss function
         optimizer=None,
         **kwargs,

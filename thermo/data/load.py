@@ -13,7 +13,9 @@ def to_type(df, dtype="float32"):
     return df_not_str.join(df_str)
 
 
-def load_gaultois(target_cols: list = ["rho", "seebeck", "kappa", "zT"]):
+def load_gaultois(
+    target_cols: list = ["rho", "seebeck", "kappa", "zT"], drop_outliers=False
+):
     """Load Magpie features and targets of the hand-curated
     Gaultois thermoelectrics database.
 
@@ -34,6 +36,10 @@ def load_gaultois(target_cols: list = ["rho", "seebeck", "kappa", "zT"]):
         columns=["formula"]
     )
     targets = pd.read_csv(ROOT + "/data/gaultois_targets.csv", header=1)
+
+    if drop_outliers:
+        features = features[targets.outliers.isna()]
+        targets = targets[targets.outliers.isna()]
 
     if target_cols:
         targets = targets[target_cols]
