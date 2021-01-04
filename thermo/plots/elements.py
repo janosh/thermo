@@ -142,7 +142,7 @@ def hist_elemental_prevalence(formulas, log_scale=False, keep_top=None):
         non_zero = non_zero.head(keep_top)
         plt.title(f"top {keep_top} elements")
 
-    non_zero.plot.bar(width=0.7, edgecolor="k")
+    non_zero.plot.bar(width=0.7, edgecolor="black")
 
     plt.ylabel("log(Element Count)" if log_scale else "Element Count")
     if log_scale:
