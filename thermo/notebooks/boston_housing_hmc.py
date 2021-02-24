@@ -15,9 +15,9 @@ from thermo.rf import rf_predict
 # %%
 # About the data: https://kaggle.com/c/boston-housing
 (X_train, y_train), (X_test, y_test) = tf.keras.datasets.boston_housing.load_data()
-X_train, y_train, X_test, y_test = [
-    arr.astype("float32") for arr in [X_train, y_train, X_test, y_test]
-]
+
+X_train, y_train = X_train.astype("float32"), y_train.astype("float32")
+X_test, y_test = X_test.astype("float32"), y_test.astype("float32")
 
 
 # %%
@@ -29,7 +29,7 @@ plot_output(y_test, rf_y_pred, rf_y_var ** 0.5, title="RF")
 
 
 # %%
-abs(rf_y_pred - y_test).mean()
+print(f"RF MAE: {abs(rf_y_pred - y_test).mean():.3f}")
 
 
 # %%
@@ -41,7 +41,7 @@ map_y_pred, map_y_var, map_log_probs, map_final_state = map_predict(
 
 
 # %%
-abs(map_y_pred - y_test).mean()
+print(f"RF MAE: {abs(map_y_pred - y_test).mean():.3f}")
 
 
 # %%
@@ -55,7 +55,7 @@ hmc_y_pred, hmc_y_var, _ = hmc_predict(
 
 
 # %%
-abs(hmc_y_pred - y_test).mean()
+print(f"RF MAE: {abs(hmc_y_pred - y_test).mean():.3f}")
 
 
 # %%

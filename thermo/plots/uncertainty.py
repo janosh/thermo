@@ -2,11 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from matplotlib.offsetbox import AnchoredText
 from scipy.stats import pearsonr
 
 from thermo.utils import pd2np
-
-from .utils import add_identity, add_text_box
 
 
 def get_err_decay(y_test, y_pred, n_rand=100):
@@ -84,38 +83,54 @@ def err_decay(y_test, y_pred, y_stds, title=None, n_rand=100, percentile=True):
     return fig
 
 
-def abs_err_vs_std(abs_err, y_std, title=None):
-    plt.scatter(abs_err, y_std, s=10)  # s: markersize
+def dfs_have_same_col_names(dfs, sort=False):
+    """Returns True when a list of dataframes have the same column names
+    in the same order. Pass sort=True if order doesn't matter.
 
-    plt.xlabel("$\\epsilon_\\mathrm{abs} = |y_\\mathrm{true} - y_\\mathrm{pred}|$")
-    plt.ylabel("$y_\\mathrm{std}$")
-    plt.title(title)
-
-    # plt.axis("scaled")
-    add_identity(plt.gca())
-
-    rp, _ = pearsonr(abs_err, y_std)
-    text = f"$r_P = {rp:.2g}$"
-    add_text_box(text)
-
-    fig = plt.gcf()
-    plt.show()
-    return fig
+    Args:
+        dfs (list): List of dataframes.
+        sort (bool, optional): Whether to sort the columns before comparing.
+            Defaults to False.
+    """
+    if sort:
+        return np.all([sorted(dfs[0].columns) == sorted(i.columns) for i in dfs])
+    return np.all([list(dfs[0].columns) == list(i.columns) for i in dfs])
 
 
-def mse_boxes(df, title=None):
-    # showfliers=False: Take outliers in the data into account but don't display them.
-    ax = sns.boxplot(data=df, width=0.6, showfliers=False)
-    ax.set_ylim(0, None)
-    for patch in ax.artists:
-        *rgb, a = patch.get_facecolor()
-        patch.set_facecolor((*rgb, 0.8))
+def nm_to_mn_cols(dfs, keys):
+    """Creates m n-column dataframes from n m-column dataframes.
+    Adapted from https://stackoverflow.com/a/57339017.
 
-    plt.title(title)
-    plt.xlabel("model")
-    plt.ylabel("$\\epsilon_\\mathrm{mse}$")
+    Args:
+        dfs: List of n m-column dataframes. Must all have the same column names!
+        keys: List of n column names for the new dataframes.
+    """
+    assert dfs_have_same_col_names(dfs), "Unequal column names in passed dataframes."
+    df_concat = pd.concat(dfs, keys=keys).unstack(0)
+    mxn_dfs = [df_concat.xs(i, axis=1, level=0) for i in df_concat.columns.levels[0]]
+    for i, df in enumerate(mxn_dfs):
+        df.name = df.columns.name = dfs[0].columns[i]
+    return mxn_dfs
 
-    plt.show()
+
+def mse_boxes(mse_dfs, x_axis_labels, title=None):
+    labels = mse_dfs[0].columns
+    # nm_to_mn_cols converts MSEs from being ordered by ML method to
+    # being ordered by label (rho, seebeck, ...).
+    mse_dfs = nm_to_mn_cols(mse_dfs, x_axis_labels)
+    for label, df in zip(labels, mse_dfs):
+        # showfliers=False: take outliers into account but don't display them
+        ax = sns.boxplot(data=df, width=0.6, showfliers=False)
+        ax.set_ylim(0, None)
+        for patch in ax.artists:
+            *rgb, a = patch.get_facecolor()
+            patch.set_facecolor((*rgb, 0.8))
+
+        plt.title(title)
+        plt.xlabel("model")
+        plt.ylabel("$\\epsilon_\\mathrm{mse}$")
+
+        plt.show()
 
 
 def show_err_decay_dist(decay_by_std, decay_by_err):
@@ -130,7 +145,9 @@ def show_err_decay_dist(decay_by_std, decay_by_err):
 
     rp, _ = pearsonr(decay_by_std, decay_by_err)
     text += f"$r_P = {rp:.2g}$"
-    add_text_box(text)
+
+    text_box = AnchoredText(text, borderpad=1, loc="upper right", frameon=False)
+    plt.gca().add_artist(text_box)
 
 
 def ci_err_decay(df, n_splits, title=None):

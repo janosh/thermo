@@ -7,9 +7,9 @@ from roost.roost.model import Roost
 from torch.utils.data import DataLoader, random_split
 
 from thermo.data import dropna, load_gaultois, normalize, train_test_split
+from thermo.evaluate import mae, rmse
 from thermo.rf.forest import RandomForestRegressor
 from thermo.utils import ROOT
-from thermo.utils.evaluate import mae, rmse
 
 # %%
 magpie_features, targets = load_gaultois(target_cols=["icsd_id", "formula", "T", "zT"])

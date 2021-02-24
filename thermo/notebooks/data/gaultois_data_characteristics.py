@@ -8,13 +8,13 @@ the four target columns in the Gaultois database: rho, seebeck, kappa, zT.
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from pymatgen import Composition
-
-from thermo.plots import (
+from mlmatrics import (
     hist_elemental_prevalence,
     ptable_elemental_prevalence,
     show_bar_values,
 )
+from pymatgen import Composition
+
 from thermo.utils import ROOT
 
 # %%
@@ -32,7 +32,7 @@ plt.savefig(f"{DIR}/ptable_elemental_prevalence.pdf", bbox_inches="tight")
 
 
 # %%
-hist_elemental_prevalence(targets.formula.values, keep_top=20)
+hist_elemental_prevalence(targets.formula.values, keep_top=20, voffset=20)
 plt.savefig(f"{DIR}/hist_elemental_prevalence.pdf", bbox_inches="tight")
 
 

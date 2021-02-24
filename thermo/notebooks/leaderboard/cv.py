@@ -14,10 +14,11 @@ from thermo.bnn.hmc import hmc_predict
 from thermo.bnn.map import map_predict
 from thermo.bnn.tf_dropout import do_predict
 from thermo.data import dropna, load_gaultois, normalize
+from thermo.evaluate import mae, rmse
 from thermo.gp import gp_predict
+from thermo.plots import ci_err_decay, nm_to_mn_cols, plot_output
 from thermo.rf import rf_predict
-from thermo.utils import ROOT, cross_val_predict, plots
-from thermo.utils.evaluate import mae, nxm_to_mxn_cols, plot_output, rmse
+from thermo.utils import ROOT, cross_val_predict
 
 # %%
 features, targets = load_gaultois()
@@ -61,11 +62,11 @@ for label, y_test, y_pred, y_std in zip(
 
 
 # %%
-rf_out_by_label = nxm_to_mxn_cols(
+rf_out_by_label = nm_to_mn_cols(
     [y_norm, rf_y_pred, rf_y_var], keys=["y_test", "y_pred", "y_var"]
 )
 for df in rf_out_by_label:
-    plots.ci_err_decay(df, kfold.n_splits)
+    ci_err_decay(df, kfold.n_splits)
 
 
 # %% [markdown]
@@ -112,11 +113,11 @@ for label, y_test, y_pred, y_std in zip(
 
 # %%
 
-rf_out_by_label = nxm_to_mxn_cols(
+rf_out_by_label = nm_to_mn_cols(
     [y_norm, map_y_pred, map_y_var], keys=["y_test", "y_pred", "y_var"]
 )
 for df in rf_out_by_label:
-    plots.ci_err_decay(df, kfold.n_splits)
+    ci_err_decay(df, kfold.n_splits)
 
 
 # %% [markdown]
@@ -145,11 +146,11 @@ for label, y_test, y_pred, y_std in zip(
 
 # %%
 
-rf_out_by_label = nxm_to_mxn_cols(
+rf_out_by_label = nm_to_mn_cols(
     [y_norm, do_y_pred, do_y_var], keys=["y_test", "y_pred", "y_var"]
 )
 for df in rf_out_by_label:
-    plots.ci_err_decay(df, kfold.n_splits)
+    ci_err_decay(df, kfold.n_splits)
 
 
 # %% [markdown]
@@ -176,11 +177,11 @@ for label, y_test, y_pred, y_std in zip(
 
 
 # %%
-rf_out_by_label = nxm_to_mxn_cols(
+rf_out_by_label = nm_to_mn_cols(
     [y_norm, gp_y_pred, gp_y_var], keys=["y_test", "y_pred", "y_var"]
 )
 for df in rf_out_by_label:
-    plots.ci_err_decay(df, kfold.n_splits)
+    ci_err_decay(df, kfold.n_splits)
 
 
 # %% [markdown]
@@ -232,11 +233,11 @@ for label, y_test, y_pred, y_std in zip(
 
 # %%
 
-rf_out_by_label = nxm_to_mxn_cols(
+rf_out_by_label = nm_to_mn_cols(
     [y_norm, hmc_y_pred, hmc_y_var], keys=["y_test", "y_pred", "y_var"]
 )
 for df in rf_out_by_label:
-    plots.ci_err_decay(df, kfold.n_splits)
+    ci_err_decay(df, kfold.n_splits)
 
 
 # %% [markdown]
@@ -245,7 +246,7 @@ for df in rf_out_by_label:
 
 # %%
 # all_mses = [rf_mses, map_mses, do_mses, gp_mses, hmc_mses]
-# mse_boxes(
+# plots.mse_boxes(
 #     [df.mse_scd for df in all_mses], ["rf", "map", "do", "gp", "hmc"],
 # )
 
