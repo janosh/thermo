@@ -7,8 +7,9 @@ from sklearn.model_selection import KFold
 
 from thermo.bnn.tf_dropout import do_predict
 from thermo.data import dropna, load_gaultois, normalize
+from thermo.evaluate import df_corr
+from thermo.plots import plot_output
 from thermo.utils import ROOT, cross_val_predict
-from thermo.utils.evaluate import df_corr, plot_output
 
 # %%
 features, targets = load_gaultois()

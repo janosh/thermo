@@ -2,10 +2,11 @@
 import os
 
 from thermo.data import dropna, load_gaultois, train_test_split
+from thermo.evaluate import mae, rmse
+from thermo.plots import plot_output
 from thermo.rf.forest import RandomForestRegressor
-from thermo.utils import ROOT, plots
+from thermo.utils import ROOT
 from thermo.utils.amm import MatPipe, featurize, fit_pred_pipe
-from thermo.utils.evaluate import mae, plot_output, rmse
 
 SAVE_TO = ROOT + "/results/amm/zT_direct_vs_indirect/"
 os.makedirs(SAVE_TO, exist_ok=True)
@@ -117,7 +118,7 @@ print(f"- MAE: {mae(test_df.zT, pred_df_zT.zT_pred_computed):.3g}")
 
 
 # %%
-plots.true_vs_pred(test_df.zT.values, pred_df_zT.zT_pred.values)
+plot_output(test_df.zT.values, pred_df_zT.zT_pred.values)
 
 
 # %%

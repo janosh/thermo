@@ -5,20 +5,21 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
 from IPython.display import Markdown, display
+from matplotlib import pyplot as plt
 
 from thermo.bnn.map import map_predict
 from thermo.bnn.tf_dropout import do_predict
 from thermo.data import dropna, load_gaultois, normalize, train_test_split
-from thermo.gp import gp_predict
-from thermo.rf import rf_predict
-from thermo.utils import ROOT, plots, predict_multiple_targets
-from thermo.utils.evaluate import (
+from thermo.evaluate import (
     back_transform_targets,
     compute_zT,
     mae,
     plot_output,
     rmse,
 )
+from thermo.gp import gp_predict
+from thermo.rf import rf_predict
+from thermo.utils import ROOT, predict_multiple_targets
 
 # %%
 features, targets = load_gaultois()
@@ -34,6 +35,17 @@ norm_targets, [y_mean, y_std] = normalize(log_targets)
 [X_train, y_train], [X_test, y_test] = train_test_split(norm_features, norm_targets)
 
 Xy = [X_train, y_train.T, X_test, y_test.T]
+
+
+# %%
+def plot_log_probs(log_probs: list, title: str = None) -> None:
+    for legend_label, log_prob in log_probs:
+        plt.plot(log_prob, label=legend_label)
+
+    plt.legend()
+    plt.xlabel("iteration")
+    plt.ylabel("log likelihood")
+    plt.title(title)
 
 
 # %% [markdown]
@@ -110,7 +122,8 @@ map_mae.to_frame().join(map_rmse)
 # %%
 for label, map_log_prob in zip(targets.columns, map_log_probs.values.T):
     display(Markdown(f"# {label}"))
-    plots.log_probs(zip(["train", "test"], map_log_prob), title=label)
+    plot_log_probs(zip(["train", "test"], map_log_prob), title=label)
+    plt.show()
 
 
 # %%

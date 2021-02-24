@@ -6,9 +6,10 @@ import pandas as pd
 from sklearn.model_selection import KFold
 
 from thermo.data import dropna, load_gaultois, normalize
+from thermo.evaluate import df_corr, mae, rmse
+from thermo.plots import plot_output
 from thermo.rf import rf_predict
 from thermo.utils import ROOT, cross_val_predict
-from thermo.utils.evaluate import df_corr, mae, plot_output, rmse
 
 # %%
 features, targets = load_gaultois()

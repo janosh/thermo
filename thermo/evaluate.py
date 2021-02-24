@@ -1,8 +1,6 @@
 import numpy as np
 import pandas as pd
 
-from thermo import plots
-
 
 def mse(arr1, arr2, axis=0):
     return ((arr1 - arr2) ** 2).mean(axis)
@@ -43,45 +41,6 @@ def get_df_stats(df):
     stats.index = ["mean", "median", "std", "min", "max"]
     stats.columns = df.columns
     return stats
-
-
-def dfs_have_same_col_names(dfs, sort=False):
-    """Returns True when a list of dataframes have the same column names
-    in the same order. Pass sort=True if order doesn't matter.
-
-    Args:
-        dfs (list): List of dataframes.
-        sort (bool, optional): Whether to sort the columns before comparing.
-            Defaults to False.
-    """
-    if sort:
-        return np.all([sorted(dfs[0].columns) == sorted(i.columns) for i in dfs])
-    return np.all([list(dfs[0].columns) == list(i.columns) for i in dfs])
-
-
-def nxm_to_mxn_cols(dfs, keys):
-    """Creates m n-column dataframes from n m-column dataframes.
-    Adapted from https://stackoverflow.com/a/57339017.
-
-    Args:
-        dfs: List of n m-column dataframes. Must all have the same column names!
-        keys: List of n column names for the new dataframes.
-    """
-    assert dfs_have_same_col_names(dfs), "Unequal column names in passed dataframes."
-    df_concat = pd.concat(dfs, keys=keys).unstack(0)
-    mxn_dfs = [df_concat.xs(i, axis=1, level=0) for i in df_concat.columns.levels[0]]
-    for i, df in enumerate(mxn_dfs):
-        df.name = df.columns.name = dfs[0].columns[i]
-    return mxn_dfs
-
-
-def mse_boxes(mse_dfs, x_axis_labels, **kwargs):
-    labels = mse_dfs[0].columns
-    # nxm_to_mxn_cols converts MSEs from being ordered by ML method to
-    # being ordered by label (rho, seebeck, ...).
-    mse_dfs = nxm_to_mxn_cols(mse_dfs, x_axis_labels)
-    for label, df in zip(labels, mse_dfs):
-        plots.mse_boxes(df, label, **kwargs)
 
 
 def df_corr(df1, df2, methods=["pearson", "spearman"]):

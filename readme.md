@@ -18,9 +18,9 @@ Consequently, searches have been unable to effectively guide experimentalists in
 To check out the code in this repo, reproduce results and start contributing to the project, clone the repo and create a `conda` environment containing all dependencies by running the following command (assumes you have `git` and `conda` installed)
 
 ```sh
-git clone https://github.com/Lee-Group/thermo \
+git clone https://github.com/janosh/thermo \
 && cd thermo \
-&& conda env create -f env.yml \
+&& pip install -r requirements.txt
 && pre-commit install
 ```
 
@@ -28,9 +28,9 @@ git clone https://github.com/Lee-Group/thermo \
 
 ### Locally
 
-Run any of the files in under [`src/notebooks`](https://github.com/janosh/thermo/tree/master/src/notebooks). The recommended way to work with this project is using [VS Code](https://code.visualstudio.com) along with its [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python). You'll see the results of running those files rendered in [VS Code's interactive window](https://code.visualstudio.com/docs/python/jupyter-support-py) (similar to Jupyter in purpose and functionality).
+Run any of the files in [`src/notebooks`](https://github.com/janosh/thermo/tree/master/src/notebooks). The recommended way to work with those files is using [VS Code](https://code.visualstudio.com) and its [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python). You'll see the results of running those files [in an interactive window](https://code.visualstudio.com/docs/python/jupyter-support-py) (similar to Jupyter).
 
-In VS Code, you'll probably want to add the following setting for local module imports to work and for code changes in imported modules to be auto-reloaded into the active Jupyter session:
+You'll probably want to add the following VS Code settings for local module imports to work and for code changes in imported modules to be auto-reloaded into the interactive session:
 
 ```json
 "python.dataScience.runStartupCommands": [
@@ -44,7 +44,7 @@ In VS Code, you'll probably want to add the following setting for local module i
 
 ### HPC
 
-To submit a job to [Cambridge University's CSD3](https://www.hpc.cam.ac.uk) HPC facility ([docs](https://docs.hpc.cam.ac.uk/hpc)):
+To submit a job to [Cambridge University's CSD3](https://hpc.cam.ac.uk) HPC facility ([docs](https://docs.hpc.cam.ac.uk/hpc)):
 
 1. Connect via `ssh` using your [CRSid](https://help.uis.cam.ac.uk/new-starters/it-for-students/student-it-services/your-crsid) and password, e.g.
 

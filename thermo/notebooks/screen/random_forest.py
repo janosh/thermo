@@ -14,13 +14,10 @@ from matplotlib import pyplot as plt
 from plotly import express as px
 
 from thermo.data import dropna, load_gaultois, load_screen, normalize
+from thermo.evaluate import back_transform_targets, filter_low_risk_high_ret
 from thermo.rf import rf_predict
 from thermo.utils import ROOT, predict_multiple_targets
 from thermo.utils.correlation import expected_rand_obj_val, rand_obj_val_avr
-from thermo.utils.evaluate import (
-    back_transform_targets,
-    filter_low_risk_high_ret,
-)
 
 DIR = ROOT + "/results/screen/"
 
