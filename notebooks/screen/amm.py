@@ -1,7 +1,7 @@
 # %%
 import os
 
-import pandas as pd
+import numpy as np
 
 from thermo.data import load_gaultois, load_screen
 from thermo.utils import ROOT
@@ -24,12 +24,12 @@ for df in [train_df, screen_df]:
 # Form Cartesian product between screen features and the 4 temperatures ([300, 400, 700,
 # 1000] Kelvin) found in Gaultois' database. We'll predict each material at all 4 temps.
 # Note: None of the composition are predicted to achieve high zT at 300, 400 Kelvin.
-# Remove those to cut computation time in half.
-screen_df = (
-    pd.DataFrame({"T": [700, 1000], "key": 1})
-    .merge(screen_df.assign(key=1), on="key")
-    .drop("key", axis=1)
-)
+# Remove those to save time.
+temps = (700, 1000)
+temps_col = np.array(temps).repeat(len(screen_df))
+
+screen_df = screen_df.loc[screen_df.index.repeat(len(temps))]
+screen_df.insert(0, "T", temps_col)
 
 
 # %%

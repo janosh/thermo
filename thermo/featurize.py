@@ -1,4 +1,4 @@
-"""Functions only needed once to generate CSV data files."""
+"""Functions only needed once to generate CSV files."""
 
 import pandas as pd
 from matminer.featurizers import composition as cf
@@ -39,7 +39,7 @@ def generate_gaultois_features():
     gaultois_targets = pd.read_csv(ROOT + "/data/gaultois_targets.csv", comment="#")
     gaultois_features = featurize_with_magpy(gaultois_targets)
     gaultois_features.to_csv(
-        ROOT + "/data/gaultois_features.csv", index=False, float_format="%g"
+        ROOT + "/data/gaultois_magpie_features.csv", index=False, float_format="%g"
     )
 
 
@@ -47,5 +47,5 @@ def generate_screen_features():
     screen_formulas = pd.read_csv(ROOT + "/data/screen_formulas.csv", comment="#")
     screen_features = featurize_with_magpy(screen_formulas, retain_cols=[])
     screen_features.to_csv(
-        ROOT + "/data/screen_features.csv", index=False, float_format="%g"
+        ROOT + "/data/screen_set_magpie_features.csv", index=False, float_format="%g"
     )

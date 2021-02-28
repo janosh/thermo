@@ -25,7 +25,7 @@ def plot_output(y_test, y_pred, y_std=None, **kwargs):
     abs_err = abs(y_test - y_pred)
     fig3 = plt.gcf()
     scatter_with_err_bar(
-        abs_err, y_std, xlabel="absolute error", ylabel="model uncertainty", **kwargs
+        abs_err, y_std, xlabel="Absolute error", ylabel="Model uncertainty", **kwargs
     )
     plt.show()
     return fig1, fig2, fig3

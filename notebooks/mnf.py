@@ -38,8 +38,6 @@ amm_fea = amm.featurize(mat_pipe, targets.rename(columns={"formula": "compositio
 
 
 # %%
-# zT is already order 1, ran tests and appears to be unnecessary to normalize
-# zT, [zT_mean, zT_std] = normalize(zT)
 magpie_fea, [mp_mean, mp_std] = normalize(magpie_fea)
 amm_fea, [amm_mean, amm_std] = normalize(amm_fea)
 

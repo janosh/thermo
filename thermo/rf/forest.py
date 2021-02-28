@@ -1,8 +1,10 @@
 """If enough time, compare our implementation
 with https://github.com/CitrineInformatics/lolo.
 """
+from typing import Tuple
 
 import numpy as np
+from numpy import ndarray as Array
 from sklearn.ensemble import RandomForestRegressor as RFR
 
 
@@ -14,11 +16,11 @@ class RandomForestRegressor(RFR):
     of https://arxiv.org/abs/1211.0906.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         self.params = {"args": args, **kwargs}
         super().__init__(*args, **kwargs)
 
-    def get_params(self, deep=True):
+    def get_params(self, deep: bool = True) -> dict:
         """This method overrides the one inherited from sklearn.base.BaseEstimator
         which when trying to inspect instances of this class would throw a
         RuntimeError complaining that "scikit-learn estimators should always specify
@@ -29,23 +31,24 @@ class RandomForestRegressor(RFR):
         """
         return self.params
 
-    def predict(self, X_test, uncertainty=None):
+    def predict(self, X_test, uncertainty: str = "full") -> Tuple[Array, Array]:
         """Predict y_pred and uncertainty y_var for X_test.
 
         Args:
             X_test (array-like, shape=(n_samples, n_features)): Input data.
+            uncertainty (str): One of 'aleatoric', 'epistemic' or 'full'.
 
         Returns:
-            2- or 1-tuple: y_pred (and y_var)
+            2-tuple: y_pred and y_var
         """
         assert self.criterion == "mse", f"impurity must be 'mse', got {self.criterion}"
 
         y_pred = super().predict(X_test)
-        y_var = self.get_var(X_test, y_pred, uncertainty or "full")
+        y_var = self.get_var(X_test, y_pred, uncertainty)
 
         return y_pred, y_var
 
-    def get_var(self, X_test, y_pred, uncertainty="full"):
+    def get_var(self, X_test: Array, y_pred: Array, uncertainty: str = "full") -> Array:
         """Uses law of total variance to compute var(Y|X_test) as
         E[Var(Y|Tree)] + Var(E[Y|Tree]). The first term represents epistemic uncertainty
         and is captured by the variance over the means predicted by individual trees.
@@ -114,19 +117,18 @@ class RandomForestRegressor(RFR):
         y_var = y_var_epist + y_var_aleat
         return y_var
 
-    def get_corr(self, X_test, alpha=1e-12):
+    def get_corr(self, X_test: Array, alpha: float = 1e-12) -> Array:
         """Compute the matrix of Pearson correlation coefficients between
-        random forest predictions for each sample in X_test. Each entry in the
-        correlation matrix is the covariance between those random variables
-        divided by their respective standard deviations. See
-        https://docs.scipy.org/doc/numpy/reference/generated/numpy.corrcoef.html.
+        random forest predictions for each sample in X_test.
+
+        See https://docs.scipy.org/doc/numpy/reference/generated/numpy.corrcoef.html.
 
         Args:
-            X_test (array, shape=(n_samples, n_features)): Input data.
+            X_test (Array shape [n_samples, n_features]): Input data.
+            alpha (float): additive
 
         Returns:
-            array, shape=(n_samples, n_samples): Correlation coefficients between
-            samples in X_test.
+            Array shape [n_samples, n_samples]: Correlation matrix of samples in X_test.
         """
         # Each row in preds corresponds to a variable, in this case different samples
         # in X_test, while each column contains a series of observations corresponding
