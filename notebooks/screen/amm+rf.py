@@ -1,6 +1,7 @@
 # %%
 import os
 
+import numpy as np
 import pandas as pd
 from gurobipy import GRB, Model, quicksum
 from matplotlib import pyplot as plt
@@ -30,11 +31,11 @@ for df in [gaultois_df, screen_df]:
 # 1000] Kelvin) found in Gaultois' database. We'll predict each material at all 4 temps.
 # Note: None of the composition are predicted to achieve high zT at 300, 400 Kelvin.
 # Remove those to cut computation time in half.
-screen_df = (
-    pd.DataFrame({"T": [700, 1000], "key": 1})
-    .merge(screen_df.assign(key=1), on="key")
-    .drop("key", axis=1)
-)
+temps = (700, 1000)
+temps_col = np.array(temps).repeat(len(screen_df))
+
+screen_df = screen_df.loc[screen_df.index.repeat(len(temps))]
+screen_df.insert(0, "T", temps_col)
 
 
 # %%
@@ -74,12 +75,11 @@ amm_train_features = pd.read_csv(DIR + "amm_train_features.csv")
 amm_screen_features = pd.read_csv(DIR + "amm_screen_features.csv")
 del amm_screen_features["composition"]
 
-# reinstate temperature column, removed to save disk space
-amm_screen_features = (
-    pd.DataFrame({"T": [700, 1000], "key": 1})
-    .merge(amm_screen_features.assign(key=1), on="key")
-    .drop("key", axis=1)
-)
+# add temperature column to AMM features
+amm_screen_features = amm_screen_features.loc[
+    amm_screen_features.index.repeat(len(temps))
+]
+amm_screen_features.insert(0, "T", temps_col)
 
 
 # %% [markdown]
@@ -147,11 +147,13 @@ screen_df.sort_values("zT_pred", ascending=False)[:20].to_csv(
 
 
 # %%
-formulas_lrhr = filter_low_risk_high_ret(screen_df, min_ret=1.3)
+lrhr_idx = filter_low_risk_high_ret(screen_df.zT_pred, screen_df.zT_var, min_ret=1.3)
+
+lrhr_candidates = screen_df[lrhr_idx]
 
 
 # %%
-px.scatter(formulas_lrhr, x="zT_var", y="zT_pred", hover_data=formulas_lrhr.columns)
+px.scatter(lrhr_candidates, x="zT_var", y="zT_pred", hover_data=lrhr_candidates.columns)
 
 
 # %% [markdown]
@@ -159,9 +161,9 @@ px.scatter(formulas_lrhr, x="zT_var", y="zT_pred", hover_data=formulas_lrhr.colu
 
 
 # %%
-zT_corr = rf_zT.get_corr(amm_screen_features.iloc[formulas_lrhr.index])
+zT_corr = rf_zT.get_corr(amm_screen_features.iloc[lrhr_candidates.index])
 zT_corr = pd.DataFrame(
-    zT_corr, columns=formulas_lrhr.composition, index=formulas_lrhr.composition
+    zT_corr, columns=lrhr_candidates.composition, index=lrhr_candidates.composition
 )
 
 
@@ -170,7 +172,7 @@ zT_corr.to_csv(DIR + "correlation_matrix.csv", float_format="%g")
 
 
 # %%
-zT_corr_evals, zT_corr_evecs = pd.np.linalg.eig(zT_corr)
+zT_corr_evals, zT_corr_evecs = np.linalg.eig(zT_corr)
 zT_corr_evecs = zT_corr_evecs[zT_corr_evals.argsort()[::-1]]
 plt.scatter(zT_corr_evecs[0], zT_corr_evecs[1])
 
@@ -189,7 +191,7 @@ plt.scatter(zT_corr_evecs[0], zT_corr_evecs[1])
 # The idea for this way of reducing correlation came from
 # https://stats.stackexchange.com/a/327822/226996. Taking the element-wise
 # absolute value (rather than squaring) and then summing gives similar results.
-greedy_candidates = formulas_lrhr.copy(deep=True)
+greedy_candidates = lrhr_candidates.copy(deep=True)
 
 greedy_candidates["rough_correlation"] = (zT_corr ** 2).sum().values
 
@@ -216,7 +218,7 @@ os.remove(DIR + "gurobi.log")
 # %%
 n_select = 20
 # Create decision variables.
-dvar = grb_model.addVars(len(formulas_lrhr), vtype=GRB.BINARY).values()
+dvar = grb_model.addVars(len(lrhr_candidates), vtype=GRB.BINARY).values()
 
 
 # %%
@@ -240,7 +242,7 @@ assert (
     sum([var.x for var in dvar]) == n_select
 ), "Gurobi selected a different number of materials than specified by n_select"
 
-gurobi_candidates = formulas_lrhr.iloc[[bool(var.x) for var in dvar]]
+gurobi_candidates = lrhr_candidates.iloc[[bool(var.x) for var in dvar]]
 
 
 # %%
@@ -283,19 +285,19 @@ greedy_avg_index = greedy_candidates[gurobi_in_greedy].index.to_series().mean()
 print(
     "Average index of materials chosen by Gurobi in the list\n"
     f"sorted according to least squared correlation: {greedy_avg_index}\n"
-    f"vs the average index of the total list: {(len(formulas_lrhr) + 1) / 2}"
+    f"vs the average index of the total list: {(len(lrhr_candidates) + 1) / 2}"
 )
 
 
 # %%
-greedy_indices_in_corr_mat = formulas_lrhr.index.isin(
+greedy_indices_in_corr_mat = lrhr_candidates.index.isin(
     greedy_candidates.orig_index[:n_select]
 )
 greedy_obj_val = zT_corr.values.dot(greedy_indices_in_corr_mat).dot(
     greedy_indices_in_corr_mat
 )
 
-avr_rand_obj_val = rand_obj_val_avr(zT_corr, n_select)
+avr_rand_obj_val = rand_obj_val_avr(zT_corr, n_select, (n_repeats := 50))
 
 # If len(zT_corr) >> 500, expected_rand_obj_val will take a long time due to cubic
 # scaling. Consider decreasing max_risk or increasing min_ret in
@@ -305,6 +307,6 @@ exp_rand_obj_val = expected_rand_obj_val(zT_corr, n_select)
 print(
     f"objective values:\n- Gurobi: {grb_model.objVal:.4g}\n"
     f"- greedy: {greedy_obj_val:.4g}\n"
-    f"- average of 50 random draws: {avr_rand_obj_val:.4g}\n"
+    f"- average of {n_repeats} random draws: {avr_rand_obj_val:.4g}\n"
     f"- expectation value of random solution: {exp_rand_obj_val:.4g}"
 )

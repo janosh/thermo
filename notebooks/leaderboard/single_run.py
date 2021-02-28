@@ -4,20 +4,14 @@ from functools import partial
 import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
-from IPython.display import Markdown, display
 from matplotlib import pyplot as plt
 
 from thermo.bnn.map import map_predict
 from thermo.bnn.tf_dropout import do_predict
 from thermo.data import dropna, load_gaultois, normalize, train_test_split
-from thermo.evaluate import (
-    back_transform_targets,
-    compute_zT,
-    mae,
-    plot_output,
-    rmse,
-)
+from thermo.evaluate import compute_zT, denorm, mae, rmse
 from thermo.gp import gp_predict
+from thermo.plots import plot_output
 from thermo.rf import rf_predict
 from thermo.utils import ROOT, predict_multiple_targets
 
@@ -34,7 +28,7 @@ norm_targets, [y_mean, y_std] = normalize(log_targets)
 
 [X_train, y_train], [X_test, y_test] = train_test_split(norm_features, norm_targets)
 
-Xy = [X_train, y_train.T, X_test, y_test.T]
+Xy = [X_train, y_train, X_test, y_test]
 
 
 # %%
@@ -57,9 +51,7 @@ rf_y_pred, rf_y_var, rf_models = predict_multiple_targets(rf_predict, *Xy)
 
 
 # %%
-rf_y_pred_orig, rf_y_var_orig = back_transform_targets(
-    y_mean, y_std, rf_y_pred, rf_y_var, to="orig"
-)
+rf_y_pred_orig, rf_y_var_orig = denorm(y_mean, y_std, rf_y_pred, rf_y_var)
 
 
 # %%
@@ -72,7 +64,7 @@ rf_mae.to_frame().join(rf_rmse)
 for label, y_true, y_pred, y_var in zip(
     y_test.columns, y_test.values.T, rf_y_pred.values.T, rf_y_var.values.T
 ):
-    display(Markdown(f"# {label}"))
+    print(f"\n{label}\n")
     plot_output(y_true, y_pred, y_var ** 0.5, title=label)
 
 
@@ -108,9 +100,7 @@ map_y_pred, map_y_var, map_log_probs, map_initial_states = map_results
 
 
 # %%
-map_y_pred_orig, map_y_var_orig = back_transform_targets(
-    y_mean, y_std, map_y_pred, map_y_var, to="orig"
-)
+map_y_pred_orig, map_y_var_orig = denorm(y_mean, y_std, map_y_pred, map_y_var)
 
 
 # %%
@@ -121,7 +111,7 @@ map_mae.to_frame().join(map_rmse)
 
 # %%
 for label, map_log_prob in zip(targets.columns, map_log_probs.values.T):
-    display(Markdown(f"# {label}"))
+    print(f"\n{label}\n")
     plot_log_probs(zip(["train", "test"], map_log_prob), title=label)
     plt.show()
 
@@ -133,7 +123,7 @@ for label, y_true, y_pred, y_var in zip(
     map_y_pred.values.T,
     map_y_var.values.T,
 ):
-    display(Markdown(f"# {label}"))
+    print(f"\n{label}\n")
     plot_output(y_true, y_pred, y_var ** 0.5, title=label)
 
 
@@ -162,9 +152,7 @@ gp_y_pred, gp_y_var, gp_models = predict_multiple_targets(gp_predict, *Xy)
 
 
 # %%
-gp_y_pred_orig, gp_y_var_orig = back_transform_targets(
-    y_mean, y_std, gp_y_pred, gp_y_var, to="orig"
-)
+gp_y_pred_orig, gp_y_var_orig = denorm(y_mean, y_std, gp_y_pred, gp_y_var)
 
 
 # %%
@@ -177,7 +165,7 @@ gp_mae.to_frame().join(gp_rmse)
 for label, y_true, y_pred, y_std in zip(
     targets.columns, y_test.values.T, gp_y_pred.values.T, gp_y_var.values.T ** 0.5
 ):
-    display(Markdown(f"# {label}"))
+    print(f"\n{label}\n")
     plot_output(y_true, y_pred, y_std, title=label)
 
 
@@ -196,9 +184,7 @@ do_y_pred, do_y_var, do_histories, do_models = predict_multiple_targets(
 
 
 # %%
-do_y_pred_orig, do_y_var_orig = back_transform_targets(
-    y_mean, y_std, do_y_pred, do_y_var, to="orig"
-)
+do_y_pred_orig, do_y_var_orig = denorm(y_mean, y_std, do_y_pred, do_y_var)
 
 
 # %%
@@ -216,6 +202,5 @@ for label, y_true, y_pred, y_std, hist in zip(
     do_histories.values(),
     # models,
 ):
-    display(Markdown(f"# {label}"))
+    print(f"\n{label}\n")
     plot_output(y_true, y_pred, y_std, title=label)
-    # plot_model(model, log_dir)

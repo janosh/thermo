@@ -8,43 +8,38 @@ regression.
 # %%
 import os
 
+import numpy as np
 import pandas as pd
 from gurobipy import GRB, Model, quicksum
 from matplotlib import pyplot as plt
 from plotly import express as px
 
-from thermo.data import dropna, load_gaultois, load_screen, normalize
-from thermo.evaluate import back_transform_targets, filter_low_risk_high_ret
+from thermo.data import dropna, load_gaultois, load_screen
+from thermo.evaluate import filter_low_risk_high_ret
 from thermo.rf import rf_predict
-from thermo.utils import ROOT, predict_multiple_targets
+from thermo.utils import ROOT
 from thermo.utils.correlation import expected_rand_obj_val, rand_obj_val_avr
-
-DIR = ROOT + "/results/screen/"
-
 
 # %%
 features, targets = load_gaultois()
 targets, features = dropna(targets, features)
-formulas, screen_features = load_screen()
+# magpie_screen are the Magpie features for the screening set without temperature yet
+screen_ids, magpie_screen = load_screen()
 
 
 # %%
 # Form Cartesian product between screen features and the 4 temperatures ([300, 400, 700,
 # 1000] Kelvin) found in Gaultois' database. We'll predict each material at all 4 temps.
 # Note: None of the composition are predicted to achieve high zT at 300, 400 Kelvin.
-# Remove those to cut computation time in half.
-formulas, screen_features = [
-    pd.DataFrame({"T": [700, 1000], "key": 1})
-    .merge(df.assign(key=1), on="key")
-    .drop("key", axis=1)
-    for df in [formulas, screen_features]
-]
+# Remove those to save time.
+temps = (700, 1000)
+temps_col = np.array(temps).repeat(len(magpie_screen))
 
+screen_features = magpie_screen.loc[magpie_screen.index.repeat(len(temps))]
+screen_features.insert(0, "T", temps_col)
 
-# %%
-screen_features, [X_mean, X_std] = normalize(screen_features)
-features, _ = normalize(features, X_mean, X_std)
-normed_targets, [y_mean, y_std] = normalize(targets)
+candidates = screen_ids.loc[screen_ids.index.repeat(len(temps))]
+candidates.insert(0, "T", temps_col)
 
 
 # %% [markdown]
@@ -52,20 +47,12 @@ normed_targets, [y_mean, y_std] = normalize(targets)
 
 
 # %%
-rf_y_preds_scd, rf_y_vars_scd, rf_models = predict_multiple_targets(
-    rf_predict, features, normed_targets, screen_features
-)
+zT_pred, zT_var, forest = rf_predict(features, targets.zT, screen_features)
 
 
 # %%
-rf_y_preds, rf_y_vars = back_transform_targets(
-    y_mean, y_std, rf_y_preds_scd, rf_y_vars_scd, to="orig"
-)
-
-
-# %%
-formulas[[ln + "_pred" for ln in targets.columns]] = rf_y_preds
-formulas[[ln + "_var" for ln in targets.columns]] = rf_y_vars
+candidates["zT_pred"] = zT_pred
+candidates["zT_std"] = zT_var ** 0.5
 
 
 # %% [markdown]
@@ -73,35 +60,37 @@ formulas[[ln + "_var" for ln in targets.columns]] = rf_y_vars
 
 
 # %%
-formulas_lrhr = filter_low_risk_high_ret(formulas)
+lrhr_idx = filter_low_risk_high_ret(candidates.zT_pred, candidates.zT_std)
+
+lrhr_candidates = candidates.loc[lrhr_idx]
 
 
 # %%
 # Get the 20 materials predicted to have the highest zT with no concern for estimated
 # uncertainty to compare if uncertainty estimation reduces the false positive rate.
-formulas_hr = formulas.sort_values("zT_pred", ascending=False)[:20]
-formulas_hr[["formula", "database", "id", "T", "zT_pred", "zT_var"]].to_csv(
-    DIR + "hr-materials.csv", index=False, float_format="%g"
+high_risk_candidates = candidates.sort_values("zT_pred", ascending=False)[:20]
+high_risk_candidates[["formula", "database", "id", "T", "zT_pred", "zT_std"]].to_csv(
+    "high_risk_candidates.csv", index=False, float_format="%g"
 )
 
 
 # %%
-# formulas_lrhr.to_csv(DIR + "lrhr_materials.csv", index=False, float_format="%g")
-zT_var_lt_half = formulas_lrhr[formulas_lrhr.zT_var < 0.5]
-zT_var_lt_half.plot.scatter(x="zT_var", y="zT_pred")
+# lrhr_candidates.to_csv("lrhr_materials.csv", index=False, float_format="%g")
+zT_std_lt_half = lrhr_candidates[lrhr_candidates.zT_std < 0.5]
+zT_std_lt_half.plot.scatter(x="zT_std", y="zT_pred")
 plt.xlabel("")
 plt.ylabel("")
 plt.savefig(
-    DIR + "lrhr_materials.pdf",
+    "lrhr_materials.pdf",
     bbox_inches="tight",
     transparent=True,
 )
-pearson = zT_var_lt_half[["zT_var", "zT_pred"]].corr().iloc[0, 1]
+pearson = zT_std_lt_half[["zT_std", "zT_pred"]].corr().iloc[0, 1]
 print(f"Pearson corr.: {pearson:.4g}")
 
 
 # %%
-px.scatter(formulas_lrhr, x="zT_var", y="zT_pred", hover_data=formulas_lrhr.columns)
+px.scatter(lrhr_candidates, x="zT_std", y="zT_pred", hover_data=lrhr_candidates.columns)
 
 
 # %% [markdown]
@@ -109,21 +98,30 @@ px.scatter(formulas_lrhr, x="zT_var", y="zT_pred", hover_data=formulas_lrhr.colu
 
 
 # %%
-zT_forest = rf_models["zT_log_scd"]
-zT_corr = zT_forest.get_corr(screen_features.iloc[formulas_lrhr.index])
+zT_corr = forest.get_corr(screen_features.iloc[lrhr_candidates.index])
 zT_corr = pd.DataFrame(
-    zT_corr, columns=formulas_lrhr.formula, index=formulas_lrhr.formula
+    zT_corr, columns=lrhr_candidates.formula, index=lrhr_candidates.formula
 )
 
 
 # %%
-zT_corr.to_csv(DIR + "correlation_matrix.csv", float_format="%g")
+# zT_corr.to_csv("correlation_matrix.csv", float_format="%g")
+zT_corr = pd.read_csv("correlation_matrix.csv", index_col="formula")
+
+
+plt.figure(figsize=[10, 10])
+plt.pcolormesh(zT_corr.iloc[:200, :200])
+plt.title("First 200 compositions")
+plt.savefig("correlation_matrix_rf.png", bbox_inches="tight", dpi=200)
 
 
 # %%
-zT_corr_evals, zT_corr_evecs = pd.np.linalg.eig(zT_corr)
-zT_corr_evecs = zT_corr_evecs[zT_corr_evals.argsort()[::-1]]
-plt.scatter(zT_corr_evecs[0], zT_corr_evecs[1])
+# unlike np.linalg.eig, eigh assumes the matrix is symmetric and as a result is faster
+zT_corr_evals, zT_corr_evecs = np.linalg.eigh(zT_corr)
+
+zT_corr_evecs = zT_corr_evecs[:, zT_corr_evals.argsort()[::-1]]
+
+plt.scatter(zT_corr_evecs[:, 0], zT_corr_evecs[:, 1])
 
 
 # %% [markdown]
@@ -131,16 +129,16 @@ plt.scatter(zT_corr_evecs[0], zT_corr_evecs[1])
 # Helpful links for the discrete constrained optimization problem of
 # finding the p least correlated materials out of n predictions:
 # - [Find k of n items with least pairwise correlations](
-# https://stats.stackexchange.com/questions/73125)
+# https://stats.stackexchange.com/q/73125)
 # - [Least correlated subset of random variables from a correlation matrix](
-# https://stats.stackexchange.com/questions/110426)
+# https://stats.stackexchange.com/q/110426)
 
 
 # %%
 # The idea for this way of reducing correlation came from
-# https://stats.stackexchange.com/a/327822/226996. Taking the element-wise
+# https://stats.stackexchange.com/a/327822. Taking the element-wise
 # absolute value (rather than squaring) and then summing gives similar results.
-greedy_candidates = formulas_lrhr.copy(deep=True)
+greedy_candidates = lrhr_candidates.copy(deep=True)
 
 greedy_candidates["rough_correlation"] = (zT_corr ** 2).sum().values
 
@@ -150,36 +148,36 @@ greedy_candidates = (
     .sort_values(by="rough_correlation")
 )
 
-greedy_candidates.to_csv(DIR + "greedy_candidates.csv", index=False, float_format="%g")
+greedy_candidates.to_csv("greedy_candidates.csv", index=False, float_format="%g")
 
 
 # %%
 # Set environment variable GRB_LICENSE_FILE so that Gurobi finds its license file.
 # An academic license can be obtained for free at
-# https://www.gurobi.com/downloads/end-user-license-agreement-academic.
-os.environ["GRB_LICENSE_FILE"] = ROOT + "/hpc/gurobi.lic"
+# https://gurobi.com/downloads/end-user-license-agreement-academic.
+os.environ["GRB_LICENSE_FILE"] = f"{ROOT}/hpc/gurobi.lic"
 # Create a model for solving the quadratic optimization problem of selecting p out of n
 # materials with least pairwise correlation according to the correlation matrix zT_corr.
 grb_model = Model("quadratic_problem")
-grb_model.params.LogFile = DIR + "gurobi.log"
-os.remove(DIR + "gurobi.log")
+grb_model.params.LogFile = "gurobi.log"
+os.remove("gurobi.log")
 
 
 # %%
 n_select = 20
 # Create decision variables.
-dvar = grb_model.addVars(len(formulas_lrhr), vtype=GRB.BINARY).values()
+dec_vars = grb_model.addVars(len(lrhr_candidates), vtype=GRB.BINARY).values()
 
 
 # %%
 # Define the model objective to minimize the sum of pairwise correlations.
-obj = zT_corr.dot(dvar).dot(dvar)
+obj = zT_corr.dot(dec_vars).dot(dec_vars)
 grb_model.setObjective(obj, GRB.MINIMIZE)
 
 
 # %%
 # Add L1 constraint on dvar so that the optimization returns at least n_select formulas.
-constr = grb_model.addConstr(quicksum(dvar) >= n_select, "l1_norm")
+constr = grb_model.addConstr(quicksum(dec_vars) >= n_select, "l1_norm")
 
 
 # %%
@@ -188,8 +186,8 @@ grb_model.optimize()
 
 # %%
 # Save selected materials to dataframe and CSV file.
-gurobi_candidates = formulas_lrhr.iloc[[bool(var.x) for var in dvar]]
-gurobi_candidates.to_csv(DIR + "gurobi_candidates.csv", index=False)
+gurobi_candidates = lrhr_candidates.iloc[[bool(var.x) for var in dec_vars]]
+gurobi_candidates.to_csv("gurobi_candidates.csv", index=False)
 
 
 # %%
@@ -198,8 +196,8 @@ for name, df in zip(
     [gurobi_candidates, greedy_candidates.iloc[:20]],
 ):
     df.sort_values(["formula", "T"]).to_latex(
-        f"{DIR}{name}.tex",
-        columns=["formula", "database", "id", "T", "zT_pred", "zT_var"],
+        f"{name}.tex",
+        columns=["formula", "database", "id", "T", "zT_pred", "zT_std"],
         float_format="%.3g",
         index=False,
     )
@@ -222,19 +220,19 @@ greedy_avg_index = greedy_candidates[gurobi_in_greedy].index.to_series().mean()
 print(
     "Average index of materials chosen by Gurobi in the list\n"
     f"sorted according to least squared correlation: {greedy_avg_index}\n"
-    f"vs the average index of the total list: {(len(formulas_lrhr) + 1) / 2}"
+    f"vs the average index of the total list: {(len(lrhr_candidates) + 1) / 2}"
 )
 
 
 # %%
-greedy_indices_in_corr_mat = formulas_lrhr.index.isin(
+greedy_indices_in_corr_mat = lrhr_candidates.index.isin(
     greedy_candidates.orig_index[:n_select]
 )
 greedy_obj_val = zT_corr.values.dot(greedy_indices_in_corr_mat).dot(
     greedy_indices_in_corr_mat
 )
 
-avr_rand_obj_val = rand_obj_val_avr(zT_corr, n_select)
+avr_rand_obj_val = rand_obj_val_avr(zT_corr, n_select, (n_repeats := 50))
 
 # If len(zT_corr) >> 500, expected_rand_obj_val will take a long time due to cubic
 # scaling. Consider decreasing max_risk or increasing min_ret in
@@ -244,7 +242,7 @@ exp_rand_obj_val = expected_rand_obj_val(zT_corr, n_select)
 print(
     f"objective values:\n- Gurobi: {grb_model.objVal:.4g}\n"
     f"- greedy: {greedy_obj_val:.4g}\n"
-    f"- average of 50 random draws: {avr_rand_obj_val:.4g}\n"
+    f"- average of {n_repeats} random draws: {avr_rand_obj_val:.4g}\n"
     f"- expectation value of random solution: {exp_rand_obj_val:.4g}"
 )
 
@@ -254,7 +252,7 @@ print(
 
 
 # %%
-dft_seebeck = pd.read_csv(DIR + "dft/gurobi_seebeck.csv")[
+dft_seebeck = pd.read_csv("dft/gurobi_seebeck.csv")[
     ["formula", "300", "400", "700", "1000"]
 ].set_index("formula")
 
@@ -288,7 +286,7 @@ seebeck_abs_preds_and_corrs = pd.concat(
 )
 seebeck_abs_preds_and_corrs.loc["mean"] = seebeck_abs_preds_and_corrs.mean()
 seebeck_abs_preds_and_corrs.to_latex(
-    DIR + "rf_seebeck_abs_corr.tex",
+    "rf_seebeck_abs_corr.tex",
     escape=False,
     float_format="%.3g",
     multicolumn_format="c",

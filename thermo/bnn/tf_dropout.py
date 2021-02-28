@@ -117,16 +117,6 @@ def do_predict(X_train, y_train, X_test, y_test, **kwargs):
     return y_pred, y_var, history.history, model
 
 
-def plot_model(model, path):
-    tf.keras.utils.plot_model(
-        model,
-        to_file=path + "model.pdf",
-        show_shapes=True,
-        show_layer_names=True,
-        rankdir="TB",  # TB or LR
-    )
-
-
 def load_model(path, filename="model.h5"):
     return tf.keras.models.load_model(
         path + filename, custom_objects={"Dropout": Dropout}

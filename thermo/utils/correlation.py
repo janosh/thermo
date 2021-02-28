@@ -3,25 +3,25 @@ from random import shuffle
 import numpy as np
 
 
-def rand_obj_val_avr(corr_mat, n_select, repeats=50):
+def rand_obj_val_avr(corr_mat: np.ndarray, n_select: int, n_repeats: int = 50) -> float:
     """Simulates the random baseline for the discrete constrained optimization
     problem of finding the n_select least correlated candidates out of a pool of
     len(corr_mat) candidates as determined by the dataframe of pairwise correlations
-    corr_mat, averaged over repeats repetitions.
+    corr_mat, averaged over n_repeats repetitions.
 
     Args:
         corr_mat (dataframe): dataframe of pairwise correlations.
         n_select (int): number of candidates to be selected from the dataframe.
-        repeats (int, optional): How many random draws to average over. Defaults to 50.
+        n_repeats (int, optional): How many random draws to average. Defaults to 50.
 
     Returns: float: The average objective value achieved by random choice.
     """
     avr, n_variables = 0, len(corr_mat)
-    for _ in range(repeats):
+    for _ in range(n_repeats):
         rand_seq = [1] * n_select + [0] * (n_variables - n_select)
         shuffle(rand_seq)
         avr += corr_mat.dot(rand_seq).dot(rand_seq)
-    return avr / repeats
+    return avr / n_repeats
 
 
 def expected_rand_obj_val(corr_mat, n_select):
@@ -29,7 +29,7 @@ def expected_rand_obj_val(corr_mat, n_select):
     problem of finding the n_select least correlated candidates out of a pool of
     len(corr_mat) candidates pairwise correlated according to corr_mat.
 
-    See https://math.stackexchange.com/questions/3315535 for mathematical details.
+    See https://math.stackexchange.com/q/3315535 for mathematical details.
     """
     if corr_mat.to_numpy:
         corr_mat = corr_mat.to_numpy()

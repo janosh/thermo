@@ -6,7 +6,7 @@ def rf_predict(X_train, y_train, X_test, y_test=None, **kwargs):
     y_test is only there to match the signature of other predict
     functions and allow use in predict_multiple_targets().
     """
-    uncertainty = kwargs.pop("uncertainty", None)
+    uncertainty = kwargs.pop("uncertainty", "full")
 
     forest = RandomForestRegressor(random_state=0, **kwargs)
     forest.fit(X_train, y_train)

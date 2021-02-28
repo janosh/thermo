@@ -16,8 +16,8 @@ from thermo.rf import rf_predict
 # %%
 features, targets = load_gaultois()
 
-# see back_transform_targets() for how to compute original variance of log-normal RV
 targets["abs_seebeck"] = abs(targets.seebeck)
+# see unlog_preds() for how to compute original variance of log-normal RV
 log_targets = np.log(targets.drop(columns=["seebeck"]))
 
 [X_train, y_train], [X_test, y_test] = train_test_split(features, log_targets)
