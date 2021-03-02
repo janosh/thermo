@@ -139,19 +139,19 @@ for fig, name in zip(mp_mnf_figs, fig_titles):
 
 
 # %%
-mp_rf_pred, mp_rf_var, _ = rf_predict(mp_train, zT_train, mp_test)
+mp_rf_pred, mp_rf_std, _ = rf_predict(mp_train, zT_train, mp_test)
 
 
 # %%
-figs_rf = plot_output(zT_test.values, mp_rf_pred, mp_rf_var ** 0.5, title="Magpie + RF")
+figs_rf = plot_output(zT_test.values, mp_rf_pred, mp_rf_std, title="Magpie + RF")
 
 
 # %%
-amm_rf_pred, amm_rf_var, _ = rf_predict(amm_train, zT_train, amm_test)
+amm_rf_pred, amm_rf_std, _ = rf_predict(amm_train, zT_train, amm_test)
 
 
 # %%
-figs_rf = plot_output(zT_test.values, amm_rf_pred, amm_rf_var ** 0.5, title="AMM + RF")
+figs_rf = plot_output(zT_test.values, amm_rf_pred, amm_rf_std, title="AMM + RF")
 
 
 # %%

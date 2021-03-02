@@ -12,6 +12,4 @@ tensorflow
 tensorflow-probability
 torch
 tqdm
-
-# dev dependencies
-pytest
+umap-learn

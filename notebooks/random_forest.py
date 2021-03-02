@@ -39,14 +39,14 @@ kappa_test, zT_test, X_test_no_nan = dropna(kappa_test, zT_test, X_test)
 
 
 # %%
-rho_ep_pred, rho_ep_var, _ = rf_predict(
+rho_ep_pred, rho_ep_std, _ = rf_predict(
     X_train, rho_train, X_test, uncertainty="epistemic"
 )
 
 # %%
 print(f"rho epistemic MAE: {abs(rho_ep_pred - rho_test).mean():.3f}\n")
 
-plot_output(rho_test, rho_ep_pred, rho_ep_var ** 0.5, title="rho")
+plot_output(rho_test, rho_ep_pred, rho_ep_std, title="rho")
 
 
 # %% [markdown]
@@ -54,12 +54,12 @@ plot_output(rho_test, rho_ep_pred, rho_ep_var ** 0.5, title="rho")
 
 
 # %%
-rho_al_ep_pred, rho_al_ep_var, _ = rf_predict(X_train, rho_train, X_test)
+rho_al_ep_pred, rho_al_ep_std, _ = rf_predict(X_train, rho_train, X_test)
 
 
 # %%
 print(f"rho aleatoric_epistemic MAE: {abs(rho_al_ep_pred - rho_test).mean():.3f}\n")
-plot_output(rho_test, rho_al_ep_pred, rho_al_ep_var ** 0.5, title="rho")
+plot_output(rho_test, rho_al_ep_pred, rho_al_ep_std, title="rho")
 
 
 # %% [markdown]
@@ -67,14 +67,14 @@ plot_output(rho_test, rho_al_ep_pred, rho_al_ep_var ** 0.5, title="rho")
 
 
 # %%
-see_ep_pred, see_ep_var, _ = rf_predict(
+see_ep_pred, see_ep_std, _ = rf_predict(
     X_train, seebeck_train, X_test, uncertainty="epistemic"
 )
 
 
 # %%
 print(f"Seebeck epistemic MAE: {abs(see_ep_pred - seebeck_test).mean():.3f}\n")
-plot_output(seebeck_test, see_ep_pred, see_ep_var ** 0.5, title="seebeck")
+plot_output(seebeck_test, see_ep_pred, see_ep_std, title="seebeck")
 
 
 # %% [markdown]
@@ -82,7 +82,7 @@ plot_output(seebeck_test, see_ep_pred, see_ep_var ** 0.5, title="seebeck")
 
 
 # %%
-see_al_pred, see_al_var, _ = rf_predict(
+see_al_pred, see_al_std, _ = rf_predict(
     X_train,
     seebeck_train,
     X_test,
@@ -93,7 +93,7 @@ see_al_pred, see_al_var, _ = rf_predict(
 
 # %%
 print(f"Seebeck aleatoric MAE: {abs(see_al_pred - seebeck_test).mean():.3f}\n")
-plot_output(seebeck_test, see_al_pred, see_al_var ** 0.5, title="seebeck")
+plot_output(seebeck_test, see_al_pred, see_al_std, title="seebeck")
 
 
 # %% [markdown]
@@ -101,7 +101,7 @@ plot_output(seebeck_test, see_al_pred, see_al_var ** 0.5, title="seebeck")
 
 
 # %%
-see_al_ep_pred, see_al_ep_var, _ = rf_predict(X_train, seebeck_train, X_test)
+see_al_ep_pred, see_al_ep_std, _ = rf_predict(X_train, seebeck_train, X_test)
 
 
 # %%
@@ -109,7 +109,7 @@ print(
     "seebeck aleatoric_epistemic MAE:"
     f" {abs(see_al_ep_pred - seebeck_test).mean():.3f}\n"
 )
-plot_output(seebeck_test, see_al_ep_pred, see_al_ep_var ** 0.5, title="seebeck")
+plot_output(seebeck_test, see_al_ep_pred, see_al_ep_std, title="seebeck")
 
 
 # %% [markdown]
@@ -117,14 +117,14 @@ plot_output(seebeck_test, see_al_ep_pred, see_al_ep_var ** 0.5, title="seebeck")
 
 
 # %%
-kappa_ep_pred, kappa_ep_var, _ = rf_predict(
+kappa_ep_pred, kappa_ep_std, _ = rf_predict(
     X_train_no_nan, kappa_train, X_test_no_nan, uncertainty="epistemic"
 )
 
 
 # %%
 print(f"kappa epistemic MAE: {abs(kappa_ep_pred - kappa_test).mean():.3f}\n")
-plot_output(kappa_test, kappa_ep_pred, kappa_ep_var ** 0.5, title="kappa")
+plot_output(kappa_test, kappa_ep_pred, kappa_ep_std, title="kappa")
 
 
 # %% [markdown]
@@ -134,7 +134,7 @@ plot_output(kappa_test, kappa_ep_pred, kappa_ep_var ** 0.5, title="kappa")
 
 
 # %%
-kappa_al_pred, kappa_al_var, _ = rf_predict(
+kappa_al_pred, kappa_al_std, _ = rf_predict(
     X_train_no_nan,
     kappa_train,
     X_test_no_nan,
@@ -145,7 +145,7 @@ kappa_al_pred, kappa_al_var, _ = rf_predict(
 
 # %%
 print(f"kappa aleatoric MAE: {abs(kappa_al_pred - kappa_test).mean():.3f}\n")
-plot_output(kappa_test, kappa_al_pred, kappa_al_var ** 0.5, title="kappa")
+plot_output(kappa_test, kappa_al_pred, kappa_al_std, title="kappa")
 
 
 # %% [markdown]
@@ -153,7 +153,7 @@ plot_output(kappa_test, kappa_al_pred, kappa_al_var ** 0.5, title="kappa")
 
 
 # %%
-kappa_al_ep_pred, kappa_al_ep_var, _ = rf_predict(
+kappa_al_ep_pred, kappa_al_ep_std, _ = rf_predict(
     X_train_no_nan, kappa_train, X_test_no_nan
 )
 
@@ -162,7 +162,7 @@ kappa_al_ep_pred, kappa_al_ep_var, _ = rf_predict(
 print(
     f"kappa aleatoric_epistemic MAE: {abs(kappa_al_ep_pred - kappa_test).mean():.3f}\n"
 )
-plot_output(kappa_test, kappa_al_ep_pred, kappa_al_ep_var ** 0.5, title="kappa")
+plot_output(kappa_test, kappa_al_ep_pred, kappa_al_ep_std, title="kappa")
 
 
 # %% [markdown]
@@ -170,14 +170,14 @@ plot_output(kappa_test, kappa_al_ep_pred, kappa_al_ep_var ** 0.5, title="kappa")
 
 
 # %%
-zT_ep_pred, zT_ep_var, _ = rf_predict(
+zT_ep_pred, zT_ep_std, _ = rf_predict(
     X_train_no_nan, zT_train, X_test_no_nan, uncertainty="epistemic"
 )
 
 
 # %%
 print(f"zT epistemic MAE: {abs(zT_ep_pred - zT_test).mean():.3f}\n")
-plot_output(zT_test, zT_ep_pred, zT_ep_var ** 0.5, title="zT")
+plot_output(zT_test, zT_ep_pred, zT_ep_std, title="zT")
 
 
 # %% [markdown]
@@ -185,14 +185,14 @@ plot_output(zT_test, zT_ep_pred, zT_ep_var ** 0.5, title="zT")
 
 
 # %%
-zT_al_pred, zT_al_var, _ = rf_predict(
+zT_al_pred, zT_al_std, _ = rf_predict(
     X_train_no_nan, zT_train, X_test_no_nan, uncertainty="aleatoric"
 )
 
 
 # %%
 print(f"zT aleatoric MAE: {abs(zT_al_pred - zT_test).mean():.3f}\n")
-plot_output(zT_test, zT_al_pred, zT_al_var ** 0.5, title="zT")
+plot_output(zT_test, zT_al_pred, zT_al_std, title="zT")
 
 
 # %% [markdown]
@@ -200,9 +200,9 @@ plot_output(zT_test, zT_al_pred, zT_al_var ** 0.5, title="zT")
 
 
 # %%
-zT_al_ep_pred, zT_al_ep_var, _ = rf_predict(X_train_no_nan, zT_train, X_test_no_nan)
+zT_al_ep_pred, zT_al_ep_std, _ = rf_predict(X_train_no_nan, zT_train, X_test_no_nan)
 
 
 # %%
 print(f"zT aleatoric_epistemic MAE: {abs(zT_al_ep_pred - zT_test).mean():.3f}\n")
-plot_output(zT_test, zT_al_ep_pred, zT_al_ep_var ** 0.5, title="zT")
+plot_output(zT_test, zT_al_ep_pred, zT_al_ep_std, title="zT")

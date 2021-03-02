@@ -4,7 +4,7 @@ from pandas import Series
 
 
 def mse(arr1, arr2, axis=0):
-    return ((arr1 - arr2) ** 2).mean(axis)
+    return np.square(arr1 - arr2).mean(axis)
 
 
 def rmse(arr1, arr2, axis=0):
@@ -32,16 +32,6 @@ def compute_log_zT_var(log_rho_var, log_seebeck_sqr_var, log_kappa_var):
     of merit zT.
     """
     return log_rho_var + log_seebeck_sqr_var + log_kappa_var
-
-
-def get_df_stats(df):
-    """Return column-wise statistics (mean, median, standard deviation,
-    min, max) of a dataframe. Useful for quick sanity checks.
-    """
-    stats = pd.concat([df.mean(), df.median(), df.std(), df.min(), df.max()], axis=1).T
-    stats.index = ["mean", "median", "std", "min", "max"]
-    stats.columns = df.columns
-    return stats
 
 
 def df_corr(df1, df2, methods=["pearson", "spearman"]):
