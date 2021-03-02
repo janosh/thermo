@@ -21,11 +21,11 @@ X_test, y_test = X_test.astype("float32"), y_test.astype("float32")
 
 
 # %%
-rf_y_pred, rf_y_var, rf_model = rf_predict(X_train, y_train, X_test)
+rf_y_pred, rf_y_std, rf_model = rf_predict(X_train, y_train, X_test)
 
 
 # %%
-plot_output(y_test, rf_y_pred, rf_y_var ** 0.5, title="RF")
+plot_output(y_test, rf_y_pred, rf_y_std, title="RF")
 
 
 # %%

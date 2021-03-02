@@ -73,27 +73,3 @@ To submit a job to [Cambridge University's CSD3](https://hpc.cam.ac.uk) HPC faci
    ```
 
 For a more user-friendly experience, you can also [request cluster resources through Jupyter](https://docs.hpc.cam.ac.uk/hpc/software-packages/jupyter.html) by first instantiating a notebook server and then specifying that as a [remote server in VS Code's interactive window](https://code.visualstudio.com/docs/python/jupyter-support#_connect-to-a-remote-jupyter-server).
-
-## Environment
-
-The environment file `env.yml` was generated with `conda env export --no-builds > env.yml`. You can recreate the environment from this file via `conda env create -f env.yml`.
-
-The environment `thermo` was originally created by running the command:
-
-```sh
-conda create -n thermo python pip \
-  && conda activate thermo \
-  && pip install numpy pandas tensorflow tensorflow-probability automatminer scikit-learn scikit-optimize jupyter matplotlib seaborn plotly umap-learn pytest ipykernel
-  && conda install pytorch -c pytorch
-  && conda install gurobi -c http://conda.anaconda.org/gurobi
-```
-
-You can delete the environment with `conda env remove -n thermo`.
-
-To update all packages and reflect new versions in this file, use
-
-```sh
-conda update --all \
-  && pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U \
-  && conda env export --no-builds > env.yml
-```

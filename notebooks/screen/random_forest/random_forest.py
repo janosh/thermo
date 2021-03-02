@@ -7,22 +7,26 @@ regression.
 
 # %%
 import os
+import pickle
 
 import numpy as np
 import pandas as pd
 from gurobipy import GRB, Model, quicksum
 from matplotlib import pyplot as plt
-from plotly import express as px
+from mlmatrics import ptable_elemental_prevalence, qq_gaussian
+from sklearn.model_selection import train_test_split
 
 from thermo.data import dropna, load_gaultois, load_screen
-from thermo.evaluate import filter_low_risk_high_ret
+from thermo.plots import plot_output
 from thermo.rf import rf_predict
 from thermo.utils import ROOT
 from thermo.utils.correlation import expected_rand_obj_val, rand_obj_val_avr
 
 # %%
-features, targets = load_gaultois()
-targets, features = dropna(targets, features)
+gaultois_magpie_feas, gaultois_targets = load_gaultois()
+gaultois_targets, gaultois_magpie_feas = dropna(gaultois_targets, gaultois_magpie_feas)
+zT = gaultois_targets.zT
+
 # magpie_screen are the Magpie features for the screening set without temperature yet
 screen_ids, magpie_screen = load_screen()
 
@@ -32,27 +36,60 @@ screen_ids, magpie_screen = load_screen()
 # 1000] Kelvin) found in Gaultois' database. We'll predict each material at all 4 temps.
 # Note: None of the composition are predicted to achieve high zT at 300, 400 Kelvin.
 # Remove those to save time.
-temps = (700, 1000)
-temps_col = np.array(temps).repeat(len(magpie_screen))
+temps = (700, 1000)  # Kelvin
+temp_col = np.tile(temps, len(magpie_screen))
 
 screen_features = magpie_screen.loc[magpie_screen.index.repeat(len(temps))]
-screen_features.insert(0, "T", temps_col)
+screen_features.insert(0, "T", temp_col)
 
 candidates = screen_ids.loc[screen_ids.index.repeat(len(temps))]
-candidates.insert(0, "T", temps_col)
+candidates["T"] = temp_col
+candidates.set_index(["id", "T"], inplace=True, append=True)
+# provide a name for zero-level enumerating index
+candidates.index.set_names("index", 0, inplace=True)
+
+
+# %% Validate good performance with a train-test split before screening
+X_train, X_test, zT_train, zT_test = train_test_split(
+    gaultois_magpie_feas, zT, test_size=0.1
+)
+zT_test_pred, zT_test_std, _ = rf_predict(
+    X_train, zT_train, X_test, n_estimators=300, verbose=1
+)
+
+# random forest is slightly underconfident
+qq_gaussian(zT_test.values, zT_test_pred, 0.9 * zT_test_std)
+plt.show()
+
+plot_output(zT_test.values, zT_test_pred, 0.9 * zT_test_std)
 
 
 # %% [markdown]
-# # Random Forest Regression
+# # Screening
 
 
 # %%
-zT_pred, zT_var, forest = rf_predict(features, targets.zT, screen_features)
+zT_pred, zT_std, forest = rf_predict(
+    gaultois_magpie_feas, zT, screen_features, n_estimators=300, verbose=1
+)
+
+
+with open("forest.pkl", "wb") as file:
+    pickle.dump(forest, file)
 
 
 # %%
 candidates["zT_pred"] = zT_pred
-candidates["zT_std"] = zT_var ** 0.5
+candidates["zT_std"] = zT_std
+
+candidates.to_csv("candidates.csv")
+
+
+# %%
+candidates = pd.read_csv("candidates.csv", index=["index", "id", "T"])
+
+with open("forest.pkl", "rb") as file:
+    forest = pickle.load(file)
 
 
 # %% [markdown]
@@ -60,37 +97,26 @@ candidates["zT_std"] = zT_var ** 0.5
 
 
 # %%
-lrhr_idx = filter_low_risk_high_ret(candidates.zT_pred, candidates.zT_std)
-
-lrhr_candidates = candidates.loc[lrhr_idx]
+candidates.plot.scatter(x="zT_std", y="zT_pred")
 
 
 # %%
-# Get the 20 materials predicted to have the highest zT with no concern for estimated
-# uncertainty to compare if uncertainty estimation reduces the false positive rate.
-high_risk_candidates = candidates.sort_values("zT_pred", ascending=False)[:20]
-high_risk_candidates[["formula", "database", "id", "T", "zT_pred", "zT_std"]].to_csv(
-    "high_risk_candidates.csv", index=False, float_format="%g"
-)
+(lrhr_candidates := candidates[np.logical_and(zT_std < 0.3, zT_pred > 0.5)])
+lrhr_candidates.to_csv("lrhr_candidates.csv", float_format="%g")
 
 
 # %%
-# lrhr_candidates.to_csv("lrhr_materials.csv", index=False, float_format="%g")
-zT_std_lt_half = lrhr_candidates[lrhr_candidates.zT_std < 0.5]
-zT_std_lt_half.plot.scatter(x="zT_std", y="zT_pred")
-plt.xlabel("")
-plt.ylabel("")
-plt.savefig(
-    "lrhr_materials.pdf",
-    bbox_inches="tight",
-    transparent=True,
-)
-pearson = zT_std_lt_half[["zT_std", "zT_pred"]].corr().iloc[0, 1]
-print(f"Pearson corr.: {pearson:.4g}")
+# Save materials predicted to have highest zT with no concern for estimated
+# uncertainty to see if uncertainty estimation reduces the false positive rate.
+high_risk_candidates = candidates.sort_values("zT_pred", ascending=False)[:1000]
+high_risk_candidates.to_csv("high_risk_candidates.csv", float_format="%g")
 
 
 # %%
-px.scatter(lrhr_candidates, x="zT_std", y="zT_pred", hover_data=lrhr_candidates.columns)
+lrhr_candidates.plot.scatter(x="zT_std", y="zT_pred")
+plt.savefig("lrhr_materials_pred_vs_std.pdf", bbox_inches="tight")
+r_p = lrhr_candidates[["zT_std", "zT_pred"]].corr().iloc[0, 1]
+plt.text(0.03, 0.05, f"${r_p = :.3f}$", transform=plt.gca().transAxes)
 
 
 # %% [markdown]
@@ -98,31 +124,96 @@ px.scatter(lrhr_candidates, x="zT_std", y="zT_pred", hover_data=lrhr_candidates.
 
 
 # %%
-zT_corr = forest.get_corr(screen_features.iloc[lrhr_candidates.index])
-zT_corr = pd.DataFrame(
-    zT_corr, columns=lrhr_candidates.formula, index=lrhr_candidates.formula
+zT_corr = forest.get_corr(
+    screen_features.iloc[lrhr_candidates.index.get_level_values(0)]
 )
+zT_corr = pd.DataFrame(
+    zT_corr, columns=lrhr_candidates.formula, index=lrhr_candidates.index
+)
+zT_corr.set_index(zT_corr.columns, append=True, inplace=True)
+zT_corr.to_csv("correlation_matrix.csv", float_format="%g")
+# zT_corr = pd.read_csv(
+#     "correlation_matrix.csv", index_col=["index", "id", "T", "formula"]
+# )
 
 
 # %%
-# zT_corr.to_csv("correlation_matrix.csv", float_format="%g")
-zT_corr = pd.read_csv("correlation_matrix.csv", index_col="formula")
+color_ax = plt.matshow(zT_corr)
+plt.colorbar(color_ax, fraction=0.047, pad=0.02)
+plt.gcf().set_size_inches(12, 12)
 
+# plt.savefig("correlation_matrix_rf.png", bbox_inches="tight", dpi=200)
 
-plt.figure(figsize=[10, 10])
-plt.pcolormesh(zT_corr.iloc[:200, :200])
-plt.title("First 200 compositions")
-plt.savefig("correlation_matrix_rf.png", bbox_inches="tight", dpi=200)
+# %%
+ptable_elemental_prevalence(lrhr_candidates.formula)
+plt.title("elemental prevalence among low-risk high-return candidates")
+
+ptable_elemental_prevalence(high_risk_candidates.head(len(lrhr_candidates)).formula)
+plt.title("elemental prevalence among greedy candidates")
 
 
 # %%
-# unlike np.linalg.eig, eigh assumes the matrix is symmetric and as a result is faster
-zT_corr_evals, zT_corr_evecs = np.linalg.eigh(zT_corr)
+# https://www.pnas.org/content/113/48/13564
+# Definition of the Marchenko-Pastur density
+def marchenko_pastur_pdf(x: float, gamma: float, sigma: float = 1) -> float:
+    lambda_m = (sigma * (1 - np.sqrt(1 / gamma))) ** 2  # Largest eigenvalue
+    lambda_p = (sigma * (1 + np.sqrt(1 / gamma))) ** 2  # Smallest eigenvalue
+    prefac = gamma / (2 * np.pi * sigma ** 2 * x)
+    return (
+        prefac
+        * np.sqrt((lambda_p - x) * (x - lambda_m))
+        * (0 if (x > lambda_p or x < lambda_m) else 1)
+    )
 
-zT_corr_evecs = zT_corr_evecs[:, zT_corr_evals.argsort()[::-1]]
 
-plt.scatter(zT_corr_evecs[:, 0], zT_corr_evecs[:, 1])
+def corr_vs_rand_eval_dist(corr_mat, gamma, sigma=1, filter_high_evals=False, ax=None):
+    if ax is None:
+        ax = plt.gca()
 
+    # use eigh for speed since correlation matrix is symmetric
+    evals, _ = np.linalg.eigh(corr_mat)
+
+    lambda_m = (sigma * (1 - np.sqrt(1 / gamma))) ** 2  # Largest eigenvalue
+    lambda_p = (sigma * (1 + np.sqrt(1 / gamma))) ** 2  # Smallest eigenvalue
+
+    if filter_high_evals:
+        # Remove eigenvalues larger than those expected to be random from plot
+        evals = evals[evals <= lambda_p + 1]
+
+    ax.hist(evals, bins=500, edgecolor="k")
+    # ax.set_autoscale_on(True)
+
+    # Plot the theoretical density
+    mp_pdf = np.vectorize(lambda x: marchenko_pastur_pdf(x, gamma, sigma))
+
+    x = np.linspace(max(1e-4, lambda_m), lambda_p, 200)
+    ax.plot(x, mp_pdf(x), linewidth=3)
+
+    ax.set_yscale("log")
+    # ax.set_xlim(0, 35)
+
+
+# Create the correlation matrix and find the eigenvalues
+N = len(zT_corr)
+p = forest.n_estimators
+# N = 2000
+# p = 2000
+# X = np.random.normal(0, 1, size=(N, p))
+# corr_mat = np.corrcoef(X)
+gamma = p / N
+corr_vs_rand_eval_dist(zT_corr, gamma, filter_high_evals=True)
+plt.title(f"p = {forest.n_estimators = }, {N = }, gamma = p / N = {gamma:.2f}")
+plt.savefig("marchenko-pastur-dist.png")
+
+
+# %%
+# Let's see the eigenvalues larger than the largest theoretical eigenvalue
+sigma = 1  # The variance for all of the standardized log returns is 1
+max_theoretical_eval = np.power(sigma * (1 + np.sqrt(1 / gamma)), 2)
+
+D, S = np.linalg.eigh(zT_corr)
+
+print(D[D > max_theoretical_eval])
 
 # %% [markdown]
 # # Fine Triaging
@@ -164,7 +255,6 @@ os.remove("gurobi.log")
 
 
 # %%
-n_select = 20
 # Create decision variables.
 dec_vars = grb_model.addVars(len(lrhr_candidates), vtype=GRB.BINARY).values()
 
@@ -176,7 +266,9 @@ grb_model.setObjective(obj, GRB.MINIMIZE)
 
 
 # %%
-# Add L1 constraint on dvar so that the optimization returns at least n_select formulas.
+# Add L1 constraint on dec_vars so that the optimization returns at least
+# n_select formulas. If the model finds more at equal correlation, even better.
+n_select = 20
 constr = grb_model.addConstr(quicksum(dec_vars) >= n_select, "l1_norm")
 
 
@@ -186,8 +278,10 @@ grb_model.optimize()
 
 # %%
 # Save selected materials to dataframe and CSV file.
-gurobi_candidates = lrhr_candidates.iloc[[bool(var.x) for var in dec_vars]]
-gurobi_candidates.to_csv("gurobi_candidates.csv", index=False)
+dec_vals = [bool(var.x) for var in dec_vars]
+print(f"final objective value: {zT_corr.dot(dec_vals).dot(dec_vals) = :.3f}")
+gurobi_candidates = lrhr_candidates.iloc[dec_vals]
+gurobi_candidates.to_csv("gurobi_candidates.csv")
 
 
 # %%
