@@ -11,7 +11,11 @@ import pandas as pd
 import tensorflow as tf
 from gurobipy import GRB, Model, quicksum
 from matplotlib import colors
-from mlmatrics import ptable_elemental_prevalence, qq_gaussian
+from mlmatrics import (
+    marchenko_pastur,
+    ptable_elemental_prevalence,
+    qq_gaussian,
+)
 from tf_mnf.models import MNFFeedForward
 from tqdm import trange
 
@@ -49,6 +53,16 @@ gaultois_magpie_feas, _ = normalize(
 )
 
 [X_train, zT_train], [X_test, zT_test] = train_test_split(gaultois_magpie_feas, zT)
+
+
+# %% duplicate each row with new column temperature set to 700 K or 1000 K
+candidates = candidates.assign(T=700).append(candidates.assign(T=1000))
+candidates.set_index(["id", "T"], inplace=True, append=True)
+
+# temperature needs to be in front in screen_features
+# assign same normalized temperature values used during training
+screen_features.insert(0, "T", 0.532785)
+screen_features = screen_features.append(screen_features.assign(T=1.687777))
 
 
 # %% ExtraTreesRegressor feature importance not used here since it hurts performance
@@ -141,19 +155,9 @@ screen_model.compile(optimizer, loss=loss_factory(screen_model), metrics=["mae"]
 screen_model.fit(gaultois_magpie_feas, zT, batch_size=32, epochs=140)
 
 
-# %% duplicate each row with new column temperature set to 700 K or 1000 K
-candidates = candidates.assign(T=700).append(candidates.assign(T=1000))
-candidates.set_index(["id", "T"], inplace=True, append=True)
-
-# temperature needs to be in front in screen_features
-# assign same normalized temperature values used during training
-screen_features.insert(0, "T", 0.532785)
-screen_features = screen_features.append(screen_features.assign(T=1.687777))
-
-
 # %%
-screen_preds = []
-for _ in trange(50):
+screen_preds, n_preds = [], 50
+for _ in trange(n_preds):
     preds = screen_model.predict(screen_features.astype("float32"))
     screen_preds.append(preds)
 
@@ -196,7 +200,8 @@ corr_mat = pd.DataFrame(
 
 
 # %%
-corr_mat.to_csv("correlation_matrix.csv", float_format="%g")
+# corr_mat.to_csv("correlation_matrix.csv", float_format="%g")
+corr_mat = pd.read_csv("correlation_matrix.csv", index_col=[0, "id", "T"])
 
 
 # %%
@@ -204,6 +209,17 @@ plt.figure(figsize=[10, 10])
 plt.matshow(corr_mat.iloc[:200, :200])
 plt.title("First 200 compositions")
 plt.savefig("correlation_matrix_mnf.png", bbox_inches="tight", dpi=200)
+
+
+# %%
+# Ensure the correlation matrix contains significant eigenvalues larger than
+# the maximum expected in a random matrix based on Marchenko_pastur distribution
+marchenko_pastur(corr_mat, gamma=len(corr_mat) / n_preds)
+p, N = n_preds, len(corr_mat)
+plt.title(f"{p = }, {N = }, gamma = p / N = {p / N:.2f}")
+
+plt.yscale("log")
+plt.savefig("marchenko-pastur-dist.png")
 
 
 # %%
@@ -250,8 +266,16 @@ gurobi_candidates.to_csv("gurobi_candidates.csv", index=False)
 
 
 # %%
+greedy_ids = candidates.sort_values("zT_pred").tail(211)
+
+
+# %%
 ptable_elemental_prevalence(gurobi_candidates.formula)
 plt.savefig("gurobi_candidates_ptable_elemental_prevalence.pdf", bbox_inches="tight")
+
+
+ptable_elemental_prevalence(greedy_ids.formula)
+plt.savefig("greedy_candidates_ptable_elemental_prevalence.pdf", bbox_inches="tight")
 
 
 # %%
@@ -263,9 +287,6 @@ print(f"greedy objective value: {corr_mat.dot(high_zT_mask).dot(high_zT_mask) = 
 
 
 # %%
-greedy_ids = candidates.sort_values("zT_pred").tail(211)
-
-# %%
 candidates.zT_pred.hist(bins=1000, log=True)
 
 # %%
@@ -274,7 +295,3 @@ candidates.plot.scatter(x="zT_std", y="zT_pred")
 
 # %%
 screen_features.describe()
-# %%
-ptable_elemental_prevalence(greedy_ids.formula)
-plt.savefig("greedy_candidates_ptable_elemental_prevalence.pdf", bbox_inches="tight")
-# %%

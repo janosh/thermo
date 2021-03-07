@@ -13,7 +13,11 @@ import numpy as np
 import pandas as pd
 from gurobipy import GRB, Model, quicksum
 from matplotlib import pyplot as plt
-from mlmatrics import ptable_elemental_prevalence, qq_gaussian
+from mlmatrics import (
+    marchenko_pastur,
+    ptable_elemental_prevalence,
+    qq_gaussian,
+)
 from sklearn.model_selection import train_test_split
 
 from thermo.data import dropna, load_gaultois, load_screen
@@ -45,8 +49,6 @@ screen_features.insert(0, "T", temp_col)
 candidates = screen_ids.loc[screen_ids.index.repeat(len(temps))]
 candidates["T"] = temp_col
 candidates.set_index(["id", "T"], inplace=True, append=True)
-# provide a name for zero-level enumerating index
-candidates.index.set_names("index", 0, inplace=True)
 
 
 # %% Validate good performance with a train-test split before screening
@@ -86,8 +88,9 @@ candidates.to_csv("candidates.csv")
 
 
 # %%
-candidates = pd.read_csv("candidates.csv", index=["index", "id", "T"])
+candidates = pd.read_csv("candidates.csv", index_col=["index", "id", "T"])
 
+# %%
 with open("forest.pkl", "rb") as file:
     forest = pickle.load(file)
 
@@ -101,15 +104,17 @@ candidates.plot.scatter(x="zT_std", y="zT_pred")
 
 
 # %%
-(lrhr_candidates := candidates[np.logical_and(zT_std < 0.3, zT_pred > 0.5)])
-lrhr_candidates.to_csv("lrhr_candidates.csv", float_format="%g")
+# (lrhr_candidates := candidates[np.logical_and(zT_std < 0.3, zT_pred > 0.5)])
+# lrhr_candidates.to_csv("lrhr_candidates.csv", float_format="%g")
+lrhr_candidates = pd.read_csv("lrhr_candidates.csv", index_col=[0, "id", "T"])
 
 
 # %%
 # Save materials predicted to have highest zT with no concern for estimated
 # uncertainty to see if uncertainty estimation reduces the false positive rate.
-high_risk_candidates = candidates.sort_values("zT_pred", ascending=False)[:1000]
-high_risk_candidates.to_csv("high_risk_candidates.csv", float_format="%g")
+# high_risk_candidates = candidates.sort_values("zT_pred", ascending=False)[:1000]
+# high_risk_candidates.to_csv("high_risk_candidates.csv", float_format="%g")
+high_risk_candidates = pd.read_csv("high_risk_candidates.csv", index_col=[0, "id", "T"])
 
 
 # %%
@@ -124,17 +129,15 @@ plt.text(0.03, 0.05, f"${r_p = :.3f}$", transform=plt.gca().transAxes)
 
 
 # %%
-zT_corr = forest.get_corr(
-    screen_features.iloc[lrhr_candidates.index.get_level_values(0)]
-)
-zT_corr = pd.DataFrame(
-    zT_corr, columns=lrhr_candidates.formula, index=lrhr_candidates.index
-)
-zT_corr.set_index(zT_corr.columns, append=True, inplace=True)
-zT_corr.to_csv("correlation_matrix.csv", float_format="%g")
-# zT_corr = pd.read_csv(
-#     "correlation_matrix.csv", index_col=["index", "id", "T", "formula"]
+# zT_corr = forest.get_corr(
+#     screen_features.iloc[lrhr_candidates.index.get_level_values(0)]
 # )
+# zT_corr = pd.DataFrame(
+#     zT_corr, columns=lrhr_candidates.formula, index=lrhr_candidates.index
+# )
+# zT_corr.set_index(zT_corr.columns, append=True, inplace=True)
+# zT_corr.to_csv("correlation_matrix.csv", float_format="%g")
+zT_corr = pd.read_csv("correlation_matrix.csv", index_col=[0, "id", "T", "formula"])
 
 
 # %%
@@ -145,71 +148,32 @@ plt.gcf().set_size_inches(12, 12)
 # plt.savefig("correlation_matrix_rf.png", bbox_inches="tight", dpi=200)
 
 # %%
+n_candidates = len(lrhr_candidates)
 ptable_elemental_prevalence(lrhr_candidates.formula)
-plt.title("elemental prevalence among low-risk high-return candidates")
+plt.title(f"elemental prevalence among {n_candidates} low-risk high-return candidates")
+plt.savefig("ptable_elemental_prevalence_gurobi_candidates.pdf")
 
-ptable_elemental_prevalence(high_risk_candidates.head(len(lrhr_candidates)).formula)
-plt.title("elemental prevalence among greedy candidates")
+ptable_elemental_prevalence(high_risk_candidates.head(n_candidates).formula)
+plt.title(f"elemental prevalence among {n_candidates} greedy candidates")
+plt.savefig("ptable_elemental_prevalence_greedy_candidates.pdf")
 
 
 # %%
 # https://www.pnas.org/content/113/48/13564
-# Definition of the Marchenko-Pastur density
-def marchenko_pastur_pdf(x: float, gamma: float, sigma: float = 1) -> float:
-    lambda_m = (sigma * (1 - np.sqrt(1 / gamma))) ** 2  # Largest eigenvalue
-    lambda_p = (sigma * (1 + np.sqrt(1 / gamma))) ** 2  # Smallest eigenvalue
-    prefac = gamma / (2 * np.pi * sigma ** 2 * x)
-    return (
-        prefac
-        * np.sqrt((lambda_p - x) * (x - lambda_m))
-        * (0 if (x > lambda_p or x < lambda_m) else 1)
-    )
-
-
-def corr_vs_rand_eval_dist(corr_mat, gamma, sigma=1, filter_high_evals=False, ax=None):
-    if ax is None:
-        ax = plt.gca()
-
-    # use eigh for speed since correlation matrix is symmetric
-    evals, _ = np.linalg.eigh(corr_mat)
-
-    lambda_m = (sigma * (1 - np.sqrt(1 / gamma))) ** 2  # Largest eigenvalue
-    lambda_p = (sigma * (1 + np.sqrt(1 / gamma))) ** 2  # Smallest eigenvalue
-
-    if filter_high_evals:
-        # Remove eigenvalues larger than those expected to be random from plot
-        evals = evals[evals <= lambda_p + 1]
-
-    ax.hist(evals, bins=500, edgecolor="k")
-    # ax.set_autoscale_on(True)
-
-    # Plot the theoretical density
-    mp_pdf = np.vectorize(lambda x: marchenko_pastur_pdf(x, gamma, sigma))
-
-    x = np.linspace(max(1e-4, lambda_m), lambda_p, 200)
-    ax.plot(x, mp_pdf(x), linewidth=3)
-
-    ax.set_yscale("log")
-    # ax.set_xlim(0, 35)
-
-
 # Create the correlation matrix and find the eigenvalues
 N = len(zT_corr)
 p = forest.n_estimators
-# N = 2000
-# p = 2000
-# X = np.random.normal(0, 1, size=(N, p))
-# corr_mat = np.corrcoef(X)
-gamma = p / N
-corr_vs_rand_eval_dist(zT_corr, gamma, filter_high_evals=True)
-plt.title(f"p = {forest.n_estimators = }, {N = }, gamma = p / N = {gamma:.2f}")
+
+marchenko_pastur(zT_corr, gamma=p / N)
+plt.title(f"{p = }, {N = }, gamma = p / N = {p / N:.2f}")
+plt.yscale("log")
 plt.savefig("marchenko-pastur-dist.png")
 
 
 # %%
 # Let's see the eigenvalues larger than the largest theoretical eigenvalue
 sigma = 1  # The variance for all of the standardized log returns is 1
-max_theoretical_eval = np.power(sigma * (1 + np.sqrt(1 / gamma)), 2)
+max_theoretical_eval = np.power(sigma * (1 + np.sqrt(N / p)), 2)
 
 D, S = np.linalg.eigh(zT_corr)
 

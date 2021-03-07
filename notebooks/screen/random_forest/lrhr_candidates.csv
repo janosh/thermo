@@ -1,4 +1,4 @@
-index,id,T,formula,database,zT_pred,zT_std
+,id,T,formula,database,zT_pred,zT_std
 1024,1509558,700,AgTe2Tl,COD,1.25858,0.263972
 1025,7209352,700,AgTe2Tl3,COD,1.28137,0.286374
 1206,300193,1000,Al2As3Na2,ICSD,0.560033,0.238665
