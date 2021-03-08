@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from gurobipy import GRB, Model, quicksum
-from matplotlib import colors
 from mlmatrics import (
     marchenko_pastur,
     ptable_elemental_prevalence,
@@ -170,18 +169,19 @@ candidates["zT_std"] = screen_preds.std(0) * 1.5
 
 
 # %%
-candidates.sort_values(by="zT_pred", ascending=False).to_csv(
-    "mnf-screen-epochs=150-batch=32-preds=50.csv"
-)
+# candidates.sort_values(by="zT_pred", ascending=False).to_csv(
+#     "candidates-epochs=150-batch=32-preds=50.csv"
+# )
+candidates = pd.read_csv("candidates-epochs=150-batch=32-preds=50.csv")
 
 
 # %%
-cmap = colors.ListedColormap(["blue", "red"])
-bounds = [700, 850, 1000]
-norm = colors.BoundaryNorm(bounds, cmap.N)
-candidates.reset_index().plot.scatter(
-    x="zT_std", y="zT_pred", c="T", cmap=cmap, norm=norm
-)
+for temp, group in candidates.reset_index().groupby("T"):
+    plt.scatter(x=group.zT_std, y=group.zT_pred, label=f"{temp} K", s=5)
+plt.legend(title="Temperature", markerscale=3)
+plt.title("Uncertainty vs predicted zT for each temperature")
+plt.xlabel("zT_std")
+plt.ylabel("zT_pred")
 plt.savefig("zT_pred-vs-zT_std.png", bbox_inches="tight", dpi=200)
 
 
@@ -216,10 +216,13 @@ plt.savefig("correlation_matrix_mnf.png", bbox_inches="tight", dpi=200)
 # the maximum expected in a random matrix based on Marchenko_pastur distribution
 marchenko_pastur(corr_mat, gamma=len(corr_mat) / n_preds)
 p, N = n_preds, len(corr_mat)
-plt.title(f"{p = }, {N = }, gamma = p / N = {p / N:.2f}")
+plt.title(
+    "Marchenko-Pastur distribution of the MNF zT correlation matrix\n"
+    f"{p = }, {N = }, gamma = p / N = {p / N:.2f}"
+)
 
 plt.yscale("log")
-plt.savefig("marchenko-pastur-dist.png")
+plt.savefig("corr-mat-marchenko-pastur-dist.png")
 
 
 # %%
@@ -271,11 +274,11 @@ greedy_ids = candidates.sort_values("zT_pred").tail(211)
 
 # %%
 ptable_elemental_prevalence(gurobi_candidates.formula)
-plt.savefig("gurobi_candidates_ptable_elemental_prevalence.pdf", bbox_inches="tight")
+plt.savefig("gurobi-ptable-elements.pdf", bbox_inches="tight")
 
 
 ptable_elemental_prevalence(greedy_ids.formula)
-plt.savefig("greedy_candidates_ptable_elemental_prevalence.pdf", bbox_inches="tight")
+plt.savefig("greedy-ptable-elements.pdf", bbox_inches="tight")
 
 
 # %%
@@ -289,9 +292,10 @@ print(f"greedy objective value: {corr_mat.dot(high_zT_mask).dot(high_zT_mask) = 
 # %%
 candidates.zT_pred.hist(bins=1000, log=True)
 
+
 # %%
 candidates.plot.scatter(x="zT_std", y="zT_pred")
-# %%
+
 
 # %%
 screen_features.describe()

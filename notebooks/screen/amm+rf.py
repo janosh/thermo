@@ -7,12 +7,12 @@ from gurobipy import GRB, Model, quicksum
 from matplotlib import pyplot as plt
 from plotly import express as px
 
+from thermo.correlation import expected_rand_obj_val, rand_obj_val_avr
 from thermo.data import dropna, load_gaultois, load_screen, train_test_split
 from thermo.evaluate import filter_low_risk_high_ret, plot_output
 from thermo.rf.forest import RandomForestRegressor
 from thermo.utils import ROOT
 from thermo.utils.amm import MatPipe, featurize, fit_pred_pipe
-from thermo.utils.correlation import expected_rand_obj_val, rand_obj_val_avr
 
 DIR = ROOT + "/results/screen/amm+rf/"
 os.makedirs(DIR, exist_ok=True)

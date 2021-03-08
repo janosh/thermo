@@ -20,11 +20,11 @@ from mlmatrics import (
 )
 from sklearn.model_selection import train_test_split
 
+from thermo.correlation import expected_rand_obj_val, rand_obj_val_avr
 from thermo.data import dropna, load_gaultois, load_screen
 from thermo.plots import plot_output
 from thermo.rf import rf_predict
 from thermo.utils import ROOT
-from thermo.utils.correlation import expected_rand_obj_val, rand_obj_val_avr
 
 # %%
 gaultois_magpie_feas, gaultois_targets = load_gaultois()
@@ -100,7 +100,13 @@ with open("forest.pkl", "rb") as file:
 
 
 # %%
-candidates.plot.scatter(x="zT_std", y="zT_pred")
+for temp, group in candidates.reset_index().groupby("T"):
+    plt.scatter(x=group.zT_std, y=group.zT_pred, label=f"{temp} K", s=5)
+plt.legend(title="Temperature", markerscale=3)
+plt.title("Uncertainty vs predicted zT for each temperature")
+plt.xlabel("zT_std")
+plt.ylabel("zT_pred")
+plt.savefig("zT_pred-vs-zT_std.png", bbox_inches="tight", dpi=200)
 
 
 # %%
@@ -151,11 +157,11 @@ plt.gcf().set_size_inches(12, 12)
 n_candidates = len(lrhr_candidates)
 ptable_elemental_prevalence(lrhr_candidates.formula)
 plt.title(f"elemental prevalence among {n_candidates} low-risk high-return candidates")
-plt.savefig("ptable_elemental_prevalence_gurobi_candidates.pdf")
+plt.savefig("gurobi-ptable-elements.pdf")
 
 ptable_elemental_prevalence(high_risk_candidates.head(n_candidates).formula)
 plt.title(f"elemental prevalence among {n_candidates} greedy candidates")
-plt.savefig("ptable_elemental_prevalence_greedy_candidates.pdf")
+plt.savefig("greedy-ptable-elements.pdf")
 
 
 # %%
@@ -165,19 +171,22 @@ N = len(zT_corr)
 p = forest.n_estimators
 
 marchenko_pastur(zT_corr, gamma=p / N)
-plt.title(f"{p = }, {N = }, gamma = p / N = {p / N:.2f}")
+plt.title(
+    "Marchenko-Pastur distribution of the MNF zT correlation matrix\n"
+    f"{p = }, {N = }, gamma = p / N = {p / N:.2f}"
+)
 plt.yscale("log")
 plt.savefig("marchenko-pastur-dist.png")
 
 
 # %%
-# Let's see the eigenvalues larger than the largest theoretical eigenvalue
-sigma = 1  # The variance for all of the standardized log returns is 1
-max_theoretical_eval = np.power(sigma * (1 + np.sqrt(N / p)), 2)
+# Eigenvalues larger than the largest theoretical eigenvalue
+# the std dev sigma = 1 here so we don't write it explicitly
+max_theoretical_eval = (1 + np.sqrt(N / p)) ** 2
 
-D, S = np.linalg.eigh(zT_corr)
+evals, evecs = np.linalg.eigh(zT_corr)
 
-print(D[D > max_theoretical_eval])
+print(evals[evals > max_theoretical_eval])
 
 # %% [markdown]
 # # Fine Triaging
