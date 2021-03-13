@@ -1,0 +1,44 @@
+
+Gurobi 9.1.1 (mac64) logging started Thu Mar 11 09:21:59 2021
+
+Changed value of parameter LogFile to gurobi.log
+   Prev:   Default: 
+Gurobi Optimizer version 9.1.1 build v9.1.1rc0 (mac64)
+Thread count: 8 physical cores, 16 logical processors, using up to 16 threads
+Optimize a model with 1 rows, 693 columns and 693 nonzeros
+Model fingerprint: 0xd23fc49b
+Model has 240471 quadratic objective terms
+Variable types: 0 continuous, 693 integer (693 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [0e+00, 0e+00]
+  QObjective range [2e-06, 4e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+02, 2e+02]
+Found heuristic solution: objective 176660.91168
+Presolve time: 0.06s
+Presolved: 1 rows, 693 columns, 693 nonzeros
+Presolved model has 240471 quadratic objective terms
+Variable types: 0 continuous, 693 integer (693 binary)
+
+Root relaxation: objective 2.277383e+03, 526 iterations, 0.06 seconds
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 2277.38331    0   12 176660.912 2277.38331  98.7%     -    0s
+H    0     0                    2337.8264848 2277.38331  2.59%     -    0s
+H    0     0                    2278.0455932 2277.38331  0.03%     -    0s
+H    0     0                    2278.0285146 2277.38331  0.03%     -    0s
+     0     0 2277.38331    0   12 2278.02851 2277.38331  0.03%     -    0s
+     0     0 2277.38331    0   12 2278.02851 2277.38331  0.03%     -    0s
+     0     0 2277.38331    0   12 2278.02851 2277.38331  0.03%     -    0s
+     0     2 2277.38331    0   12 2278.02851 2277.38331  0.03%     -    0s
+
+Explored 738 nodes (3201 simplex iterations) in 0.72 seconds
+Thread count was 16 (of 16 available processors)
+
+Solution count 4: 2278.03 2278.05 2337.83 176661 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 2.278028514645e+03, best bound 2.277853924505e+03, gap 0.0077%
