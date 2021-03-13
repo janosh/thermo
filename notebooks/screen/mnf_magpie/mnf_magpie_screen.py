@@ -11,6 +11,7 @@ import pandas as pd
 import tensorflow as tf
 from gurobipy import GRB, Model, quicksum
 from mlmatrics import (
+    density_scatter,
     marchenko_pastur,
     ptable_elemental_prevalence,
     qq_gaussian,
@@ -25,7 +26,6 @@ from thermo.data import (
     normalize,
     train_test_split,
 )
-from thermo.evaluate import filter_low_risk_high_ret
 from thermo.plots import plot_output
 from thermo.utils import ROOT
 
@@ -164,32 +164,75 @@ screen_preds = np.array(screen_preds).squeeze()
 
 
 # %%
-candidates["zT_pred"] = screen_preds.mean(0)
-candidates["zT_std"] = screen_preds.std(0) * 1.5
+candidates["zT_pred"] = zT_pred = screen_preds.mean(0)
+candidates["zT_std"] = zT_std = screen_preds.std(0) * 1.5
 
 
 # %%
 # candidates.sort_values(by="zT_pred", ascending=False).to_csv(
-#     "candidates-epochs=150-batch=32-preds=50.csv"
+#     "greedy-candidates-epochs=150-batch=32-preds=50.csv"
 # )
-candidates = pd.read_csv("candidates-epochs=150-batch=32-preds=50.csv")
-
-
-# %%
-for temp, group in candidates.reset_index().groupby("T"):
-    plt.scatter(x=group.zT_std, y=group.zT_pred, label=f"{temp} K", s=5)
-plt.legend(title="Temperature", markerscale=3)
-plt.title("Uncertainty vs predicted zT for each temperature")
-plt.xlabel("zT_std")
-plt.ylabel("zT_pred")
-plt.savefig("zT_pred-vs-zT_std.png", bbox_inches="tight", dpi=200)
-
-
-# %%
-lrhr_idx = filter_low_risk_high_ret(
-    candidates.zT_pred, candidates.zT_std, return_percentile=0.8, risk_percentile=0.4
+candidates = pd.read_csv(
+    "greedy-candidates-epochs=150-batch=32-preds=50.csv", index_col=[0, "id", "T"]
 )
-lrhr_candidates = candidates.loc[lrhr_idx]
+
+
+# %%
+min_zT_pred, max_zT_std = 1.5, 0.15
+_, axs = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(12, 4))
+plt.subplots_adjust(wspace=0.1)
+
+for ax, cmap, (temp, group) in zip(
+    axs, ["Blues", "Reds"], candidates.sample(1000).reset_index().groupby("T")
+):
+    density_scatter(
+        xs=group.zT_std.values,
+        ys=group.zT_pred.values,
+        label=f"{temp} K",
+        identity=False,
+        stats=False,
+        color_map=cmap,
+        alpha=0.3,
+        ax=ax,
+    )
+    ax.set_xlabel(r"$zT_\mathrm{std}$")
+    ax.set_ylabel(r"$zT_\mathrm{pred}$")
+
+    # ensure v/h lines reach to edge of plot
+    xmin, xmax = ax.get_xlim()
+    ax.set_xlim(xmin, xmax)
+    ymin, ymax = ax.get_ylim()
+    ax.set_ylim(ymin, ymax)
+
+    # add v/h lines to indicate boundaries of low-risk high-return selection
+    ax.vlines(x=max_zT_std, ymin=min_zT_pred, ymax=ymax, color="gray")
+    ax.vlines(
+        x=max_zT_std, ymin=ymin, ymax=min_zT_pred, color="gray", linestyles="dashed"
+    )
+
+    ax.hlines(y=min_zT_pred, xmin=xmin, xmax=max_zT_std, color="gray")
+    ax.hlines(
+        y=min_zT_pred, xmin=max_zT_std, xmax=xmax, color="gray", linestyles="dashed"
+    )
+
+    ax.fill_between([xmin, max_zT_std], min_zT_pred, ymax, alpha=0.2)
+    ax.legend()
+
+    # add axes legend
+    leg = ax.get_legend()
+    leg.legendHandles[0].set_color(cmap[:-1])
+
+ax.text(max_zT_std, ymin, r"max $zT_\mathrm{std}$", ha="left", va="bottom")
+ax.text(xmax, min_zT_pred, r"min $zT_\mathrm{pred}$", ha="right", va="top")
+
+plt.suptitle("Mean vs std.dev. of predicted zT at different temperatures")
+
+plt.savefig("zT_pred-vs-zT_std.png", bbox_inches="tight", dpi=300)
+
+
+# %%
+lrhr_idx = np.logical_and(zT_std < max_zT_std, zT_pred > min_zT_pred)
+(lrhr_candidates := candidates[lrhr_idx])
 
 
 # %%
@@ -205,10 +248,11 @@ corr_mat = pd.read_csv("correlation_matrix.csv", index_col=[0, "id", "T"])
 
 
 # %%
-plt.figure(figsize=[10, 10])
-plt.matshow(corr_mat.iloc[:200, :200])
-plt.title("First 200 compositions")
-plt.savefig("correlation_matrix_mnf.png", bbox_inches="tight", dpi=200)
+color_ax = plt.matshow(corr_mat)
+plt.colorbar(color_ax, fraction=0.047, pad=0.02)
+plt.gcf().set_size_inches(12, 12)
+plt.title("MNF correlation matrix")
+# plt.savefig("correlation_matrix_mnf.png", bbox_inches="tight", dpi=200)
 
 
 # %%
@@ -218,7 +262,7 @@ marchenko_pastur(corr_mat, gamma=len(corr_mat) / n_preds)
 p, N = n_preds, len(corr_mat)
 plt.title(
     "Marchenko-Pastur distribution of the MNF zT correlation matrix\n"
-    f"{p = }, {N = }, gamma = p / N = {p / N:.2f}"
+    f"{p = } MNF preds, {N = } candidate materials, gamma = p / N = {p / N:.2f}"
 )
 
 plt.yscale("log")

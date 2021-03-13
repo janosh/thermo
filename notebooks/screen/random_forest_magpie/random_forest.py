@@ -55,8 +55,10 @@ candidates.set_index(["id", "T"], inplace=True, append=True)
 X_train, X_test, zT_train, zT_test = train_test_split(
     gaultois_magpie_feas, zT, test_size=0.1
 )
+
+n_trees = 300
 zT_test_pred, zT_test_std, _ = rf_predict(
-    X_train, zT_train, X_test, n_estimators=300, verbose=1
+    X_train, zT_train, X_test, n_estimators=n_trees, verbose=1
 )
 
 # random forest is slightly underconfident
@@ -72,27 +74,22 @@ plot_output(zT_test.values, zT_test_pred, 0.9 * zT_test_std)
 
 # %%
 zT_pred, zT_std, forest = rf_predict(
-    gaultois_magpie_feas, zT, screen_features, n_estimators=300, verbose=1
+    gaultois_magpie_feas, zT, screen_features, n_estimators=n_trees, verbose=1
 )
 
 
-with open("forest.pkl", "wb") as file:
+with open(f"forest-{n_trees=}.pkl", "wb") as file:
     pickle.dump(forest, file)
 
 
 # %%
-candidates["zT_pred"] = zT_pred
-candidates["zT_std"] = zT_std
+# candidates["zT_pred"] = zT_pred
+# candidates["zT_std"] = zT_std
 
-candidates.to_csv("candidates.csv")
-
-
-# %%
-candidates = pd.read_csv("candidates.csv", index_col=["index", "id", "T"])
-
-# %%
-with open("forest.pkl", "rb") as file:
-    forest = pickle.load(file)
+# candidates.to_csv("candidates.csv")
+candidates = pd.read_csv(f"candidates-{n_trees=}.csv", index_col=["index", "id", "T"])
+# with open(f"forest-{n_trees=}.pkl", "rb") as file:
+#    forest = pickle.load(file)
 
 
 # %% [markdown]
@@ -100,27 +97,33 @@ with open("forest.pkl", "rb") as file:
 
 
 # %%
+min_zT_pred, max_zT_std = 0.5, 0.33
+
 for temp, group in candidates.reset_index().groupby("T"):
     plt.scatter(x=group.zT_std, y=group.zT_pred, label=f"{temp} K", s=5)
 plt.legend(title="Temperature", markerscale=3)
 plt.title("Uncertainty vs predicted zT for each temperature")
 plt.xlabel("zT_std")
 plt.ylabel("zT_pred")
+plt.axvspan(xmin=0, xmax=max_zT_std, ymin=min_zT_pred, alpha=0.15)
+plt.xlim(0, None)
 plt.savefig("zT_pred-vs-zT_std.png", bbox_inches="tight", dpi=200)
 
 
 # %%
-# (lrhr_candidates := candidates[np.logical_and(zT_std < 0.3, zT_pred > 0.5)])
-# lrhr_candidates.to_csv("lrhr_candidates.csv", float_format="%g")
-lrhr_candidates = pd.read_csv("lrhr_candidates.csv", index_col=[0, "id", "T"])
+lrhr_idx = np.logical_and(zT_std < max_zT_std, zT_pred > min_zT_pred)
+(lrhr_candidates := candidates[lrhr_idx])
+
+lrhr_candidates.to_csv("lrhr_candidates.csv", float_format="%g")
+# lrhr_candidates = pd.read_csv("lrhr_candidates.csv", index_col=[0, "id", "T"])
 
 
 # %%
 # Save materials predicted to have highest zT with no concern for estimated
 # uncertainty to see if uncertainty estimation reduces the false positive rate.
-# high_risk_candidates = candidates.sort_values("zT_pred", ascending=False)[:1000]
-# high_risk_candidates.to_csv("high_risk_candidates.csv", float_format="%g")
-high_risk_candidates = pd.read_csv("high_risk_candidates.csv", index_col=[0, "id", "T"])
+# greedy_candidates = candidates.sort_values("zT_pred", ascending=False)[:1000]
+# greedy_candidates.to_csv("greedy_candidates.csv", float_format="%g")
+greedy_candidates = pd.read_csv("greedy_candidates.csv", index_col=[0, "id", "T"])
 
 
 # %%
@@ -135,15 +138,15 @@ plt.text(0.03, 0.05, f"${r_p = :.3f}$", transform=plt.gca().transAxes)
 
 
 # %%
-# zT_corr = forest.get_corr(
-#     screen_features.iloc[lrhr_candidates.index.get_level_values(0)]
-# )
-# zT_corr = pd.DataFrame(
-#     zT_corr, columns=lrhr_candidates.formula, index=lrhr_candidates.index
-# )
-# zT_corr.set_index(zT_corr.columns, append=True, inplace=True)
-# zT_corr.to_csv("correlation_matrix.csv", float_format="%g")
-zT_corr = pd.read_csv("correlation_matrix.csv", index_col=[0, "id", "T", "formula"])
+zT_corr = forest.get_corr(
+    screen_features.iloc[lrhr_candidates.index.get_level_values(0)]
+)
+zT_corr = pd.DataFrame(
+    zT_corr, columns=lrhr_candidates.formula, index=lrhr_candidates.index
+)
+zT_corr.set_index(zT_corr.columns, append=True, inplace=True)
+zT_corr.to_csv("correlation_matrix.csv", float_format="%g")
+# zT_corr = pd.read_csv("correlation_matrix.csv", index_col=[0, "id", "T", "formula"])
 
 
 # %%
@@ -151,15 +154,29 @@ color_ax = plt.matshow(zT_corr)
 plt.colorbar(color_ax, fraction=0.047, pad=0.02)
 plt.gcf().set_size_inches(12, 12)
 
-# plt.savefig("correlation_matrix_rf.png", bbox_inches="tight", dpi=200)
+plt.savefig("correlation_matrix_rf.pdf", bbox_inches="tight")
+
+
+# %%
+# the weakly correlated elements contain lots of arsenide which is absent from
+# the gaultois training set while the strongly correlated materials contain
+# zero arsenide (compare these plots with notebooks/data/gaultois_elements.pdf)
+ptable_elemental_prevalence(zT_corr.columns[:190])
+plt.title("elements in weakly correlated (blue) part of zT correlation matrix")
+plt.savefig("zT_corr-elements-cols-0-190.pdf")
+
+ptable_elemental_prevalence(zT_corr.columns[190:])
+plt.title("elements in strongly correlated (yellow) part of zT correlation matrix")
+plt.savefig("zT_corr-elements-cols-190-end.pdf")
+
 
 # %%
 n_candidates = len(lrhr_candidates)
 ptable_elemental_prevalence(lrhr_candidates.formula)
 plt.title(f"elemental prevalence among {n_candidates} low-risk high-return candidates")
-plt.savefig("gurobi-ptable-elements.pdf")
+plt.savefig("lrhr-ptable-elements.pdf")
 
-ptable_elemental_prevalence(high_risk_candidates.head(n_candidates).formula)
+ptable_elemental_prevalence(greedy_candidates.head(n_candidates).formula)
 plt.title(f"elemental prevalence among {n_candidates} greedy candidates")
 plt.savefig("greedy-ptable-elements.pdf")
 
@@ -188,6 +205,7 @@ evals, evecs = np.linalg.eigh(zT_corr)
 
 print(evals[evals > max_theoretical_eval])
 
+
 # %% [markdown]
 # # Fine Triaging
 # Helpful links for the discrete constrained optimization problem of
@@ -202,17 +220,19 @@ print(evals[evals > max_theoretical_eval])
 # The idea for this way of reducing correlation came from
 # https://stats.stackexchange.com/a/327822. Taking the element-wise
 # absolute value (rather than squaring) and then summing gives similar results.
-greedy_candidates = lrhr_candidates.copy(deep=True)
+least_total_corr_candidates = lrhr_candidates.copy(deep=True)
 
-greedy_candidates["rough_correlation"] = (zT_corr ** 2).sum().values
+least_total_corr_candidates["rough_correlation"] = (zT_corr ** 2).sum().values
 
-greedy_candidates = (
-    greedy_candidates.reset_index()
+least_total_corr_candidates = (
+    least_total_corr_candidates.reset_index()
     .rename(columns={"index": "orig_index"})
     .sort_values(by="rough_correlation")
 )
 
-greedy_candidates.to_csv("greedy_candidates.csv", index=False, float_format="%g")
+least_total_corr_candidates.to_csv(
+    "least_total_corr_candidates.csv", index=False, float_format="%g"
+)
 
 
 # %%
@@ -224,7 +244,6 @@ os.environ["GRB_LICENSE_FILE"] = f"{ROOT}/hpc/gurobi.lic"
 # materials with least pairwise correlation according to the correlation matrix zT_corr.
 grb_model = Model("quadratic_problem")
 grb_model.params.LogFile = "gurobi.log"
-os.remove("gurobi.log")
 
 
 # %%
@@ -241,7 +260,7 @@ grb_model.setObjective(obj, GRB.MINIMIZE)
 # %%
 # Add L1 constraint on dec_vars so that the optimization returns at least
 # n_select formulas. If the model finds more at equal correlation, even better.
-n_select = 20
+n_select = 200
 constr = grb_model.addConstr(quicksum(dec_vars) >= n_select, "l1_norm")
 
 
@@ -254,15 +273,23 @@ grb_model.optimize()
 dec_vals = [bool(var.x) for var in dec_vars]
 print(f"final objective value: {zT_corr.dot(dec_vals).dot(dec_vals) = :.3f}")
 gurobi_candidates = lrhr_candidates.iloc[dec_vals]
-gurobi_candidates.to_csv("gurobi_candidates.csv")
+# gurobi_candidates.to_csv("gurobi_candidates.csv")
+
+
+# %%
+
+# %%
+ptable_elemental_prevalence(gurobi_candidates.formula)
+plt.title(f"elements in {len(gurobi_candidates)} Gurobi candidates")
+plt.savefig("gurobi-ptable-elements.pdf")
 
 
 # %%
 for name, df in zip(
-    ["gurobi_candidates", "greedy_candidates"],
-    [gurobi_candidates, greedy_candidates.iloc[:20]],
+    ["gurobi_candidates", "least_total_corr_candidates"],
+    [gurobi_candidates, least_total_corr_candidates.iloc[:n_select]],
 ):
-    df.sort_values(["formula", "T"]).to_latex(
+    df.sort_values(["formula", "T"]).reset_index().to_latex(
         f"{name}.tex",
         columns=["formula", "database", "id", "T", "zT_pred", "zT_std"],
         float_format="%.3g",
@@ -275,14 +302,16 @@ for name, df in zip(
 
 
 # %%
-# greedy_candidates contains all low-risk high-return materials sorted by their sum of
-# squared correlations with all other materials. If either the greedy or Gurobi method
+# least_total_corr_candidates contains all low-risk high-return materials sorted by
+# sum of squared correlations with all other materials. If either greedy or Gurobi
 # (or both) picked materials entirely at random, we would expect formulas chosen by
 # Gurobi to have an average index in the list equal to the total list's average index.
 # The degree to which the average index of Gurobi materials in the greedy list is lower
 # than average list index is an indicator of agreement between the two methods.
-gurobi_in_greedy = greedy_candidates.orig_index.isin(gurobi_candidates.index)
-greedy_avg_index = greedy_candidates[gurobi_in_greedy].index.to_series().mean()
+gurobi_in_greedy = least_total_corr_candidates.orig_index.isin(gurobi_candidates.index)
+greedy_avg_index = (
+    least_total_corr_candidates[gurobi_in_greedy].index.to_series().mean()
+)
 
 print(
     "Average index of materials chosen by Gurobi in the list\n"
@@ -293,7 +322,7 @@ print(
 
 # %%
 greedy_indices_in_corr_mat = lrhr_candidates.index.isin(
-    greedy_candidates.orig_index[:n_select]
+    least_total_corr_candidates.orig_index[:n_select]
 )
 greedy_obj_val = zT_corr.values.dot(greedy_indices_in_corr_mat).dot(
     greedy_indices_in_corr_mat
