@@ -11,6 +11,7 @@ import pandas as pd
 import tensorflow as tf
 from gurobipy import GRB, Model, quicksum
 from mlmatrics import (
+    density_hexbin_with_hist,
     density_scatter,
     marchenko_pastur,
     ptable_elemental_prevalence,
@@ -107,14 +108,19 @@ stop_early = tf.keras.callbacks.EarlyStopping(
 )
 
 
-# %%
-mnf_model.fit(
+# %% train with train-test split to find good number of epochs for screening
+batch = 32
+train_hist = mnf_model.fit(
     X_train.astype("float32"),
     zT_train,
     validation_data=(X_test, zT_test),
-    batch_size=32,
+    batch_size=batch,
     epochs=300,
     callbacks=[stop_early],
+)
+
+pd.DataFrame(train_hist.history).plot(
+    xlabel="epoch", ylabel=r"$|zT_\mathrm{true} - zT_\mathrm{pred}|$"
 )
 
 
@@ -151,7 +157,14 @@ screen_model.compile(optimizer, loss=loss_factory(screen_model), metrics=["mae"]
 
 
 # %%
-screen_model.fit(gaultois_magpie_feas, zT, batch_size=32, epochs=140)
+epochs = 140
+screen_hist = screen_model.fit(
+    gaultois_magpie_feas, zT, batch_size=batch, epochs=epochs
+)
+
+pd.DataFrame(screen_hist.history).plot(
+    xlabel="epoch", ylabel=r"$|zT_\mathrm{true} - zT_\mathrm{pred}|$"
+)
 
 
 # %%
@@ -164,17 +177,34 @@ screen_preds = np.array(screen_preds).squeeze()
 
 
 # %%
+screen_preds_df = pd.DataFrame(
+    screen_preds.T,
+    columns=[f"pred_{idx}" for idx in range(n_preds)],
+    index=candidates.index,
+)
+screen_preds_df.to_csv(
+    f"screen_preds-{epochs=}-{batch=}-{n_preds=}.csv", float_format="%.3g"
+)
+
+
+# %%
 candidates["zT_pred"] = zT_pred = screen_preds.mean(0)
 candidates["zT_std"] = zT_std = screen_preds.std(0) * 1.5
 
 
 # %%
-# candidates.sort_values(by="zT_pred", ascending=False).to_csv(
-#     "greedy-candidates-epochs=150-batch=32-preds=50.csv"
-# )
-candidates = pd.read_csv(
-    "greedy-candidates-epochs=150-batch=32-preds=50.csv", index_col=[0, "id", "T"]
+candidates.sort_values(by="zT_pred", ascending=False).to_csv(
+    f"greedy-candidates-{epochs=}-{batch=}-{n_preds=}.csv"
 )
+# candidates = pd.read_csv(
+#     "greedy-candidates-epochs=140-batch=32-n_preds=50.csv", index_col=[0, "id", "T"]
+# )
+# zT_pred = candidates["zT_pred"]
+# zT_std = candidates["zT_std"]
+
+
+# %%
+density_hexbin_with_hist(candidates.zT_std, candidates.zT_pred)
 
 
 # %%
@@ -183,7 +213,7 @@ _, axs = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(12, 4))
 plt.subplots_adjust(wspace=0.1)
 
 for ax, cmap, (temp, group) in zip(
-    axs, ["Blues", "Reds"], candidates.sample(1000).reset_index().groupby("T")
+    axs, ["Blues", "Reds"], candidates.reset_index().groupby("T")
 ):
     density_scatter(
         xs=group.zT_std.values,
@@ -306,40 +336,31 @@ grb_model.optimize()
 # %%
 # Save selected materials to dataframe and CSV file.
 dec_vals = [bool(var.x) for var in dec_vars]
-# printed 0.887
+# printed 0.907
 print(f"final objective value: {corr_mat.dot(dec_vals).dot(dec_vals) = :.3f}")
 gurobi_candidates = lrhr_candidates[dec_vals]
-gurobi_candidates.to_csv("gurobi_candidates.csv", index=False)
+gurobi_candidates.to_csv("gurobi_candidates.csv")
 
 
 # %%
-greedy_ids = candidates.sort_values("zT_pred").tail(211)
+n_candidates = len(gurobi_candidates)
+greedy_candidates = candidates.sort_values("zT_pred").tail(n_candidates)
 
 
 # %%
 ptable_elemental_prevalence(gurobi_candidates.formula)
+plt.title(f"elemental prevalence among {n_candidates} gurobi candidates")
 plt.savefig("gurobi-ptable-elements.pdf", bbox_inches="tight")
 
 
-ptable_elemental_prevalence(greedy_ids.formula)
+ptable_elemental_prevalence(greedy_candidates.formula)
+plt.title(f"elemental prevalence among {n_candidates} greedy candidates")
 plt.savefig("greedy-ptable-elements.pdf", bbox_inches="tight")
 
 
 # %%
-high_zT_idx = lrhr_candidates.sort_values("zT_pred").tail(211).index
+high_zT_idx = lrhr_candidates.sort_values("zT_pred").tail(n_candidates).index
 
 high_zT_mask = lrhr_candidates.index.isin(high_zT_idx)
-# printed 185.798
+# printed 195.417
 print(f"greedy objective value: {corr_mat.dot(high_zT_mask).dot(high_zT_mask) = :.3f}")
-
-
-# %%
-candidates.zT_pred.hist(bins=1000, log=True)
-
-
-# %%
-candidates.plot.scatter(x="zT_std", y="zT_pred")
-
-
-# %%
-screen_features.describe()
