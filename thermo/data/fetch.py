@@ -62,7 +62,7 @@ def fetch_cod(formulas=None, ids=None, get_ids_for=None):
     if formulas:
         return [cod.get_structure_by_formula(f) for f in formulas]
     if ids:
-        return [cod.get_structure_by_formula(i) for i in ids]
+        return [cod.get_structure_by_id(i) for i in ids]
     if get_ids_for:
         return [cod.get_cod_ids(i) for i in get_ids_for]
     raise ValueError("fetch_cod() requires formulas or ids.")
