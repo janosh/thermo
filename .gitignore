@@ -10,3 +10,8 @@ logs
 
 # Tensorboard
 runs
+
+# VASP
+data/vasp-pot
+dft/*
+dft-testing/*

@@ -61,9 +61,22 @@ Short interactive sessions are a good way to ensure a long job submitted via `(c
 [To request a 10-minute interactive CPU session](https://docs.hpc.cam.ac.uk/hpc/user-guide/interactive.html#sintr):
 
 ```sh
-sintr -A LEE-SL3-CPU -p skylake -N1 -n1 -t 0:10:0 --qos=INTR
+sintr -A LEE-SL3-CPU -p skylake -N2 -n2 -t 0:10:0 --qos=INTR
 module load rhel7/default-peta4
 script job_name.log
+```
+
+- `sintr`: SLURM interactive
+- `-A LEE-SL3-CPU`: charge the session to account `LEE-SL3-CPU`
+- `-p skylake`: run on the Skylake partition
+- `-N1 -n1`: use single node
+- `-t 0:10:0` set session duration to 10 min
+- `--qos=INTR`: set quality of service to interactive
+
+To request two nodes for an hour (the maximum interactive session duration), use
+
+```sh
+sintr -A LEE-SL3-CPU -p skylake -N2 -n2 -t 1:0:0 --qos=INTR
 ```
 
 Useful for testing a job will run successfully in the actual environment it's going to run in without having to queue much.
