@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/github/license/janosh/thermo?label=License)](/license)
 [![GitHub Repo Size](https://img.shields.io/github/repo-size/janosh/thermo?label=Repo+Size)](https://github.com/janosh/thermo/graphs/contributors)
 [![GitHub last commit](https://img.shields.io/github/last-commit/janosh/thermo?label=Last+Commit)](https://github.com/janosh/thermo/commits)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/janosh/thermo/master.svg)](https://results.pre-commit.ci/latest/github/janosh/thermo/master)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/janosh/thermo/main.svg)](https://results.pre-commit.ci/latest/github/janosh/thermo/main)
 
 ## Project description
 
@@ -28,7 +28,7 @@ git clone https://github.com/janosh/thermo \
 
 ### Locally
 
-Run any of the files in [`src/notebooks`](https://github.com/janosh/thermo/tree/master/src/notebooks). The recommended way to work with those files is using [VS Code](https://code.visualstudio.com) and its [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python). You'll see the results of running those files [in an interactive window](https://code.visualstudio.com/docs/python/jupyter-support-py) (similar to Jupyter).
+Run any of the files in [`src/notebooks`](https://github.com/janosh/thermo/tree/main/notebooks). The recommended way to work with those files is using [VS Code](https://code.visualstudio.com) and its [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python). You'll see the results of running those files [in an interactive window](https://code.visualstudio.com/docs/python/jupyter-support-py) (similar to Jupyter).
 
 You'll probably want to add the following VS Code settings for local module imports to work and for code changes in imported modules to be auto-reloaded into the interactive session:
 
