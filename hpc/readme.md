@@ -142,6 +142,8 @@ Thu Oct  8 20:15:44 2020
 
 If the interactive window won't launch over SSH, see [vscode-python#12560](https://github.com/microsoft/vscode-python/issues/12560).
 
+If VS Code fails to connect to a remote (encountered once with exitCode 24), follow the steps to [clean up VS Code Server on the remote](https://code.visualstudio.com/docs/remote/troubleshooting#_cleaning-up-the-vs-code-server-on-the-remote) followed by reconnecting which reinstalls the remote extension.
+
 ## Syncing Results
 
 To sync results back from CSD3 to your local machine, use
