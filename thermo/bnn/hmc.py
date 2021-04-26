@@ -203,7 +203,7 @@ def ess(chains, **kwargs):
 
 
 def r_hat(tensors):
-    """ TFP docs: http://tiny.cc/5bq6tz """
+    """TFP docs: http://tiny.cc/5bq6tz"""
     return [tfp.mcmc.diagnostic.potential_scale_reduction(t) for t in tensors]
 
 
