@@ -128,7 +128,7 @@ data = mpr.query(
 candidates.reset_index(level=[1, 2]).merge(
     icsd_ids.rename(columns={"pretty_formula": "formula", "material_id": "mp_id"}),
     on="formula",
-).to_csv("mnf-candidates-with-mp-ids.csv", index=False)
+).to_csv("mnf_candidates_in_ricci_dataset/mnf-candidates-with-mp-ids.csv", index=False)
 
 
 # %%

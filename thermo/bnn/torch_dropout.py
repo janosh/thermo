@@ -31,13 +31,13 @@ class Normalized(Dataset):
         return self.X[idx], self.y[idx]
 
     def denorm(self, tensor, is_std=False):
-        """ Revert z-scoring/normalization. """
+        """Revert z-scoring/normalization."""
         if is_std:
             return tensor * self.y_std
         return tensor * self.y_std + self.y_mean
 
     def denorm_X(self, tensor, is_std=False):
-        """ Revert z-scoring/normalization. """
+        """Revert z-scoring/normalization."""
         if is_std:
             return tensor * self.X_std
         return tensor * self.X_std + self.X_mean
@@ -122,7 +122,7 @@ class TorchDropoutModel(nn.Sequential):
 
     @torch.no_grad()
     def write_metrics(self, targets, output, denorm, prefix):
-        """ After an epoch, save evaluation metrics to a dict. """
+        """After an epoch, save evaluation metrics to a dict."""
 
         output, targets = torch.cat(output), torch.cat(targets)
         loss = self.loss_fn(targets, output)
