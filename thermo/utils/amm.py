@@ -6,6 +6,7 @@ from automatminer import MatPipe  # make MatPipe importable from this file
 
 from thermo.utils.decorators import interruptable
 
+
 try:
     os.remove(os.getcwd() + "/automatminer.log")  # delete since not needed
 except FileNotFoundError:

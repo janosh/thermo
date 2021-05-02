@@ -4,9 +4,10 @@ import os
 from thermo.data import dropna, load_gaultois, train_test_split
 from thermo.evaluate import mae, rmse
 from thermo.plots import plot_output
-from thermo.rf.forest import RandomForestRegressor
+from thermo.rf import RandomForestRegressor
 from thermo.utils import ROOT
 from thermo.utils.amm import MatPipe, featurize, fit_pred_pipe
+
 
 SAVE_TO = ROOT + "/results/amm/zT_direct_vs_indirect/"
 os.makedirs(SAVE_TO, exist_ok=True)

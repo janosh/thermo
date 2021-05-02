@@ -7,8 +7,9 @@ from scipy.stats import pearsonr
 from thermo.data import dropna, load_gaultois, train_test_split
 from thermo.evaluate import mae, rmse
 from thermo.plots import plot_output
-from thermo.rf.forest import RandomForestRegressor
+from thermo.rf import RandomForestRegressor
 from thermo.utils import ROOT, amm
+
 
 # %%
 SAVE_TO = ROOT + "/results/amm/amm_vs_magpie/"

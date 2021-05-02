@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from thermo.bnn.torch_dropout import GaultoisData, TorchDropoutModel
 from thermo.plots import plot_output
 
+
 # %%
 train_set = GaultoisData(target_cols=["zT"], train=True)
 test_set = GaultoisData(target_cols=["zT"], train=False)

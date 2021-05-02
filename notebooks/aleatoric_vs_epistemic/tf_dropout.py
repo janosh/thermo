@@ -11,6 +11,7 @@ from thermo.evaluate import df_corr
 from thermo.plots import plot_output
 from thermo.utils import ROOT, cross_val_predict
 
+
 # %%
 features, targets = load_gaultois()
 

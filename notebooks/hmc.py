@@ -16,6 +16,7 @@ from thermo.bnn.map import map_predict
 from thermo.data import dropna, load_gaultois, normalize, train_test_split
 from thermo.utils import predict_multiple_targets
 
+
 # %%
 features, targets = load_gaultois()
 

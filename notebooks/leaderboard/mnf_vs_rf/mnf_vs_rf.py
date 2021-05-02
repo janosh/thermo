@@ -20,6 +20,7 @@ from thermo.plots import plot_output
 from thermo.rf import rf_predict
 from thermo.utils import ROOT, amm
 
+
 # %%
 SAVE_TO = ROOT + "/results/mnf/"
 os.makedirs(SAVE_TO, exist_ok=True)

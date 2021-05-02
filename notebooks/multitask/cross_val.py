@@ -13,6 +13,7 @@ from thermo.data import dropna, load_gaultois
 from thermo.plots import plot_output
 from thermo.utils import ROOT
 
+
 # %%
 DIR = f"{ROOT}/results/multitask"
 
@@ -68,6 +69,7 @@ models = [MultiTaskMLP(n_tasks) for _ in range(folds)]
 optims = [torch.optim.AdamW(model.parameters()) for model in models]
 # with nn.L1Loss, MAE and loss are identical except the former is denormed
 loss_fn = nn.L1Loss()
+
 
 # %%
 try:

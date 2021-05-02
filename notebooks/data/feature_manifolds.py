@@ -3,6 +3,7 @@ This notebook plots the Magpie feature space for the Gaultois database with
 several dimensional reduction algorithms (t-SNE, UMAP, PCA) to check for clustering.
 """
 
+
 # %%
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -12,6 +13,7 @@ from sklearn.manifold import TSNE
 from umap import UMAP
 
 from thermo.data import load_gaultois
+
 
 # %%
 magpie_features, targets = load_gaultois(
@@ -54,6 +56,7 @@ for ax, [key, group] in zip(
     ax.set_title(f"{key} K")
 
 # plt.savefig("2d-tsne-of-magpie-features-for-gaultois-dataset-by-temps.pdf")
+
 
 # %% 3D
 tsne_cols = ["tsne_1", "tsne_2", "tsne_3"]

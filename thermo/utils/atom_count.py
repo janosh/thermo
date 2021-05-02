@@ -6,6 +6,7 @@ total number of atoms or the number of atoms for each element, respectively.
 import re
 from collections import Counter
 
+
 RE = re.compile(
     r"(?P<atom>[A-Z][a-z]*)(?P<atom_count>\d*)|"
     r"(?P<new_group>\()|"

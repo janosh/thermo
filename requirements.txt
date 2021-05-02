@@ -13,4 +13,4 @@ tensorflow-probability
 torch
 tqdm
 umap-learn
-# mlmatrics: git clone https://github.com/janosh/mlmatrics && pip install -e mlmatrics
+ml-matrics

@@ -14,6 +14,7 @@ from thermo.data import load_gaultois, normalize, train_test_split
 from thermo.evaluate import rmse
 from thermo.plots import plot_output
 
+
 # %%
 features, targets = load_gaultois()
 

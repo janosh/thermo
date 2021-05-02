@@ -4,6 +4,7 @@ from pymatgen.ext.cod import COD
 
 from thermo.utils import ROOT
 
+
 # Materials Project API keys available at https://materialsproject.org/dashboard.
 API_KEY = "X2UaF2zkPMcFhpnMN"
 

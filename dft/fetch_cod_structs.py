@@ -11,6 +11,7 @@ from tqdm import tqdm
 
 from thermo.utils import ROOT
 
+
 # %%
 gurobi_candidates = pd.read_csv(
     f"{ROOT}/notebooks/screen/mnf_magpie/gurobi_candidates.csv",
@@ -22,6 +23,7 @@ greedy_candidates = pd.read_csv(
 )
 
 (n_gurobi_candidates := len(gurobi_candidates))
+
 
 # %%
 (n_candidates := len(gurobi_candidates))

@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit
 
+
 # %%
 # GeSe relaxation times extracted from fig. 2 in
 # https://pubs.acs.org/doi/abs/10.1021/acs.chemmater.6b01164

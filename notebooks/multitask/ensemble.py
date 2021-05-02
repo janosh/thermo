@@ -7,6 +7,7 @@ from thermo.bnn.torch_dropout import GaultoisData
 from thermo.plots import plot_output
 from thermo.utils import ROOT
 
+
 # %%
 head = lambda: nn.Sequential(
     nn.Linear(20, 10),
@@ -136,6 +137,7 @@ print(
     f"\ntest set: MAE = {test_mae.mean():.3f} +/- {test_mae.std():.3f}, "
     f"RMSE = {test_rmse.mean():.3f} +/- {test_rmse.std():.3f}"
 )
+
 
 # %%
 preds = sum(test_preds) / len(test_preds)

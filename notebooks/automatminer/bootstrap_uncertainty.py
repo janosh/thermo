@@ -6,6 +6,7 @@ from thermo.plots import plot_output
 from thermo.utils import ROOT
 from thermo.utils.amm import fit_pred_pipe
 
+
 # %%
 _, targets = load_gaultois(target_cols=["T", "formula", "zT", "kappa", "power_factor"])
 

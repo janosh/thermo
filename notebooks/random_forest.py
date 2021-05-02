@@ -13,6 +13,7 @@ from thermo.data import dropna, load_gaultois, train_test_split
 from thermo.plots import plot_output
 from thermo.rf import rf_predict
 
+
 # %%
 features, targets = load_gaultois()
 
@@ -42,6 +43,7 @@ kappa_test, zT_test, X_test_no_nan = dropna(kappa_test, zT_test, X_test)
 rho_ep_pred, rho_ep_std, _ = rf_predict(
     X_train, rho_train, X_test, uncertainty="epistemic"
 )
+
 
 # %%
 print(f"rho epistemic MAE: {abs(rho_ep_pred - rho_test).mean():.3f}\n")
