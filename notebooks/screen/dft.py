@@ -4,11 +4,13 @@ candidate materials identified via random forest regression and portfolio-like
 risk management. See src/notsbooks/screen/random_forest.py for details.
 """
 
+
 # %%
 import pandas as pd
 from matplotlib import pyplot as plt
 
 from thermo.utils import ROOT
+
 
 DIR = ROOT + "/results/screen/dft/"
 

@@ -2,6 +2,8 @@
 This notebook screens synthesizable materials from ICSD and COD
 for viable thermoelectrics
 """
+
+
 # %%
 import os
 
@@ -10,7 +12,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from gurobipy import GRB, Model, quicksum
-from mlmatrics import (
+from ml_matrics import (
     density_hexbin_with_hist,
     density_scatter,
     marchenko_pastur,
@@ -29,6 +31,7 @@ from thermo.data import (
 )
 from thermo.plots import plot_output
 from thermo.utils import ROOT
+
 
 # %%
 tf.random.set_seed(0)

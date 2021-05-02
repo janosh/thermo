@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 from gurobipy import GRB, Model, quicksum
 from matplotlib import pyplot as plt
-from mlmatrics import (
+from ml_matrics import (
     marchenko_pastur,
     ptable_elemental_prevalence,
     qq_gaussian,
@@ -25,6 +25,7 @@ from thermo.data import dropna, load_gaultois, load_screen
 from thermo.plots import plot_output
 from thermo.rf import rf_predict
 from thermo.utils import ROOT
+
 
 # %%
 gaultois_magpie_feas, gaultois_targets = load_gaultois()
@@ -275,8 +276,6 @@ print(f"final objective value: {zT_corr.dot(dec_vals).dot(dec_vals) = :.3f}")
 gurobi_candidates = lrhr_candidates.iloc[dec_vals]
 # gurobi_candidates.to_csv("gurobi_candidates.csv")
 
-
-# %%
 
 # %%
 ptable_elemental_prevalence(gurobi_candidates.formula)

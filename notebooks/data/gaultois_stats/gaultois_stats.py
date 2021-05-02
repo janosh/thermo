@@ -4,11 +4,12 @@ database in a histogram and onto the periodic table. It also plots histogram for
 the four target columns in the Gaultois database: rho, seebeck, kappa, zT.
 """
 
+
 # %%
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from mlmatrics import (
+from ml_matrics import (
     hist_elemental_prevalence,
     ptable_elemental_prevalence,
     show_bar_values,
@@ -17,6 +18,7 @@ from pymatgen import Composition
 
 from thermo.utils import ROOT
 
+
 # %%
 cols = ["formula", "rho", "seebeck", "kappa", "zT"]
 targets = pd.read_csv(ROOT + "/data/gaultois_targets.csv", header=1)[cols]
@@ -24,6 +26,7 @@ targets = pd.read_csv(ROOT + "/data/gaultois_targets.csv", header=1)[cols]
 
 # %% [markdown]
 # # Elemental Prevalence
+
 
 # %%
 ptable_elemental_prevalence(targets.formula.values, log_scale=True)

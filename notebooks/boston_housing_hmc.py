@@ -3,6 +3,7 @@ This notebook essentially runs an end-to-end test comparing RF vs MAP NN vs HMC
 NN performance on the simple Boston housing dataset.
 """
 
+
 # %%
 import tensorflow as tf
 import tensorflow_probability as tfp
@@ -11,6 +12,7 @@ from thermo.bnn.hmc import hmc_predict
 from thermo.bnn.map import map_predict
 from thermo.plots import plot_output
 from thermo.rf import rf_predict
+
 
 # %%
 # About the data: https://kaggle.com/c/boston-housing

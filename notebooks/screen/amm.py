@@ -7,6 +7,7 @@ from thermo.data import load_gaultois, load_screen
 from thermo.utils import ROOT
 from thermo.utils.amm import MatPipe, pipe_config
 
+
 DIR = ROOT + "/results/amm/screen/"
 os.makedirs(DIR, exist_ok=True)
 

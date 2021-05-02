@@ -4,6 +4,7 @@ from pymatgen.ext.cod import COD
 from pymatgen.ext.matproj import MPRester
 from tqdm import tqdm
 
+
 # %%
 gurobi_candidates = pd.read_csv("gurobi_candidates.csv", index_col=[0, "id", "T"])
 greedy_candidates = pd.read_csv(
