@@ -20,11 +20,14 @@
 
 #! What types of email messages to receive. Valid values include
 #! NONE, BEGIN, END, FAIL, REQUEUE, ALL. See https://slurm.schedmd.com/sbatch.html.
-#SBATCH --mail-type=END,FAIL
+#SBATCH --mail-type=FAIL
 
 #! The partition to use
 #! For 6GB per CPU, set "-p skylake"; for 12GB per CPU, set "-p skylake-himem":
-#SBATCH -p skylake
+#SBATCH -p skylake,skylake-himem,cclake
+
+#! Where to write standard out and standard error from this job. Can be the same file.
+#SBATCH --output=slurm-%x-%j.out
 
 #! ------ sbatch directives end here (put additional directives above this line)
 
