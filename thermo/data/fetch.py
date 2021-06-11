@@ -5,10 +5,6 @@ from pymatgen.ext.cod import COD
 from thermo.utils import ROOT
 
 
-# Materials Project API keys available at https://materialsproject.org/dashboard.
-API_KEY = "X2UaF2zkPMcFhpnMN"
-
-
 def fetch_mp(criteria={}, properties=[], save_to=None):
     """Fetch data from the Materials Project (MP).
     Docs at https://docs.materialsproject.org.
@@ -36,7 +32,8 @@ def fetch_mp(criteria={}, properties=[], save_to=None):
     properties = list({*properties, "material_id"})  # use set to remove dupes
 
     # MPRester connects to the Material Project REST interface.
-    with MPRester(API_KEY) as mp:
+    # API keys available at https://materialsproject.org/dashboard.
+    with MPRester() as mp:
         # mp.query performs the actual API call.
         data = mp.query(criteria, properties)
 

@@ -20,7 +20,10 @@
 
 #! What types of email messages to receive. Valid values include
 #! NONE, BEGIN, END, FAIL, REQUEUE, ALL. See https://slurm.schedmd.com/sbatch.html.
-#SBATCH --mail-type=END,FAIL
+#SBATCH --mail-type=FAIL
+
+#! Where to write standard out and standard error from this job. Can be the same file.
+#SBATCH --output=slurm-%x-%j.out
 
 #! The partition to use (do not change):
 #SBATCH -p pascal
