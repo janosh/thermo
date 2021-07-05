@@ -171,7 +171,7 @@ class TorchDropoutModel(nn.Sequential):
 
             if val_loader is not None:
                 with torch.no_grad():
-                    output, targets = zip(*[[self(x), y] for x, y in loader])
+                    output, targets = zip(*([self(x), y] for x, y in loader))
                     self.write_metrics(targets, output, denorm, "validation")
 
             if log:
