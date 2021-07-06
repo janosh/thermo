@@ -76,7 +76,7 @@ for model, optim, count in zip(models, optims, range(n_models)):
     print(f"\n\nmodel {count + 1}/{n_models}")
     total_epochs = model.epoch + epochs
 
-    metrics = ["loss", "MAE", "RMSE", *[f"loss_{col}" for col in short_names]]
+    metrics = ["loss", "MAE", "RMSE", *(f"loss_{col}" for col in short_names)]
     print("epoch".ljust(10) + "".join(f"{key:<10}" for key in metrics))
     metrics = {key: [] for key in metrics}
 

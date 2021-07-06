@@ -113,7 +113,6 @@ for label, y_test, y_pred, y_std in zip(
 
 
 # %%
-
 rf_out_by_label = nm_to_mn_cols(
     [y_norm, map_y_pred, map_y_var], keys=["y_test", "y_pred", "y_var"]
 )
@@ -146,7 +145,6 @@ for label, y_test, y_pred, y_std in zip(
 
 
 # %%
-
 rf_out_by_label = nm_to_mn_cols(
     [y_norm, do_y_pred, do_y_var], keys=["y_test", "y_pred", "y_var"]
 )
@@ -233,7 +231,6 @@ for label, y_test, y_pred, y_std in zip(
 
 
 # %%
-
 rf_out_by_label = nm_to_mn_cols(
     [y_norm, hmc_y_pred, hmc_y_var], keys=["y_test", "y_pred", "y_var"]
 )

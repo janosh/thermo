@@ -71,7 +71,7 @@ plt.subplots_adjust(hspace=0.2, wspace=0.3)  # increase height & width between s
 
 
 # %%
-GePtSe, Bi2Te3 = [zT_el_greedy_gurobi.loc[m1] for m1 in ["GePtSe", "Bi2Te3"]]
+GePtSe, Bi2Te3 = (zT_el_greedy_gurobi.loc[m1] for m1 in ["GePtSe", "Bi2Te3"])
 
 
 # %%

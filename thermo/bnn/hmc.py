@@ -128,7 +128,7 @@ def run_hmc(
     if resume:
         chain = nest_concat(prev_chain, chain)
         trace = nest_concat(prev_trace, trace)
-    burnin, samples = zip(*[(t[:-num_results], t[-num_results:]) for t in chain])
+    burnin, samples = zip(*((t[:-num_results], t[-num_results:]) for t in chain))
     return burnin, samples, trace, final_kernel_results
 
 

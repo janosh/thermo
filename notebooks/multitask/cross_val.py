@@ -91,7 +91,7 @@ for count, (train_idx, test_idx) in enumerate(kfold.split(features, targets)):
     train_set = Normalized(features.iloc[train_idx], targets.iloc[train_idx])
     test_set = Normalized(features.iloc[test_idx], targets.iloc[test_idx])
 
-    metrics = ["loss", "MAE", "RMSE", *[f"loss_{col}" for col in short_names]]
+    metrics = ["loss", "MAE", "RMSE", *(f"loss_{col}" for col in short_names)]
     print("epoch".ljust(10) + "".join(f"{key:<10}" for key in metrics))
     metrics = {key: [] for key in metrics}
 

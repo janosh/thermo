@@ -105,9 +105,9 @@ def do_predict(X_train, y_train, X_test, y_test, **kwargs):
         ("cbs", []),
         ("uncertainty", "aleatoric_epistemic"),
     ]
-    epochs, n_preds, cbs, uncertainty = [
+    epochs, n_preds, cbs, uncertainty = (
         kwargs.pop(key, default) for key, default in defaults
-    ]
+    )
 
     model = TFDropoutModel(X_train.shape[1], uncertainty=uncertainty)
     history = model.fit(
