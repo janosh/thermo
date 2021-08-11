@@ -4,7 +4,7 @@ with https://github.com/CitrineInformatics/lolo.
 from typing import Tuple
 
 import numpy as np
-from numpy import ndarray as Array
+from numpy.typing import ArrayLike as Array
 from sklearn.ensemble import RandomForestRegressor as RFR
 
 
@@ -31,7 +31,7 @@ class RandomForestRegressor(RFR):
         """
         return self.params
 
-    def predict(self, X_test, uncertainty: str = "full") -> Tuple[Array, Array]:
+    def predict(self, X_test: Array, uncertainty: str = "full") -> Tuple[Array, Array]:
         """Predict y_pred and uncertainty y_var for X_test.
 
         Args:
