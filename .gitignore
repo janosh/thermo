@@ -14,4 +14,4 @@ runs
 # VASP
 data/vasp-pot
 dft/*
-dft-testing/*
+!dft/*.md

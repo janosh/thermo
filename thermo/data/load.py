@@ -9,8 +9,8 @@ def to_type(df: DataFrame, dtype: str = "float32") -> DataFrame:
     """Convert all non-string columns to a different data type.
     E.g. float64 and int to float32.
     """
-    df_not_str = df.select_dtypes(exclude=object).astype(dtype)
-    df_str = df.select_dtypes(include=object)
+    df_not_str = df.select_dtypes(exclude=[object]).astype(dtype)
+    df_str = df.select_dtypes(include=[object])
 
     return df_not_str.join(df_str)
 
