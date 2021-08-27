@@ -2,7 +2,7 @@
 Gurobi 9.1.1 (mac64) logging started Thu Mar 11 09:21:59 2021
 
 Changed value of parameter LogFile to gurobi.log
-   Prev:   Default: 
+   Prev:   Default:
 Gurobi Optimizer version 9.1.1 build v9.1.1rc0 (mac64)
 Thread count: 8 physical cores, 16 logical processors, using up to 16 threads
 Optimize a model with 1 rows, 693 columns and 693 nonzeros
@@ -38,7 +38,7 @@ H    0     0                    2278.0285146 2277.38331  0.03%     -    0s
 Explored 738 nodes (3201 simplex iterations) in 0.72 seconds
 Thread count was 16 (of 16 available processors)
 
-Solution count 4: 2278.03 2278.05 2337.83 176661 
+Solution count 4: 2278.03 2278.05 2337.83 176661
 
 Optimal solution found (tolerance 1.00e-04)
 Best objective 2.278028514645e+03, best bound 2.277853924505e+03, gap 0.0077%

@@ -1,11 +1,14 @@
 """If enough time, compare our implementation
 with https://github.com/CitrineInformatics/lolo.
 """
-from typing import Tuple
+from typing import Any, Sequence
 
 import numpy as np
-from numpy.typing import ArrayLike as Array
+from numpy.typing import NDArray
 from sklearn.ensemble import RandomForestRegressor as RFR
+
+
+Array = NDArray[np.float64]
 
 
 class RandomForestRegressor(RFR):
@@ -16,7 +19,7 @@ class RandomForestRegressor(RFR):
     of https://arxiv.org/abs/1211.0906.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Sequence[Any], **kwargs: Any) -> None:
         self.params = {"args": args, **kwargs}
         super().__init__(*args, **kwargs)
 
@@ -31,7 +34,7 @@ class RandomForestRegressor(RFR):
         """
         return self.params
 
-    def predict(self, X_test: Array, uncertainty: str = "full") -> Tuple[Array, Array]:
+    def predict(self, X_test: Array, uncertainty: str = "full") -> tuple[Array, Array]:
         """Predict y_pred and uncertainty y_var for X_test.
 
         Args:
@@ -148,7 +151,7 @@ def rf_predict(
     y_test: Array = None,
     uncertainty: str = "full",
     **kwargs,
-) -> Tuple[Array, Array, RandomForestRegressor]:
+) -> tuple[Array, Array, RandomForestRegressor]:
     """Fit a random forest to (X_train, y_train) and predict on X_test.
 
     y_test is unused and only serves to make the function callable by other
