@@ -1,5 +1,3 @@
-from typing import Tuple
-
 from pandas import DataFrame, read_csv
 
 from thermo.utils import ROOT
@@ -17,7 +15,7 @@ def to_type(df: DataFrame, dtype: str = "float32") -> DataFrame:
 
 def load_gaultois(
     target_cols: list = ["rho", "seebeck", "kappa", "zT"], drop_outliers=False
-) -> Tuple[DataFrame, DataFrame]:
+) -> tuple[DataFrame, DataFrame]:
     """Load Magpie features and targets of the hand-curated
     Gaultois thermoelectrics database.
 
@@ -54,7 +52,7 @@ def load_gaultois(
     return to_type(features), to_type(targets)
 
 
-def load_screen() -> Tuple[DataFrame, DataFrame]:
+def load_screen() -> tuple[DataFrame, DataFrame]:
     """Load material candidates into a dataframe for screening. Available columns
     are formula, database ID and MagPie features for over 80,000 compositions pulled
     from COD and ICSD.
