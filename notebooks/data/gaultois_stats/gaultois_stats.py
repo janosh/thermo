@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from ml_matrics import (
     hist_elemental_prevalence,
-    ptable_elemental_prevalence,
+    ptable_heatmap,
     show_bar_values,
 )
 from pymatgen import Composition
@@ -29,7 +29,7 @@ targets = pd.read_csv(ROOT + "/data/gaultois_targets.csv", header=1)[cols]
 
 
 # %%
-ptable_elemental_prevalence(targets.formula.values, log_scale=True)
+ptable_heatmap(targets.formula.values, log_scale=True)
 plt.savefig("gaultois_elements.pdf", bbox_inches="tight")
 
 
