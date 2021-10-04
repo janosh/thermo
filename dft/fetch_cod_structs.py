@@ -13,12 +13,14 @@ from thermo.utils import ROOT
 
 
 # %%
+csv_dir = f"{ROOT}/notebooks/screen/mnf_magpie"
+
 gurobi_candidates = pd.read_csv(
-    f"{ROOT}/notebooks/screen/mnf_magpie/gurobi_candidates.csv",
+    f"{csv_dir}/gurobi_candidates.csv",
     index_col=[0, "id", "T"],
 )
 greedy_candidates = pd.read_csv(
-    f"{ROOT}/notebooks/screen/mnf_magpie/greedy-candidates-epochs=140-batch=32-n_preds=50.csv",
+    f"{csv_dir}/greedy-candidates-epochs=140-batch=32-n_preds=50.csv",
     index_col=[0, "id", "T"],
 )
 
