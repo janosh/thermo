@@ -60,8 +60,8 @@ print(f"{invalid_cifs=}")
 # crashing due to supposedly invalid CIF files (might be Pymatgen bug):
 # UserWarning: Issues encountered while parsing CIF: No _symmetry_equiv_pos_as_xyz
 # type key found. Spacegroup from _symmetry_space_group_name_H-M used.
-# Some occupancies ([1, 2, 6, 6]) sum to > 1! If they are within the occupancy_tolerance,
-# they will be rescaled. The current occupancy_tolerance is set to: 1.0
+# Some occupancies ([1, 2, 6, 6]) sum to > 1! If they are within the
+# occupancy_tolerance, they'll be rescaled. Current occupancy_tolerance is set to 1.0.
 
 # invalid_cifs = [
 #     [5910072, "Sb4Tl5"],
