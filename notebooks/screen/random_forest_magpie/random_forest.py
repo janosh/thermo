@@ -13,11 +13,7 @@ import numpy as np
 import pandas as pd
 from gurobipy import GRB, Model, quicksum
 from matplotlib import pyplot as plt
-from ml_matrics import (
-    marchenko_pastur,
-    ptable_elemental_prevalence,
-    qq_gaussian,
-)
+from ml_matrics import marchenko_pastur, ptable_heatmap, qq_gaussian
 from sklearn.model_selection import train_test_split
 
 from thermo.correlation import expected_rand_obj_val, rand_obj_val_avr
@@ -162,22 +158,22 @@ plt.savefig("correlation_matrix_rf.pdf", bbox_inches="tight")
 # the weakly correlated elements contain lots of arsenide which is absent from
 # the gaultois training set while the strongly correlated materials contain
 # zero arsenide (compare these plots with notebooks/data/gaultois_elements.pdf)
-ptable_elemental_prevalence(zT_corr.columns[:190])
+ptable_heatmap(zT_corr.columns[:190])
 plt.title("elements in weakly correlated (blue) part of zT correlation matrix")
 plt.savefig("zT_corr-elements-cols-0-190.pdf")
 
-ptable_elemental_prevalence(zT_corr.columns[190:])
+ptable_heatmap(zT_corr.columns[190:])
 plt.title("elements in strongly correlated (yellow) part of zT correlation matrix")
 plt.savefig("zT_corr-elements-cols-190-end.pdf")
 
 
 # %%
 n_candidates = len(lrhr_candidates)
-ptable_elemental_prevalence(lrhr_candidates.formula)
+ptable_heatmap(lrhr_candidates.formula)
 plt.title(f"elemental prevalence among {n_candidates} low-risk high-return candidates")
 plt.savefig("lrhr-ptable-elements.pdf")
 
-ptable_elemental_prevalence(greedy_candidates.head(n_candidates).formula)
+ptable_heatmap(greedy_candidates.head(n_candidates).formula)
 plt.title(f"elemental prevalence among {n_candidates} greedy candidates")
 plt.savefig("greedy-ptable-elements.pdf")
 
@@ -278,7 +274,7 @@ gurobi_candidates = lrhr_candidates.iloc[dec_vals]
 
 
 # %%
-ptable_elemental_prevalence(gurobi_candidates.formula)
+ptable_heatmap(gurobi_candidates.formula)
 plt.title(f"elements in {len(gurobi_candidates)} Gurobi candidates")
 plt.savefig("gurobi-ptable-elements.pdf")
 

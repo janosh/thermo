@@ -16,7 +16,7 @@ from ml_matrics import (
     density_hexbin_with_hist,
     density_scatter,
     marchenko_pastur,
-    ptable_elemental_prevalence,
+    ptable_heatmap,
     qq_gaussian,
 )
 from tf_mnf.models import MNFFeedForward
@@ -351,12 +351,12 @@ greedy_candidates = candidates.sort_values("zT_pred").tail(n_candidates)
 
 
 # %%
-ptable_elemental_prevalence(gurobi_candidates.formula)
+ptable_heatmap(gurobi_candidates.formula)
 plt.title(f"elemental prevalence among {n_candidates} gurobi candidates")
 plt.savefig("gurobi-ptable-elements.pdf", bbox_inches="tight")
 
 
-ptable_elemental_prevalence(greedy_candidates.formula)
+ptable_heatmap(greedy_candidates.formula)
 plt.title(f"elemental prevalence among {n_candidates} greedy candidates")
 plt.savefig("greedy-ptable-elements.pdf", bbox_inches="tight")
 

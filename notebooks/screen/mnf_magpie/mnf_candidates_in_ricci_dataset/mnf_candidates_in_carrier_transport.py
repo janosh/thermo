@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from matminer.utils.io import load_dataframe_from_json
-from ml_matrics import ptable_elemental_prevalence
+from ml_matrics import ptable_heatmap
 
 
 # %% this file is available at
@@ -27,7 +27,7 @@ mnf_in_carrier = carrier_transport.loc[
 
 
 # %%
-ptable_elemental_prevalence(mnf_in_carrier.pretty_formula.dropna(), log=True)
+ptable_heatmap(mnf_in_carrier.pretty_formula.dropna(), log=True)
 plt.title(
     "Elemental prevalence of MNF candidates in the Ricci carrier transport dataset"
 )
@@ -38,7 +38,7 @@ plt.savefig("mnf-in-carrier-elements-log.pdf")
 top_powerfactors = carrier_transport.sort_values(by="PF.p [µW/cm/K²/s]").tail(
     len(mnf_in_carrier)
 )
-ptable_elemental_prevalence(top_powerfactors.pretty_formula.dropna(), log=True)
+ptable_heatmap(top_powerfactors.pretty_formula.dropna(), log=True)
 plt.title(
     "Elemental prevalence among highest powerfactor materials in "
     "the Ricci carrier transport dataset"
@@ -89,10 +89,10 @@ carrier_transport[dependent_vars].describe()
 # probably not a reliable way of computing zT_el due to
 # https://nature.com/articles/sdata201785#Sec15
 # > It is also important to note that when a derived property is needed (e.g., the power
-# > factor S^2 σ), it would be wrong to operate on eigenvalues (since they might not refer
-# > to corresponding directions). Therefore, we strongly suggest to instead perform the
-# > operations on the full tensors. Eigenvalues can be obtained by running an adequate
-# > algorithm on the resulting full tensor.
+# > factor S^2 σ), it would be wrong to operate on eigenvalues (since they might not
+# > refer to corresponding directions). Therefore, we strongly suggest to instead
+# > perform the operations on the full tensors. Eigenvalues can be obtained by running
+# > an adequate algorithm on the resulting full tensor.
 carrier_transport["zT_el"] = (
     (carrier_transport.dropna()["Sᵉ.p.v [µV/K]"] * 1e-6) ** 2
     * carrier_transport.dropna()["σᵉ.p.v [1/Ω/m/s]"]
