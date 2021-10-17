@@ -2,6 +2,7 @@ automatminer
 gurobipy
 matminer
 matplotlib
+ml-matrics
 numpy
 pandas
 scikit-learn
@@ -13,4 +14,3 @@ tensorflow-probability
 torch
 tqdm
 umap-learn
-ml-matrics

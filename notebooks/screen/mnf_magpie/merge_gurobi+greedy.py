@@ -52,10 +52,10 @@ for idx, formula, database, *_ in tqdm(candidates[130:].itertuples()):
     if database == "COD":
         try:
             # advice from @shyuep how to get from COD IDs to MP IDs https://git.io/JOPI1
-            struc = cod.get_structure_by_id(db_id)
-            struc.merge_sites(tol=0.003, mode="delete")
+            struct = cod.get_structure_by_id(db_id)
+            struct.merge_sites(tol=0.003, mode="delete")
 
-            mp_id = mpr.find_structure(struc)
+            mp_id = mpr.find_structure(struct)
             candidates.loc[idx, "mp_id"] = mp_id
         except ValueError:
             invalid_cod_cifs.append([db_id, formula])
