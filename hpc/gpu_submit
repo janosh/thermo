@@ -26,7 +26,7 @@
 #SBATCH --output=slurm-%x-%j.out
 
 #! The partition to use (do not change):
-#SBATCH -p pascal
+#SBATCH -p ampere,pascal
 
 #! ------ sbatch directives end (put additional directives above this line)
 

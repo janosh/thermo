@@ -2,7 +2,7 @@
 
 > Example calculation from Yunwei with steps to reproduce.
 
-1. Please read the BoltzTrap manual (under the file boltztrap-1.2.5/doc). I have already installed it under your HPC account. You can excute "x_trans" to have a check.
+1. Please read the BoltzTrap manual (under the file boltztrap-1.2.5/doc). I have already installed it under your HPC account. You can execute "x_trans" to have a check.
 
 2. Make a working directory and name it as “Bi2Te3”. Do scf calculation via VASP with a very large k-point (a normal kpoint grid is 7 7 1, but for this case, I set it as 21 21 3). To perform scf calculation, you need four input files: POSCAR (structure information), POTCAR (psedo-potential), INCAR (vasp input, the parameter I used works for most of compounds, at present you don't need to change it) and KPOINTS (k-point). For other compounds, you need to set your own POSCAR, POTCAR and KPOINTS. Submit the job by using the "slurm_submit.peta4-skylake" script to run the scf calculation (make sure you have the "vasp_std" executable file under your working directory). OUTCAR is the output file of the scf calculation, check it before move to the next step.
 

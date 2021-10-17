@@ -88,7 +88,7 @@ To use service level 2, include your CRSId, i.e. `LEE-JR769-SL2-CPU` instead of 
 Similarly, for a 10-minute interactive GPU session:
 
 ```sh
-sintr -A LEE-SL3-GPU -p pascal -N1 -n1 -t 0:10:0 --qos=INTR --gres=gpu:1
+sintr -A LEE-SL3-GPU -p ampere,pascal -N1 -n1 -t 0:10:0 --qos=INTR --gres=gpu:1
 module load rhel7/default-gpu
 script job_name.log
 ```
