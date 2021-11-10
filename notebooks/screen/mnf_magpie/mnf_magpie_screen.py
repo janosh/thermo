@@ -22,13 +22,7 @@ from ml_matrics import (
 from tf_mnf.models import MNFFeedForward
 from tqdm import trange
 
-from thermo.data import (
-    dropna,
-    load_gaultois,
-    load_screen,
-    normalize,
-    train_test_split,
-)
+from thermo.data import dropna, load_gaultois, load_screen, normalize, train_test_split
 from thermo.plots import plot_output
 from thermo.utils import ROOT
 
