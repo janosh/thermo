@@ -9,11 +9,7 @@ the four target columns in the Gaultois database: rho, seebeck, kappa, zT.
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from ml_matrics import (
-    hist_elemental_prevalence,
-    ptable_heatmap,
-    show_bar_values,
-)
+from ml_matrics import hist_elemental_prevalence, ptable_heatmap, show_bar_values
 from pymatgen import Composition
 
 from thermo.utils import ROOT
