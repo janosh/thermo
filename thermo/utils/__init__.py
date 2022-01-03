@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 
 # absolute path to the project's root directory
-ROOT = dirname(dirname(dirname(abspath(__file__))))
+ROOT = dirname(dirname(dirname(__file__)))
 
 
 def pd2np(*args):
