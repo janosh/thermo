@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 from gurobipy import GRB, Model, quicksum
 from matplotlib import pyplot as plt
-from ml_matrics import marchenko_pastur, ptable_heatmap, qq_gaussian
+from pymatviz import marchenko_pastur, ptable_heatmap, qq_gaussian
 from sklearn.model_selection import train_test_split
 
 from thermo.correlation import expected_rand_obj_val, rand_obj_val_avr

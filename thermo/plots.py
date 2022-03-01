@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from matplotlib.offsetbox import AnchoredText
-from ml_matrics import err_decay, residual_hist, scatter_with_err_bar
-from ml_matrics.ranking import get_err_decay, get_std_decay
+from pymatviz import err_decay, residual_hist, scatter_with_err_bar
+from pymatviz.ranking import get_err_decay, get_std_decay
 from scipy.stats import pearsonr
 
 
