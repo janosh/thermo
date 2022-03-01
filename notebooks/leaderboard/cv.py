@@ -57,7 +57,7 @@ pd.concat(
 
 # %%
 for label, y_test, y_pred, y_std in zip(
-    targets.columns, y_norm.values.T, rf_y_pred.values.T, rf_y_var.values.T ** 0.5
+    targets.columns, y_norm.values.T, rf_y_pred.values.T, rf_y_var.values.T**0.5
 ):
     plot_output(y_test, y_pred, y_std, title=label)
 
@@ -107,7 +107,7 @@ for label, y_test, y_pred, y_std in zip(
     targets.columns,
     y_norm.values.T,
     map_y_pred.values.T,
-    map_y_var.values.T ** 0.5,
+    map_y_var.values.T**0.5,
 ):
     plot_output(y_test, y_pred, y_std, title=label)
 
@@ -139,7 +139,7 @@ pd.concat(
 
 # %%
 for label, y_test, y_pred, y_std in zip(
-    targets.columns, y_norm.values.T, do_y_pred.values.T, do_y_var.values.T ** 0.5
+    targets.columns, y_norm.values.T, do_y_pred.values.T, do_y_var.values.T**0.5
 ):
     plot_output(y_test, y_pred, y_std, title=label)
 
@@ -170,7 +170,7 @@ pd.concat(
 
 # %%
 for label, y_test, y_pred, y_std in zip(
-    targets.columns, y_norm.values.T, gp_y_pred.values.T, gp_y_var.values.T ** 0.5
+    targets.columns, y_norm.values.T, gp_y_pred.values.T, gp_y_var.values.T**0.5
 ):
     plot_output(y_test, y_pred, y_std, title=label)
 
@@ -225,7 +225,7 @@ for label, y_test, y_pred, y_std in zip(
     targets.columns,
     y_norm.values.T,
     hmc_y_pred.values.T,
-    hmc_y_var.values.T ** 0.5,
+    hmc_y_var.values.T**0.5,
 ):
     plot_output(y_test, y_pred, y_std, title=label)
 

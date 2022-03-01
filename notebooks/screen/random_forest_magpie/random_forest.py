@@ -219,7 +219,7 @@ print(evals[evals > max_theoretical_eval])
 # absolute value (rather than squaring) and then summing gives similar results.
 least_total_corr_candidates = lrhr_candidates.copy(deep=True)
 
-least_total_corr_candidates["rough_correlation"] = (zT_corr ** 2).sum().values
+least_total_corr_candidates["rough_correlation"] = (zT_corr**2).sum().values
 
 least_total_corr_candidates = (
     least_total_corr_candidates.reset_index()

@@ -194,7 +194,7 @@ plt.scatter(zT_corr_evecs[0], zT_corr_evecs[1])
 # absolute value (rather than squaring) and then summing gives similar results.
 greedy_candidates = lrhr_candidates.copy(deep=True)
 
-greedy_candidates["rough_correlation"] = (zT_corr ** 2).sum().values
+greedy_candidates["rough_correlation"] = (zT_corr**2).sum().values
 
 greedy_candidates = (
     greedy_candidates.reset_index()

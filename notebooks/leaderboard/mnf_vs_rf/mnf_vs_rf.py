@@ -183,7 +183,7 @@ do_pred, do_var = do_model.predict(test_set.X)
 
 # %%
 do_pred = do_pred * test_set.y_std + test_set.y_mean
-do_var *= test_set.y_std ** 2
+do_var *= test_set.y_std**2
 
 
 # %%
