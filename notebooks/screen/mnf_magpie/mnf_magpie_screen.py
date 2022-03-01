@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from gurobipy import GRB, Model, quicksum
-from ml_matrics import (
+from pymatviz import (
     density_hexbin_with_hist,
     density_scatter,
     marchenko_pastur,

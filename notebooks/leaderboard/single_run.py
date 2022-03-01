@@ -66,7 +66,7 @@ for label, y_true, y_pred, y_var in zip(
     y_test.columns, y_test.values.T, rf_y_pred.values.T, rf_y_var.values.T
 ):
     print(f"\n{label}\n")
-    plot_output(y_true, y_pred, y_var ** 0.5, title=label)
+    plot_output(y_true, y_pred, y_var**0.5, title=label)
 
 
 # %%
@@ -125,7 +125,7 @@ for label, y_true, y_pred, y_var in zip(
     map_y_var.values.T,
 ):
     print(f"\n{label}\n")
-    plot_output(y_true, y_pred, y_var ** 0.5, title=label)
+    plot_output(y_true, y_pred, y_var**0.5, title=label)
 
 
 # %%
@@ -164,7 +164,7 @@ gp_mae.to_frame().join(gp_rmse)
 
 # %%
 for label, y_true, y_pred, y_std in zip(
-    targets.columns, y_test.values.T, gp_y_pred.values.T, gp_y_var.values.T ** 0.5
+    targets.columns, y_test.values.T, gp_y_pred.values.T, gp_y_var.values.T**0.5
 ):
     print(f"\n{label}\n")
     plot_output(y_true, y_pred, y_std, title=label)
@@ -199,7 +199,7 @@ for label, y_true, y_pred, y_std, hist in zip(
     targets.columns,
     y_test.values.T,
     do_y_pred.values.T,
-    do_y_var.values.T ** 0.5,
+    do_y_var.values.T**0.5,
     do_histories.values(),
     # models,
 ):

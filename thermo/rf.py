@@ -105,11 +105,11 @@ class RandomForestRegressor(RFR):
             y_var_aleat += y_var_tree
 
             y_pred_tree = tree.predict(X_test)
-            y_var_epist += y_pred_tree ** 2
+            y_var_epist += y_pred_tree**2
 
         y_var_aleat /= len(trees)
         y_var_epist /= len(trees)
-        y_var_epist -= y_pred ** 2
+        y_var_epist -= y_pred**2
 
         if uncertainty == "aleatoric":
             return y_var_aleat
@@ -173,4 +173,4 @@ def rf_predict(
     forest.fit(X_train, y_train)
 
     y_pred, y_var = forest.predict(X_test, uncertainty=uncertainty)
-    return y_pred, y_var ** 0.5, forest
+    return y_pred, y_var**0.5, forest

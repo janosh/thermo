@@ -19,7 +19,7 @@ def compute_zT(rho, seebeck, kappa, temperature):
     """Returns the thermoelectric figure of merit.
     Note: All inputs should have SI units.
     """
-    return seebeck ** 2 * temperature / (rho * kappa)
+    return seebeck**2 * temperature / (rho * kappa)
 
 
 def compute_log_zT(log_rho, log_seebeck, log_kappa, log_temperature):
@@ -40,7 +40,7 @@ def df_corr(df1, df2, methods=["pearson", "spearman"]):
 
 def denorm(mean, std, y_pred, y_var):
     y_pred = y_pred * std + mean
-    y_var = std ** 2 * y_var
+    y_var = std**2 * y_var
     return y_pred, y_var
 
 

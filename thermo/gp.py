@@ -8,4 +8,4 @@ def gp_predict(X_train, y_train, X_test, y_test):
     )
     model.fit(X_train, y_train)
     y_pred, y_std = model.predict(X_test, return_std=True)
-    return y_pred, y_std ** 2, model
+    return y_pred, y_std**2, model

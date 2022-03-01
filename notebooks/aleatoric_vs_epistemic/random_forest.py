@@ -52,12 +52,12 @@ pd.concat(
 for label, y_test, y_pred, y_var in zip(
     targets.columns, y_norm.values.T, al_y_pred.values.T, al_y_var.values.T
 ):
-    plot_output(y_test, y_pred, y_var ** 0.5, title=label)
+    plot_output(y_test, y_pred, y_var**0.5, title=label)
 
 
 # %%
 print("correlation between aleatoric absolute error and standard deviation")
-al_err_std_corr = df_corr(abs(y_norm - al_y_pred), al_y_var ** 0.5)
+al_err_std_corr = df_corr(abs(y_norm - al_y_pred), al_y_var**0.5)
 al_err_std_corr
 
 
@@ -81,12 +81,12 @@ pd.concat(
 for label, y_test, y_pred, y_var in zip(
     targets.columns, y_norm.values.T, ep_y_pred.values.T, ep_y_var.values.T
 ):
-    plot_output(y_test, y_pred, y_var ** 0.5, title=label)
+    plot_output(y_test, y_pred, y_var**0.5, title=label)
 
 
 # %%
 print("correlation between epistemic absolute error and standard deviation")
-ep_err_std_corr = df_corr(abs(y_norm - ep_y_pred), ep_y_var ** 0.5)
+ep_err_std_corr = df_corr(abs(y_norm - ep_y_pred), ep_y_var**0.5)
 ep_err_std_corr
 
 
@@ -114,12 +114,12 @@ pd.concat(
 for label, y_test, y_pred, y_var in zip(
     targets.columns, y_norm.values.T, al_ep_y_pred.values.T, al_ep_y_var.values.T
 ):
-    plot_output(y_test, y_pred, y_var ** 0.5, title=label)
+    plot_output(y_test, y_pred, y_var**0.5, title=label)
 
 
 # %%
 print("correlation between aleatoric+epistemic absolute error and standard deviation")
-al_ep_err_std_corr = df_corr(abs(y_norm - al_ep_y_pred), al_ep_y_var ** 0.5)
+al_ep_err_std_corr = df_corr(abs(y_norm - al_ep_y_pred), al_ep_y_var**0.5)
 al_ep_err_std_corr
 
 

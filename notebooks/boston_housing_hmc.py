@@ -47,7 +47,7 @@ print(f"RF MAE: {abs(map_y_pred - y_test).mean():.3f}")
 
 
 # %%
-plot_output(y_test, map_y_pred, map_y_var ** 0.5)
+plot_output(y_test, map_y_pred, map_y_var**0.5)
 
 
 # %%
@@ -61,4 +61,4 @@ print(f"RF MAE: {abs(hmc_y_pred - y_test).mean():.3f}")
 
 
 # %%
-plot_output(y_test, hmc_y_pred, hmc_y_var ** 0.5, title="HMC")
+plot_output(y_test, hmc_y_pred, hmc_y_var**0.5, title="HMC")

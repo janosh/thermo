@@ -59,7 +59,7 @@ def robust_l1_loss(targets, preds, log_stds):
     """Robust L1 loss using a Lorentzian prior.
     Allows for aleatoric uncertainty estimation.
     """
-    loss = 2 ** 0.5 * (preds - targets).abs() / log_stds.exp() + log_stds
+    loss = 2**0.5 * (preds - targets).abs() / log_stds.exp() + log_stds
     return loss.mean()
 
 
@@ -207,7 +207,7 @@ class TorchDropoutModel(nn.Sequential):
                 pred, std_ep = pred.mean(-1), pred.std(-1)
                 std_al = std_al.mean(-1)
                 # total variance given by sum of aleatoric and epistemic contribution
-                std = (std_ep ** 2 + std_al ** 2) ** 0.5
+                std = (std_ep**2 + std_al**2) ** 0.5
             else:
                 std = std_al
         else:
