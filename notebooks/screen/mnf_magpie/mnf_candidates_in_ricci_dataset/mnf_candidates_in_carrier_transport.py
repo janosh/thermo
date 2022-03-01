@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from matminer.utils.io import load_dataframe_from_json
-from ml_matrics import ptable_heatmap
+from pymatviz import ptable_heatmap
 
 
 # %% this file is available at
