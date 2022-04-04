@@ -45,13 +45,13 @@ module load rhel7/default-peta4            # REQUIRED - loads the basic environm
 #! sbatch -J job_name -t 1:0:0 --array 0-15 --export CMD="python path/to/script.py --cli-arg 42 --random-seed \$SLURM_ARRAY_TASK_ID" hpc/cpu_submit
 #! or read the task id directly in the Python script via: task_id = int(sys.argv[1])
 
-cd $SLURM_SUBMIT_DIR
+cd $SLURM_SUBMIT_DIR || exit
 
 echo -e "Job ID: $SLURM_JOB_ID\nJob name: $SLURM_JOB_NAME\n"
-echo "Time: `date`"
-echo "Running on master node: `hostname`"
-echo "Current directory: `pwd`"
+echo "Time: $(date)"
+echo "Running on master node: $(hostname)"
+echo "Current directory: $(pwd)"
 echo -e "\nNodes allocated: num_tasks=$SLURM_NTASKS, num_nodes=$SLURM_JOB_NUM_NODES"
 echo -e "\nExecuting command:\n$CMD\n\n==================\n"
 
-eval $CMD
+eval "$CMD"
