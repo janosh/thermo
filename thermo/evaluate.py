@@ -34,7 +34,7 @@ def compute_log_zT_var(log_rho_var, log_seebeck_sqr_var, log_kappa_var):
     return log_rho_var + log_seebeck_sqr_var + log_kappa_var
 
 
-def df_corr(df1, df2, methods=["pearson", "spearman"]):
+def df_corr(df1, df2, methods=("pearson", "spearman")):
     return pd.DataFrame([df1.corrwith(df2, method=m) for m in methods], index=methods)
 
 
@@ -60,8 +60,8 @@ def filter_low_risk_high_ret(
     risk_percentile: float = None,
     return_percentile: float = None,
 ) -> Series.index:
-    """Filters a list of model predictions and uncertainties for those with highest return
-    (high prediction) and low risk (low uncertainty).
+    """Filters a list of model predictions and uncertainties for those with highest
+    return (high prediction) and low risk (low uncertainty).
 
     Args:
         y_pred (Series): Model predictions.

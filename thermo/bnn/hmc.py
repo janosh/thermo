@@ -25,7 +25,7 @@ def pre_train_nn(X_train, y_train, nodes_per_layer, epochs=100):
     return model.get_weights(), model
 
 
-def trace_fn(current_state, kernel_results, summary_freq=10, callbacks=[]):
+def trace_fn(current_state, kernel_results, summary_freq=10, callbacks=()):
     """Can be passed to the HMC kernel to obtain a trace of intermediate
     kernel results and histograms of the network parameters in Tensorboard.
     """

@@ -110,7 +110,7 @@ errors = pd.DataFrame(
 
 
 # %%
-for idx, [c1, c2] in enumerate([[0, 1], [1, 2], [0, 2]]):
+for c1, c2 in [[0, 1], [1, 2], [0, 2]]:
     errors[f"{c1+1} to {c2+1}"] = -100 * (1 - errors.iloc[:, c2] / errors.iloc[:, c1])
 errors
 

@@ -1,7 +1,8 @@
 """If enough time, compare our implementation
 with https://github.com/CitrineInformatics/lolo.
 """
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
@@ -23,7 +24,7 @@ class RandomForestRegressor(RFR):
         self.params = {"args": args, **kwargs}
         super().__init__(*args, **kwargs)
 
-    def get_params(self, deep: bool = True) -> dict:
+    def get_params(self, _deep: bool = True) -> dict:
         """This method overrides the one inherited from sklearn.base.BaseEstimator
         which when trying to inspect instances of this class would throw a
         RuntimeError complaining that "scikit-learn estimators should always specify

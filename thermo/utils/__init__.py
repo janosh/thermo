@@ -1,4 +1,4 @@
-from os.path import abspath, dirname
+from os.path import dirname
 
 import numpy as np
 import pandas as pd
@@ -14,8 +14,8 @@ def pd2np(*args):
 
 
 def predict_multiple_targets(pred_func, X_train, y_train, X_test, y_test=None):
-    """Train and run multiple models in sequence on a list of targets (e.g. rho, Seebeck,
-    kappa, zT) passed as columns in the dataframe y_train. *args can contain
+    """Train and run multiple models in sequence on a list of targets (e.g. rho,
+    Seebeck, kappa, zT) passed as columns in the dataframe y_train. *args can contain
     additional arguments passed to the predictor function such as y_test for
     performance monitoring, e.g. calculating the log probability of weights in a BNN.
     """

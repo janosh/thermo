@@ -8,7 +8,7 @@ from matminer.featurizers.conversions import StrToComposition
 from thermo.utils import ROOT
 
 
-def featurize_with_magpy(df, input_col_name="formula", retain_cols=["T"]):
+def featurize_with_magpy(df, input_col_name="formula", retain_cols=("T",)):
     # Convert the formula string into a composition object to be used by matminer.
     str_to_comp = StrToComposition(target_col_id="composition_obj")
     df = str_to_comp.featurize_dataframe(df, input_col_name)
@@ -29,7 +29,7 @@ def featurize_with_magpy(df, input_col_name="formula", retain_cols=["T"]):
     # Remove columns that were copied over from input dataframe. By default, retain
     # only the input for multi_featurizer (as a reference, not as an actual feature;
     # don't forget to drop this column before feeding the features into a model.)
-    feature_columns = [input_col_name] + retain_cols + multi_featurizer.feature_labels()
+    feature_columns = [input_col_name, *retain_cols, *multi_featurizer.feature_labels()]
     features = features[feature_columns]
 
     return features

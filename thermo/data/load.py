@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from pandas import DataFrame, read_csv
 
 from thermo.utils import ROOT
@@ -14,7 +16,7 @@ def to_type(df: DataFrame, dtype: str = "float32") -> DataFrame:
 
 
 def load_gaultois(
-    target_cols: list = ["rho", "seebeck", "kappa", "zT"], drop_outliers=False
+    target_cols: Sequence[str] = ("rho", "seebeck", "kappa", "zT"), drop_outliers=False
 ) -> tuple[DataFrame, DataFrame]:
     """Load Magpie features and targets of the hand-curated
     Gaultois thermoelectrics database.
@@ -26,8 +28,8 @@ def load_gaultois(
     - thermoelectric figure of merit (zT): dimensionless
 
     Args:
-        target_cols (list, optional): Which targets to load.
-        Defaults to ["rho", "seebeck", "kappa", "zT"].
+        target_cols (list[str], optional): Which targets to load.
+        Defaults to ("rho", "seebeck", "kappa", "zT").
 
     Returns:
         tuple: 2 dataframes for features and targets

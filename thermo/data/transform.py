@@ -46,7 +46,7 @@ def train_test_split(*dfs, test_size: float = 0.1, train=None):
 
 
 def transform_df_cols(
-    df, transform="log", cols=["rho", "seebeck_abs", "kappa", "zT", "T"]
+    df, transform="log", cols=("rho", "seebeck_abs", "kappa", "zT", "T")
 ):
     if transform == "log":
         # Seebeck coefficient can be negative. Use seebeck_abs when taking the log.
