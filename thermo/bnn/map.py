@@ -4,7 +4,7 @@ import tensorflow as tf
 import thermo.bnn as bnn
 
 
-def get_map_trace(target_log_prob_fn, state, n_iter=1000, save_every=10, callbacks=[]):
+def get_map_trace(target_log_prob_fn, state, n_iter=1000, save_every=10, callbacks=()):
     optimizer = tf.optimizers.Adam()
 
     @tf.function

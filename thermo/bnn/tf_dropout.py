@@ -4,7 +4,7 @@ from thermo.utils.decorators import timed
 
 
 class Dropout(tf.keras.layers.Layer):
-    """Always-on dropout layer. Disregards the training flag flag set
+    """Always-on dropout layer. Disregards the training flag set
     to true in model.fit() and false in model.predict(). Unlike
     tf.keras.layers.Dropout, this layer does not return its input
     unchanged if training=false, but always randomly drops input nodes

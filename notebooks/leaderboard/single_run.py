@@ -195,12 +195,11 @@ do_mae.to_frame().join(do_rmse)
 
 
 # %%
-for label, y_true, y_pred, y_std, hist in zip(
+for label, y_true, y_pred, y_std in zip(
     targets.columns,
     y_test.values.T,
     do_y_pred.values.T,
     do_y_var.values.T**0.5,
-    do_histories.values(),
     # models,
 ):
     print(f"\n{label}\n")

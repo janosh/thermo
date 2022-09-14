@@ -69,11 +69,10 @@ def nm_to_mn_cols(dfs, keys):
 
 
 def mse_boxes(mse_dfs, x_axis_labels, title=None):
-    labels = mse_dfs[0].columns
     # nm_to_mn_cols converts MSEs from being ordered by ML method to
     # being ordered by label (rho, seebeck, ...).
     mse_dfs = nm_to_mn_cols(mse_dfs, x_axis_labels)
-    for label, df in zip(labels, mse_dfs):
+    for df in mse_dfs:
         # showfliers=False: take outliers into account but don't display them
         ax = sns.boxplot(data=df, width=0.6, showfliers=False)
         ax.set_ylim(0, None)

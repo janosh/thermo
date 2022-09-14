@@ -38,7 +38,7 @@ plt.savefig("hist_elements.pdf", bbox_inches="tight")
 targets["composition"] = [Composition(x) for x in targets.formula]
 # Histogram of the number of elements in each composition
 x_labels, y_counts = np.unique(
-    targets.composition.apply(lambda x: len(x.elements)), return_counts=True
+    targets.composition.map(lambda x: len(x.elements)), return_counts=True
 )
 ax = plt.bar(x_labels, y_counts, align="center")
 plt.xticks(x_labels)

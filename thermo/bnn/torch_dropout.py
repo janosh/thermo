@@ -78,8 +78,8 @@ class TorchDropoutModel(nn.Sequential):
 
     def __init__(
         self,
-        sizes=[146, 100, 50, 25, 10],
-        drop_rates=[0.5, 0.3, 0.3, 0.3],
+        sizes=(146, 100, 50, 25, 10),
+        drop_rates=(0.5, 0.3, 0.3, 0.3),
         activations=["LeakyReLU"] * 4,
         robust=True,  # whether to use robust loss function
         optimizer=None,
@@ -138,7 +138,7 @@ class TorchDropoutModel(nn.Sequential):
         self.metrics[prefix + "/rmse"] = (output - targets).pow(2).mean().sqrt()
 
     def fit(
-        self, loader, val_loader=None, epochs=100, print_every=10, log=True, cbs=[]
+        self, loader, val_loader=None, epochs=100, print_every=10, log=True, cbs=()
     ):
         self.train()
         # callable to revert z-scoring of targets and predictions to real units

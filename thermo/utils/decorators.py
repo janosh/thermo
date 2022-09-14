@@ -1,16 +1,6 @@
 from functools import wraps
 from time import perf_counter
-from typing import Any, Callable
-
-
-def with_attr(key: str, val: Any) -> Callable:
-    """Adds a key-value pair as attribute to the decorated function."""
-
-    def wrapper(func: Callable):
-        setattr(func, key, val)
-        return func
-
-    return wrapper
+from typing import Callable
 
 
 def interruptable(orig_func: Callable = None, handler: Callable = None):
@@ -45,19 +35,6 @@ def timed(func: Callable) -> Callable:
         return result
 
     return timed_func
-
-
-def run_once(func: Callable) -> Callable:
-    """ensures the decorated function runs at most once in a session"""
-
-    @wraps(func)
-    def once_running_func(*args, **kwargs):
-        if once_running_func.has_run is False:
-            once_running_func.has_run = True
-            return func(*args, **kwargs)
-
-    once_running_func.has_run = False
-    return once_running_func
 
 
 def squeeze(func: Callable) -> Callable:
