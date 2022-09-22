@@ -54,7 +54,7 @@ class RandomForestRegressor(RFR):
 
     def get_var(self, X_test: Array, y_pred: Array, uncertainty: str = "full") -> Array:
         """Uses law of total variance to compute var(Y|X_test) as
-        E[Var(Y|Tree)] + Var(E[Y|Tree]). The first term represents epistemic uncertainty
+        Var(E[Y|Tree]) + E[Var(Y|Tree)]. The first term represents epistemic uncertainty
         and is captured by the variance over the means predicted by individual trees.
         This uncertainty increases the more different trees disagree. The second term
         represents aleatoric uncertainty and is captured by the average impurity across
