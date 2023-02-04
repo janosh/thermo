@@ -81,7 +81,6 @@ crashing_structs = []
 
 # %%
 for struct_path in structure_paths:
-
     path = dirname(struct_path)
     if isfile(f"{path}/INCAR"):
         continue

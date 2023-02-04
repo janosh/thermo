@@ -45,7 +45,6 @@ class Normalized(Dataset):
 
 class GaultoisData(Normalized):
     def __init__(self, test_size=0.1, train=True, target_cols=None):
-
         features, targets = load_gaultois(target_cols=target_cols)
         targets, features = dropna(targets, features)
 
@@ -154,7 +153,6 @@ class TorchDropoutModel(nn.Sequential):
         print(cols)
 
         for epoch in range(self.epochs, epochs):
-
             targets, outputs = [], []
 
             for samples, target in loader:
