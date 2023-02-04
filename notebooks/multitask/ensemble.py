@@ -81,9 +81,7 @@ for model, optim, count in zip(models, optims, range(n_models)):
     metrics = {key: [] for key in metrics}
 
     for epoch in range(model.epoch, total_epochs):
-
         for samples, targets in train_loader:
-
             optim.zero_grad()
             preds = model(samples)
 

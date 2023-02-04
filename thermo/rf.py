@@ -29,7 +29,7 @@ class RandomForestRegressor(RFR):
         which when trying to inspect instances of this class would throw a
         RuntimeError complaining that "scikit-learn estimators should always specify
         their parameters in the signature of their __init__ (no varargs).
-        Constructor (self, *args, **kwargs) doesn't  follow this convention.".
+        Constructor (self, *args, **kwargs) doesn't follow this convention.".
         sklearn enforces this to be able to read and set the parameter names
         in meta algorithms like pipeline and grid search which we don't need.
         """

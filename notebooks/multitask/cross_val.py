@@ -96,9 +96,7 @@ for count, (train_idx, test_idx) in enumerate(kfold.split(features, targets)):
     metrics = {key: [] for key in metrics}
 
     for epoch in range(model.epoch, total_epochs):
-
         for samples, truth in DataLoader(train_set, batch_size=32, shuffle=True):
-
             optim.zero_grad()
             preds = model(samples)
 

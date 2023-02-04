@@ -69,7 +69,6 @@ def cross_val_predict(splitter, features, targets, predict_fn):
     for train_idx, test_idx in tqdm(
         splitter.split(features), desc=f"{splitter.n_splits}-fold CV"
     ):
-
         X_train, X_test = features.iloc[train_idx], features.iloc[test_idx]
         y_train, y_test = targets.iloc[train_idx], targets.iloc[test_idx]
 
