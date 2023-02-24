@@ -20,3 +20,33 @@ dependencies = [
 
 [tool.codespell]
 ignore-words-list = "hist,ihs,te,hte,interruptable"
+
+[tool.ruff]
+target-version = "py38"
+select = [
+    "B",   # flake8-bugbear
+    "D",   # pydocstyle
+    "E",   # pycodestyle
+    "F",   # pyflakes
+    "I",   # isort
+    "PLE", # pylint error
+    "PLW", # pylint warning
+    "PYI", # flakes8-pyi
+    "Q",   # flake8-quotes
+    "SIM", # flake8-simplify
+    "TID", # tidy imports
+    "UP",  # pyupgrade
+    "W",   # pycodestyle
+    "YTT", # flake8-2020
+]
+ignore = [
+    "D100",    # Missing docstring in public module
+    "D104",    # Missing docstring in public package
+    "D205",    # 1 blank line required between summary line and description
+    "SIM105",  # Use contextlib.suppress(FileNotFoundError) instead of try-except-pass
+    "SIM115",  # Use context handler for opening files
+    "E731",    # Do not assign a lambda expression, use a def
+    "PLW2901", # Outer for loop variable overwritten by inner assignment target
+]
+pydocstyle.convention = "google"
+isort.lines-after-imports = 2
