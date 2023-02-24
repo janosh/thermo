@@ -96,27 +96,27 @@ for count, (train_idx, test_idx) in enumerate(kfold.split(features, targets)):
     metrics = {key: [] for key in metrics}
 
     for epoch in range(model.epoch, total_epochs):
-        for samples, truth in DataLoader(train_set, batch_size=32, shuffle=True):
+        for samples, targets in DataLoader(train_set, batch_size=32, shuffle=True):
             optim.zero_grad()
             preds = model(samples)
 
-            loss = loss_fn(preds, truth)
+            loss = loss_fn(preds, targets)
 
             loss.backward()
             optim.step()
 
             metrics["loss"] += [loss]
             if n_tasks > 1:
-                for name, y_hat, y in zip(short_names, preds.T, truth.T):
+                for name, y_hat, y in zip(short_names, preds.T, targets.T):
                     metrics[f"loss_{name}"] += [loss_fn(y_hat, y)]
 
             preds = test_set.denorm(preds)
-            truth = test_set.denorm(truth)
+            targets = test_set.denorm(targets)
 
-            MAE = (preds - truth).abs().mean()
+            MAE = (preds - targets).abs().mean()
             metrics["MAE"] += [MAE]
 
-            RMSE = (preds - truth).pow(2).mean().sqrt()
+            RMSE = (preds - targets).pow(2).mean().sqrt()
             metrics["RMSE"] += [RMSE]
 
         if epoch % report_every == 0:
@@ -126,7 +126,7 @@ for count, (train_idx, test_idx) in enumerate(kfold.split(features, targets)):
                 f"{sum(val) / len(val):<10.3f}" for val in metrics.values() if val
             )
             print(report)
-            metrics = {key: [] for key in metrics.keys()}
+            metrics = {key: [] for key in metrics}
 
         model.epoch += 1
 
@@ -134,15 +134,15 @@ for count, (train_idx, test_idx) in enumerate(kfold.split(features, targets)):
         preds = model(test_set.X)
 
     preds = test_set.denorm(preds)
-    truth = test_set.denorm(test_set.y)
+    targets = test_set.denorm(test_set.y)
 
     test_preds += [preds]
-    test_targets += [truth]
+    test_targets += [targets]
 
-    mae = (preds - truth).abs().mean(0)
+    mae = (preds - targets).abs().mean(0)
     test_mae += [mae]
 
-    rmse = (preds - truth).pow(2).mean(0).sqrt()
+    rmse = (preds - targets).pow(2).mean(0).sqrt()
     test_rmse += [rmse]
 
     print(f"\ntest set: avg. MAE = {mae.mean():.3f}, avg. RMSE = {rmse.mean():.3f}")

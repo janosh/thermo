@@ -111,7 +111,7 @@ for model, optim, count in zip(models, optims, range(n_models)):
                 f"{sum(val) / len(val):<10.3f}" for val in metrics.values() if val
             )
             print(report)
-            metrics = {key: [] for key in metrics.keys()}
+            metrics = {key: [] for key in metrics}
 
         model.epoch += 1
 

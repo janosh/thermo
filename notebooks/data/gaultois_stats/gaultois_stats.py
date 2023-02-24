@@ -1,5 +1,4 @@
-"""
-This notebook plots the prevalence of different chemical elements in the Gaultois
+"""This notebook plots the prevalence of different chemical elements in the Gaultois
 database in a histogram and onto the periodic table. It also plots histogram for
 the four target columns in the Gaultois database: rho, seebeck, kappa, zT.
 """

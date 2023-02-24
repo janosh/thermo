@@ -38,8 +38,7 @@ def timed(func: Callable) -> Callable:
 
 
 def squeeze(func: Callable) -> Callable:
-    """unpacks single-entry lists from the decorated function's return value"""
-
+    """Unpack single-entry lists from the decorated function's return value."""
     isiter = lambda x: isinstance(x, (list, tuple))
 
     @wraps(func)

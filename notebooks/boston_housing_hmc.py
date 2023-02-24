@@ -1,5 +1,4 @@
-"""
-This notebook essentially runs an end-to-end test comparing RF vs MAP NN vs HMC
+"""This notebook essentially runs an end-to-end test comparing RF vs MAP NN vs HMC
 NN performance on the simple Boston housing dataset.
 """
 
