@@ -1,5 +1,4 @@
-"""
-This notebook compares the performance of neural networks trained with maximum a
+"""This notebook compares the performance of neural networks trained with maximum a
 posteriori (MAP) (i.e. maximum likelihood regularized by a prior) and
 Hamiltonian Monte Carlo (HMC).
 """

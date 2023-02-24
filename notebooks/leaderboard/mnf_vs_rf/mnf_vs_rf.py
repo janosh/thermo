@@ -1,5 +1,4 @@
-"""
-Benchmarking MNF vs RF (vs. dropout) using Magpie and AMM features
+"""Benchmarking MNF vs RF (vs. dropout) using Magpie and AMM features.
 
 This notebook compares performance of Multiplicative Normalizing Flow (MNF)
 against random forest (RF) (and dropout), testing first Magpie, then a

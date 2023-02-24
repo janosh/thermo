@@ -71,8 +71,8 @@ def robust_l2_loss(targets, preds, log_stds):
 
 
 class TorchDropoutModel(nn.Sequential):
-    """
-    Constructs a dropout network with aleatoric and/or epistemic uncertainty estimation.
+    """Constructs a dropout network with aleatoric and/or epistemic uncertainty
+    estimation.
     """
 
     def __init__(
@@ -122,7 +122,6 @@ class TorchDropoutModel(nn.Sequential):
     @torch.no_grad()
     def write_metrics(self, targets, output, denorm, prefix):
         """After an epoch, save evaluation metrics to a dict."""
-
         output, targets = torch.cat(output), torch.cat(targets)
         loss = self.loss_fn(targets, output)
 

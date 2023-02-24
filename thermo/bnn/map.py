@@ -46,7 +46,6 @@ def map_predict(weight_prior, bias_prior, X_train, y_train, X_test, y_test):
         bias_prior (tfp.distribution): Prior probability for the biases
         [X/y_train/test] (np.arrays): Train and test sets
     """
-
     log_prob_tracers = (
         bnn.tracer_factory(X_train, y_train),
         bnn.tracer_factory(X_test, y_test),

@@ -1,5 +1,4 @@
-"""
-This notebook fits a function to the relaxation time of GeSe and extrapolates it
+"""This notebook fits a function to the relaxation time of GeSe and extrapolates it
 to experimentally non-measured temperatures.
 """
 

@@ -1,5 +1,4 @@
-"""
-This notebook plots DFT results for thermoelectric properties of several
+"""This notebook plots DFT results for thermoelectric properties of several
 candidate materials identified via random forest regression and portfolio-like
 risk management. See src/notsbooks/screen/random_forest.py for details.
 """

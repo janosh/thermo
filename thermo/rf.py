@@ -14,7 +14,7 @@ Array = NDArray[np.float64]
 
 class RandomForestRegressor(RFR):
     """Adapted from scikit-optimize.
-    https://github.com/scikit-optimize/scikit-optimize/blob/master/skopt/learning/forest.py
+    https://github.com/scikit-optimize/scikit-optimize/blob/master/skopt/learning/forest.py.
 
     Uncertainty estimation: get_var() computes var(y|X_test) as described in sec. 4.3.2
     of https://arxiv.org/abs/1211.0906.

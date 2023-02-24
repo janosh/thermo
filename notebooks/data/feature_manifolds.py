@@ -1,5 +1,4 @@
-"""
-This notebook plots the Magpie feature space for the Gaultois database with
+"""This notebook plots the Magpie feature space for the Gaultois database with
 several dimensional reduction algorithms (t-SNE, UMAP, PCA) to check for clustering.
 """
 

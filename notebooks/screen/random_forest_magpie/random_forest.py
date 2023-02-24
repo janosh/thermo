@@ -1,5 +1,4 @@
-"""
-This notebook screens a combined list of synthesizable materials from ICSD and
+"""This notebook screens a combined list of synthesizable materials from ICSD and
 COD databases for promising thermoelectric candidates using random forest
 regression.
 """

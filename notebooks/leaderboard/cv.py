@@ -1,4 +1,4 @@
-"""Cross-validated benchmarks"""
+"""Cross-validated benchmarks."""
 
 
 # %%
