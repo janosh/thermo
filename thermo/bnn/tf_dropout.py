@@ -73,12 +73,11 @@ class TFDropoutModel(tf.keras.Model):
 
 @timed
 def predict(model, X_test, n_preds=100):
-    """
-    perform n_preds Monte Carlo predictions (i.e. with dropout)
+    """Perform n_preds Monte Carlo predictions (i.e. with dropout)
     save and return predictive mean and total uncertainty
     model: pre-trained Keras model
     X_test: features tensor
-    n_preds: number of predictions (with dropout)
+    n_preds: number of predictions (with dropout).
     """
     if model.uncertainty == "aleatoric":
         y_pred, y_log_var = tf.squeeze(model.predict(X_test))

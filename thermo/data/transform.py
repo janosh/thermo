@@ -32,7 +32,6 @@ def train_test_split(*dfs, test_size: float = 0.1, train=None):
     """Returns training set, test set or both set (split according to test_size)
     depending on train being True, False or None.
     """
-
     test_index = dfs[0].sample(frac=test_size, random_state=0).index
     mask = dfs[0].index.isin(test_index)
 
@@ -64,7 +63,6 @@ def normalize(df, mean=None, std=None):
     """If mean and std are None, normalize array/dataframe columns to have
     zero mean and unit std. Else use mean and std as provided for normalization.
     """
-
     if mean is None:
         mean = df.mean(0)
     if std is None:

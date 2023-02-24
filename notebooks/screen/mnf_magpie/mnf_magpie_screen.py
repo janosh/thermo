@@ -1,6 +1,5 @@
-"""
-This notebook screens synthesizable materials from ICSD and COD
-for viable thermoelectrics
+"""This notebook screens synthesizable materials from ICSD and COD
+for viable thermoelectrics.
 """
 
 
