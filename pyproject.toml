@@ -1,0 +1,22 @@
+[project]
+dependencies = [
+    "automatminer",
+    "gurobipy",
+    "matminer",
+    "matplotlib",
+    "ml-matrics",
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "scikit-optimize",
+    "scipy",
+    "seaborn",
+    "tensorflow",
+    "tensorflow-probability",
+    "torch",
+    "tqdm",
+    "umap-learn",
+]
+
+[tool.codespell]
+ignore-words-list = "hist,ihs,te,hte,interruptable"
