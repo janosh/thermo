@@ -1,6 +1,5 @@
 """Cross-validated benchmarks."""
 
-
 # %%
 import pickle
 from functools import partial

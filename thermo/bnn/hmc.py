@@ -48,7 +48,7 @@ def run_hmc(
     target_log_prob_fn,
     step_size=0.01,
     num_leapfrog_steps=10,
-    num_burnin_steps=1000,
+    num_burn_in_steps=1000,
     num_results=1000,
     current_state=None,
     resume=None,
@@ -64,7 +64,7 @@ def run_hmc(
         the Markov chain should converge to.
 
     Returns:
-        burnin(s): Discarded samples generated during warm-up
+        burn_in(s): Discarded samples generated during warm-up
         chain(s): Markov chain(s) of samples distributed according to
             target_log_prob_fn (if converged)
         trace: the data collected by trace_fn
@@ -84,7 +84,7 @@ def run_hmc(
         kernel = tfp.mcmc.NoUTurnSampler(target_log_prob_fn, step_size=step_size)
         adaptive_kernel = step_size_adapter(
             kernel,
-            num_adaptation_steps=num_burnin_steps,
+            num_adaptation_steps=num_burn_in_steps,
             step_size_setter_fn=lambda pkr, new_step_size: pkr._replace(
                 step_size=new_step_size
             ),
@@ -98,7 +98,7 @@ def run_hmc(
             num_leapfrog_steps=num_leapfrog_steps,
         )
         adaptive_kernel = step_size_adapter(
-            kernel, num_adaptation_steps=num_burnin_steps
+            kernel, num_adaptation_steps=num_burn_in_steps
         )
 
     if resume:
@@ -115,7 +115,7 @@ def run_hmc(
         kernel=adaptive_kernel,
         current_state=current_state,
         previous_kernel_results=prev_kernel_results,
-        num_results=num_burnin_steps + num_results,
+        num_results=num_burn_in_steps + num_results,
         trace_fn=trace_fn,
         return_final_kernel_results=True,
         **kwargs,
@@ -128,8 +128,8 @@ def run_hmc(
     if resume:
         chain = nest_concat(prev_chain, chain)
         trace = nest_concat(prev_trace, trace)
-    burnin, samples = zip(*((t[:-num_results], t[-num_results:]) for t in chain))
-    return burnin, samples, trace, final_kernel_results
+    burn_in, samples = zip(*((t[:-num_results], t[-num_results:]) for t in chain))
+    return burn_in, samples, trace, final_kernel_results
 
 
 def predict_from_chain(chain, X_test, uncertainty="aleatoric_epistemic"):
@@ -177,7 +177,7 @@ def hmc_predict(
     )
     # Flatten init_state since TFP's sample_chain can't handle sublists.
     init_state = [i for sublist in init_state for i in sublist]
-    burnin, samples, trace, final_kernel_results = run_hmc(
+    burn_in, samples, trace, final_kernel_results = run_hmc(
         bnn_log_prob_fn, current_state=init_state, **kwds
     )
 

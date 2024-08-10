@@ -24,11 +24,11 @@ greedy_candidates = pd.read_csv(
     index_col=[0, "id", "T"],
 )
 
-(n_gurobi_candidates := len(gurobi_candidates))
+print(n_gurobi_candidates := len(gurobi_candidates))
 
 
 # %%
-(n_candidates := len(gurobi_candidates))
+print(n_candidates := len(gurobi_candidates))
 
 # COD() methods require mysql in path (brew install mysql)
 cod = COD()

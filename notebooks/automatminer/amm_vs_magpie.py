@@ -2,6 +2,7 @@
 import os
 
 import pandas as pd
+from IPython.display import display
 from scipy.stats import pearsonr
 
 from thermo.data import dropna, load_gaultois, train_test_split
@@ -104,16 +105,18 @@ errors = [
     [fn(test_df.zT, x) for fn in [mae, rmse, r_pearson]]
     for x in [rf_magpie_pred, rf_amm_pred, amm_pred.zT_pred]
 ]
-errors = pd.DataFrame(
+df_errors = pd.DataFrame(
     errors, index=["RF+MAGPIE", "RF+AMM", "AMM"], columns=["RMSE", "MAE", "$r_P$"]
 ).T
 
 
 # %%
 for c1, c2 in [[0, 1], [1, 2], [0, 2]]:
-    errors[f"{c1+1} to {c2+1}"] = -100 * (1 - errors.iloc[:, c2] / errors.iloc[:, c1])
-errors
+    df_errors[f"{c1+1} to {c2+1}"] = -100 * (
+        1 - df_errors.iloc[:, c2] / df_errors.iloc[:, c1]
+    )
+display(df_errors)
 
 
 # %%
-errors.to_latex(f"{SAVE_TO}errors.tex", float_format="%.3g", escape=False)
+df_errors.to_latex(f"{SAVE_TO}errors.tex", float_format="%.3g", escape=False)

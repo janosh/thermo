@@ -3,7 +3,6 @@ posteriori (MAP) (i.e. maximum likelihood regularized by a prior) and
 Hamiltonian Monte Carlo (HMC).
 """
 
-
 # %%
 from functools import partial
 
@@ -53,7 +52,7 @@ bnn_log_prob_fn = target_log_prob_fn_factory(
 
 
 # %%
-burnin, samples, trace, final_kernel_results = run_hmc(
+_burn_in, samples, trace, final_kernel_results = run_hmc(
     bnn_log_prob_fn,
     num_results=500,
     num_burnin_steps=1500,

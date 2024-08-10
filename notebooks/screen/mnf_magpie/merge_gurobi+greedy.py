@@ -14,7 +14,7 @@ greedy_candidates = pd.read_csv(
 gurobi_candidates["source"] = "gurobi"
 greedy_candidates["source"] = "greedy"
 
-(n_gurobi_candidates := len(gurobi_candidates))
+print(n_gurobi_candidates := len(gurobi_candidates))
 
 
 # %% COD() methods require mysql in path (brew install mysql)
@@ -68,7 +68,9 @@ for idx, formula, database, *_ in tqdm(candidates[130:].itertuples()):
         elif len(data) == 0:
             missing_icsd_ids.append([db_id, formula])
         else:
-            ValueError("An ICSD ID returned more than 1 MP ID, this shouldn't happen.")
+            raise ValueError(
+                "An ICSD ID returned more than 1 MP ID, this shouldn't happen."
+            )
 
 # make sure, the same number of COD IDs that could not be matched to an MP ID
 # ended up in invalid_cod_cifs
@@ -114,7 +116,7 @@ data = mpr.query(
     {"icsd_ids": {"$in": icsd_ids.to_list()}},
     ["material_id", "icsd_ids", "e_above_hull", "pretty_formula"],
 )
-(icsd_df := pd.DataFrame(data))
+print(icsd_df := pd.DataFrame(data))
 
 
 # %%
@@ -122,7 +124,7 @@ data = mpr.query(
     {"pretty_formula": {"$in": candidates.formula.to_list()}},
     ["material_id", "e_above_hull", "pretty_formula"],
 )
-(formula_match_df := pd.DataFrame(data))
+print(formula_match_df := pd.DataFrame(data))
 
 
 # %% not recommended to try match IDs from different DBs based on chemical formula

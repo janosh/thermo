@@ -4,7 +4,6 @@ Seebeck coefficient (S), thermal conductivity (kappa) and thermoelectric figure
 of merit (zT).
 """
 
-
 # %%
 import numpy as np
 

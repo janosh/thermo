@@ -2,7 +2,6 @@
 to experimentally non-measured temperatures.
 """
 
-
 # %%
 import matplotlib.pyplot as plt
 import numpy as np

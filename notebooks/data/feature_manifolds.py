@@ -2,7 +2,6 @@
 several dimensional reduction algorithms (t-SNE, UMAP, PCA) to check for clustering.
 """
 
-
 # %%
 import matplotlib.pyplot as plt
 import pandas as pd

@@ -4,7 +4,6 @@ networks (DNN) trained with Magpie features on predicting electrical resistivity
 figure of merit (zT).
 """
 
-
 # %%
 import matplotlib.pyplot as plt
 

@@ -7,7 +7,6 @@ Target units (in /data/gaultois_targets.csv):
 - thermoelectric figure of merit (zT): dimensionless
 """
 
-
 import numpy as np
 import pandas as pd
 
