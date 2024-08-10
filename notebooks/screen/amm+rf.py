@@ -15,16 +15,16 @@ from thermo.utils import ROOT
 from thermo.utils.amm import MatPipe, featurize, fit_pred_pipe
 
 
-DIR = ROOT + "/results/screen/amm+rf/"
-os.makedirs(DIR, exist_ok=True)
+OUT_DIR = f"{ROOT}/results/screen/amm+rf"
+os.makedirs(OUT_DIR, exist_ok=True)
 
 
 # %%
 magpie_features, gaultois_df = load_gaultois(target_cols=["formula", "zT", "T"])
 screen_df, _ = load_screen()
 
-for df in [gaultois_df, screen_df]:
-    df.rename(columns={"formula": "composition"}, inplace=True)
+for df_data in [gaultois_df, screen_df]:
+    df_data = df_data.rename(columns={"formula": "composition"})
 
 
 # %%
@@ -44,11 +44,11 @@ mat_pipe_zT, zT_pred = fit_pred_pipe(gaultois_df, screen_df, "zT")
 
 
 # %%
-mat_pipe_zT = MatPipe.save(DIR + "mat.pipe")
+mat_pipe_zT = MatPipe.save(f"{OUT_DIR}/mat.pipe")
 
 
 # %%
-mat_pipe_zT = MatPipe.load(DIR + "mat.pipe")
+mat_pipe_zT = MatPipe.load(f"{OUT_DIR}/mat.pipe")
 
 
 # %%
@@ -62,18 +62,18 @@ amm_screen_features = featurize(mat_pipe_zT, screen_df[["T", "composition"]])
 # every material only once
 amm_screen_features["composition"] = screen_df.composition
 amm_screen_features.drop_duplicates(subset=["composition"]).to_csv(
-    DIR + "amm_screen_features.csv", float_format="%g", index=False
+    f"{OUT_DIR}/amm_screen_features.csv", float_format="%g", index=False
 )
 
 amm_train_features.to_csv(
-    DIR + "amm_train_features.csv", float_format="%g", index=False
+    f"{OUT_DIR}/amm_train_features.csv", float_format="%g", index=False
 )
 
 
 # %%
-amm_train_features = pd.read_csv(DIR + "amm_train_features.csv")
+amm_train_features = pd.read_csv(f"{OUT_DIR}/amm_train_features.csv")
 
-amm_screen_features = pd.read_csv(DIR + "amm_screen_features.csv")
+amm_screen_features = pd.read_csv(f"{OUT_DIR}/amm_screen_features.csv")
 del amm_screen_features["composition"]
 
 # add temperature column to AMM features
@@ -169,7 +169,7 @@ zT_corr = pd.DataFrame(
 
 
 # %%
-zT_corr.to_csv(DIR + "correlation_matrix.csv", float_format="%g")
+zT_corr.to_csv(f"{OUT_DIR}/correlation_matrix.csv", float_format="%g")
 
 
 # %%
@@ -212,8 +212,8 @@ os.environ["GRB_LICENSE_FILE"] = ROOT + "/hpc/gurobi.lic"
 # materials with least pairwise correlation according to the correlation matrix zT_corr.
 grb_model = Model("quadratic_problem")
 grb_model.params.TimeLimit = 300  # in sec
-grb_model.params.LogFile = DIR + "gurobi.log"
-os.remove(DIR + "gurobi.log")
+grb_model.params.LogFile = f"{OUT_DIR}/gurobi.log"
+os.remove(f"{OUT_DIR}/gurobi.log")
 
 
 # %%
@@ -247,22 +247,22 @@ gurobi_candidates = lrhr_candidates.iloc[[bool(var.x) for var in dvar]]
 
 
 # %%
-gurobi_candidates.to_csv(DIR + "gurobi_candidates.csv", float_format="%g")
-greedy_candidates.to_csv(DIR + "greedy_candidates.csv", float_format="%g")
+gurobi_candidates.to_csv(f"{OUT_DIR}/gurobi_candidates.csv", float_format="%g")
+greedy_candidates.to_csv(f"{OUT_DIR}/greedy_candidates.csv", float_format="%g")
 
 
 # %%
-gurobi_candidates = pd.read_csv(DIR + "gurobi_candidates.csv", index_col=0)
-greedy_candidates = pd.read_csv(DIR + "greedy_candidates.csv", index_col=0)
+gurobi_candidates = pd.read_csv(f"{OUT_DIR}/gurobi_candidates.csv", index_col=0)
+greedy_candidates = pd.read_csv(f"{OUT_DIR}/greedy_candidates.csv", index_col=0)
 
 
 # %%
-for name, df in zip(
+for name, df_cand in zip(
     ["gurobi_candidates", "greedy_candidates"],
     [gurobi_candidates, greedy_candidates.iloc[:20]],
 ):
-    df.sort_values(["formula", "T"]).to_latex(
-        f"{DIR}{name}.tex",
+    df_cand.sort_values(["formula", "T"]).to_latex(
+        f"{OUT_DIR}{name}.tex",
         columns=["formula", "database", "id", "T", "zT_pred", "zT_var"],
         float_format="%.3g",
         index=False,

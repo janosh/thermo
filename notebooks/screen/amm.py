@@ -8,8 +8,8 @@ from thermo.utils import ROOT
 from thermo.utils.amm import MatPipe, pipe_config
 
 
-DIR = ROOT + "/results/amm/screen/"
-os.makedirs(DIR, exist_ok=True)
+OUT_DIR = f"{ROOT}/results/amm/screen"
+os.makedirs(OUT_DIR, exist_ok=True)
 
 
 # %%
@@ -17,8 +17,8 @@ _, train_df = load_gaultois(target_cols=["T", "formula", "zT"])
 
 screen_df, _ = load_screen()
 
-for df in [train_df, screen_df]:
-    df.rename(columns={"formula": "composition"}, inplace=True)
+for df_data in (train_df, screen_df):
+    df_data = df_data.rename(columns={"formula": "composition"})
 
 
 # %%
@@ -45,13 +45,13 @@ pipe.fit(train_df, "zT")
 
 
 # %%
-# pipe.summarize(DIR + "pipe_summary.yml")
-# pipe.inspect(DIR + "pipe_inspection.yml")
-# pipe.save(DIR + "mat.pipe")
+# pipe.summarize(f"{OUT_DIR}/pipe_summary.yml")
+# pipe.inspect(f"{OUT_DIR}/pipe_inspection.yml")
+# pipe.save(f"{OUT_DIR}/mat.pipe")
 
 
 # %%
-pipe = MatPipe.load(DIR + "mat.pipe")
+pipe = MatPipe.load(f"{OUT_DIR}/mat.pipe")
 
 
 # %%
@@ -64,8 +64,8 @@ pred_df["composition"] = screen_df.composition
 
 pred_df = pred_df[["composition", "T", "database", "id", "zT_pred"]]
 
-pred_df.to_csv(DIR + "amm_preds.csv", index=False, float_format="%g")
+pred_df.to_csv(f"{OUT_DIR}/amm_preds.csv", index=False, float_format="%g")
 
 pred_df = pred_df.sort_values(by="zT_pred", ascending=False)
 
-pred_df[:1000].to_csv(DIR + "amm_top_preds.csv", index=False, float_format="%g")
+pred_df[:1000].to_csv(f"{OUT_DIR}/amm_top_preds.csv", index=False, float_format="%g")

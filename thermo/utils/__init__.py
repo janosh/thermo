@@ -41,7 +41,7 @@ def predict_multiple_targets(pred_func, X_train, y_train, X_test, y_test=None):
     )
     results = [fn(X_train, y_tr, X_test, y_te) for fn, y_tr, y_te in iters]
 
-    processed = [
+    return [
         # convert lists and arrays to dataframes, restoring former label names and index
         pd.DataFrame(np.array(x).T, columns=col_names, index=idx)
         if isinstance(x[0], np.ndarray)
@@ -52,16 +52,18 @@ def predict_multiple_targets(pred_func, X_train, y_train, X_test, y_test=None):
         for x in zip(*results)
     ]
 
-    return processed
-
 
 def sequence_to_df(dfs, swap_index_levels=False):
     # Adapted from https://stackoverflow.com/a/57338412.
-    df = pd.concat(dfs)
-    df = df.set_index(df.groupby(level=0).cumcount(), append=True).unstack(0)
+    df_joined = pd.concat(dfs)
+    df_joined = df_joined.set_index(
+        df_joined.groupby(level=0).cumcount(), append=True
+    ).unstack(0)
     if swap_index_levels:
-        df = df.swaplevel(0, 1, axis=1).sort_index(axis=1, ascending=[True, False])
-    return df
+        df_joined = df_joined.swaplevel(0, 1, axis=1).sort_index(
+            axis=1, ascending=[True, False]
+        )
+    return df_joined
 
 
 def cross_val_predict(splitter, features, targets, predict_fn):

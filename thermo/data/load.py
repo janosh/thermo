@@ -1,8 +1,14 @@
-from collections.abc import Sequence
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from pandas import DataFrame, read_csv
 
 from thermo.utils import ROOT
+
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def to_type(df: DataFrame, dtype: str = "float32") -> DataFrame:

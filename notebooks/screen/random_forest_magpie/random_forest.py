@@ -43,7 +43,7 @@ screen_features.insert(0, "T", temp_col)
 
 candidates = screen_ids.loc[screen_ids.index.repeat(len(temps))]
 candidates["T"] = temp_col
-candidates.set_index(["id", "T"], inplace=True, append=True)
+candidates = candidates.set_index(["id", "T"], append=True)
 
 
 # %% Validate good performance with a train-test split before screening
@@ -139,7 +139,7 @@ zT_corr = forest.get_corr(
 zT_corr = pd.DataFrame(
     zT_corr, columns=lrhr_candidates.formula, index=lrhr_candidates.index
 )
-zT_corr.set_index(zT_corr.columns, append=True, inplace=True)
+zT_corr = zT_corr.set_index(zT_corr.columns, append=True)
 zT_corr.to_csv("correlation_matrix.csv", float_format="%g")
 # zT_corr = pd.read_csv("correlation_matrix.csv", index_col=[0, "id", "T", "formula"])
 

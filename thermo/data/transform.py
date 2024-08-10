@@ -19,7 +19,7 @@ def dropna(*args):
     NaNs in the first array/dataframe from each list item.
     """
     # (True|False) mask for each row based on NaN values present in the first dataframe
-    mask = ~pd.isnull(args[0])
+    mask = ~pd.isna(args[0])
     if mask.ndim == 2:
         mask = mask.all(1)  # in 2d array, keep row only if all values are not NaN
 

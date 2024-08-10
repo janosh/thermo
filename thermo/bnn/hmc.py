@@ -163,6 +163,7 @@ def predict_from_chain(chain, X_test, uncertainty="aleatoric_epistemic"):
         y_var_aleat = tf.reduce_mean(y_var_mc_samples, axis=0)
         y_var_tot = y_var_epist + y_var_aleat
         return y_pred, y_var_tot
+    return None
 
 
 def hmc_predict(
@@ -177,7 +178,7 @@ def hmc_predict(
     )
     # Flatten init_state since TFP's sample_chain can't handle sublists.
     init_state = [i for sublist in init_state for i in sublist]
-    burn_in, samples, trace, final_kernel_results = run_hmc(
+    _burn_in, samples, _trace, final_kernel_results = run_hmc(
         bnn_log_prob_fn, current_state=init_state, **kwds
     )
 

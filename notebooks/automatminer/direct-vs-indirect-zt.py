@@ -18,7 +18,7 @@ _, targets = load_gaultois(target_cols=["T", "formula", "zT", "kappa", "power_fa
 
 targets = dropna(targets)
 
-targets.rename(columns={"formula": "composition", "power_factor": "PF"}, inplace=True)
+targets = targets.rename(columns={"formula": "composition", "power_factor": "PF"})
 
 train_df, test_df = train_test_split(targets)
 

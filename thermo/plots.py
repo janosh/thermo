@@ -77,7 +77,7 @@ def mse_boxes(mse_dfs, x_axis_labels, title=None):
         ax = sns.boxplot(data=df, width=0.6, showfliers=False)
         ax.set_ylim(0, None)
         for patch in ax.artists:
-            *rgb, a = patch.get_facecolor()
+            *rgb, _alpha = patch.get_facecolor()
             patch.set_facecolor((*rgb, 0.8))
 
         plt.title(title)

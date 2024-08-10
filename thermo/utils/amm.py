@@ -62,13 +62,12 @@ def fit_pred_pipe(train_df, test_df, target, **kwargs):
     return mat_pipe, pred_df
 
 
-def featurize(pipe, df):
+def featurize(pipe, df_in):
     """Use a fitted MatPipe, specifically its autofeaturizer, cleaner and
     reducer components, to featurize a dataframe. Can be used in combination
     with custom models that don't fit into the Automatminer API like
     multi-output regressors.
     """
-    df = pipe.autofeaturizer.transform(df, pipe.target)
-    df = pipe.cleaner.transform(df, pipe.target)
-    df = pipe.reducer.transform(df, pipe.target)
-    return df
+    df_in = pipe.autofeaturizer.transform(df_in, pipe.target)
+    df_in = pipe.cleaner.transform(df_in, pipe.target)
+    return pipe.reducer.transform(df_in, pipe.target)

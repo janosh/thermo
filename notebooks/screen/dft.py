@@ -1,6 +1,6 @@
 """This notebook plots DFT results for thermoelectric properties of several
 candidate materials identified via random forest regression and portfolio-like
-risk management. See src/notsbooks/screen/random_forest.py for details.
+risk management. See src/notebooks/screen/random_forest.py for details.
 """
 
 # %%
@@ -10,12 +10,12 @@ from matplotlib import pyplot as plt
 from thermo.utils import ROOT
 
 
-DIR = ROOT + "/results/screen/dft/"
+OUT_DIR = ROOT + "/results/screen/dft"
 
 
 # %%
 # convert excel file into usable format
-zT_el_greedy_gurobi = pd.read_excel(DIR + "zT_el_greedy&gurobi.xlsx").dropna()
+zT_el_greedy_gurobi = pd.read_excel(f"{OUT_DIR}/zT_el_greedy&gurobi.xlsx").dropna()
 zT_el_greedy_gurobi.columns = range(len(zT_el_greedy_gurobi.columns))
 
 
@@ -48,13 +48,13 @@ zT_el_greedy_gurobi = (
 
 
 # %%
-zT_el_greedy_gurobi.to_csv(DIR + "zT_el_greedy&gurobi.csv", float_format="%g")
+zT_el_greedy_gurobi.to_csv(f"{OUT_DIR}/zT_el_greedy&gurobi.csv", float_format="%g")
 
 #
 # # %%
-# zT_el_greedy_gurobi = pd.read_csv(
-#     DIR + "zT_el_greedy&gurobi.csv"
-# ).set_index(["formula", "n"])
+# zT_el_greedy_gurobi = pd.read_csv(f"{OUT_DIR}/zT_el_greedy&gurobi.csv").set_index(
+#     ["formula", "n"]
+# )
 
 
 # %%
@@ -79,7 +79,7 @@ for name, df in zip(["GePtSe", "Bi2Te3"], [GePtSe, Bi2Te3]):
         ax.get_legend().remove()
     else:
         ax.legend([f"$10^{{{i}}}$" for i in range(17, 22)])
-    plt.savefig(DIR + "zT_el_{name}.pdf", bbox_inches="tight", transparent=True)
+    plt.savefig(f"{OUT_DIR}zT_el_{name}.pdf", bbox_inches="tight", transparent=True)
 
 
 # %% [markdown]
@@ -87,10 +87,10 @@ for name, df in zip(["GePtSe", "Bi2Te3"], [GePtSe, Bi2Te3]):
 
 
 # %%
-zT_GePtSe = pd.read_csv(DIR + "zT_GePtSe.csv", index_col="T (K)")
+zT_GePtSe = pd.read_csv(f"{OUT_DIR}/zT_GePtSe.csv", index_col="T (K)")
 zT_GePtSe.columns = pd.to_numeric(zT_GePtSe.columns, errors="ignore")
 zT_GePtSe.index = [f"$10^{{{idx.split('^')[-1]}}}$" for idx in zT_GePtSe.index]
-zT_Bi2Te3 = pd.read_csv(DIR + "zT_Bi2Te3.csv", comment="#")
+zT_Bi2Te3 = pd.read_csv(f"{OUT_DIR}/zT_Bi2Te3.csv", comment="#")
 
 
 # %%
@@ -102,7 +102,7 @@ ax.legend(handles[::-1], labels[::-1])
 # ax.set_ylabel("zT")
 ax.set_xlabel("")
 ax.set_ylabel("")
-plt.savefig(DIR + "zT_GePtSe_vs_Bi2Te3.pdf", bbox_inches="tight", transparent=True)
+plt.savefig(f"{OUT_DIR}/zT_GePtSe_vs_Bi2Te3.pdf", bbox_inches="tight", transparent=True)
 
 
 # %% [markdown]
@@ -110,8 +110,8 @@ plt.savefig(DIR + "zT_GePtSe_vs_Bi2Te3.pdf", bbox_inches="tight", transparent=Tr
 
 
 # %%
-kph_GePtSe = pd.read_csv(DIR + "kappa_ph_GePtSe.csv", comment="#")
-kph_Bi2Te3 = pd.read_csv(DIR + "kappa_ph_Bi2Te3.csv", comment="#")
+kph_GePtSe = pd.read_csv(f"{OUT_DIR}/kappa_ph_GePtSe.csv", comment="#")
+kph_Bi2Te3 = pd.read_csv(f"{OUT_DIR}/kappa_ph_Bi2Te3.csv", comment="#")
 
 
 # %%
@@ -121,5 +121,5 @@ plt.legend(["GePtSe", "Bi$_2$Te$_3$"])
 ax.set_ylabel(r"$\kappa_\mathrm{ph}$")
 ax.set_xlabel("T (K)")
 plt.savefig(
-    DIR + "kappa_ph_GePtSe_vs_Bi2Te3.pdf", bbox_inches="tight", transparent=True
+    f"{OUT_DIR}/kappa_ph_GePtSe_vs_Bi2Te3.pdf", bbox_inches="tight", transparent=True
 )
