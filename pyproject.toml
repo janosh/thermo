@@ -1,4 +1,5 @@
 [project]
+name = "dielectrics"
 dependencies = [
     "automatminer",
     "gurobipy",
@@ -43,6 +44,7 @@ select = [
     "YTT", # flake8-2020
 ]
 ignore = [
+    "COM812",  # Missing trailing comma
     "D100",    # Missing docstring in public module
     "D104",    # Missing docstring in public package
     "D205",    # 1 blank line required between summary line and description

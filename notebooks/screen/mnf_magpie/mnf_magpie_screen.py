@@ -52,7 +52,7 @@ gaultois_magpie_feas, _ = normalize(
 
 # %% duplicate each row with new column temperature set to 700 K or 1000 K
 candidates = candidates.assign(T=700).append(candidates.assign(T=1000))
-candidates.set_index(["id", "T"], inplace=True, append=True)
+candidates = candidates.set_index(["id", "T"], append=True)
 
 # temperature needs to be in front in screen_features
 # assign same normalized temperature values used during training

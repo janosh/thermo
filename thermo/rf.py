@@ -2,18 +2,23 @@
 with https://github.com/CitrineInformatics/lolo.
 """
 
-from collections.abc import Sequence
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from numpy.typing import NDArray
-from sklearn.ensemble import RandomForestRegressor as RFR
+from sklearn.ensemble import RandomForestRegressor as SklRandomForestRegressor
+
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 Array = NDArray[np.float64]
 
 
-class RandomForestRegressor(RFR):
+class RandomForestRegressor(SklRandomForestRegressor):
     """Adapted from scikit-optimize.
     https://github.com/scikit-optimize/scikit-optimize/blob/master/skopt/learning/forest.py.
 
@@ -46,7 +51,8 @@ class RandomForestRegressor(RFR):
         Returns:
             2-tuple: y_pred and y_var
         """
-        assert self.criterion == "mse", f"impurity must be 'mse', got {self.criterion}"
+        if self.criterion != "mse":
+            raise ValueError(f"impurity must be 'mse', got {self.criterion}")
 
         y_pred = super().predict(X_test)
         y_var = self.get_var(X_test, y_pred, uncertainty)
@@ -88,10 +94,11 @@ class RandomForestRegressor(RFR):
             array-like, shape=(n_samples,): variance of y_pred given X_test.
                 Since self.criterion is set to "mse", var[i] ~= var(y | X_test[i]).
         """
-        valid_uncert = ["epistemic", "aleatoric", "full"]
-        assert (
-            uncertainty in valid_uncert
-        ), f"uncertainty must be one of {valid_uncert}, got {uncertainty}"
+        valid_uncerts = ["epistemic", "aleatoric", "full"]
+        if uncertainty not in valid_uncerts:
+            raise ValueError(
+                f"uncertainty must be one of {valid_uncerts}, got {uncertainty}"
+            )
 
         # trees is a list of fitted binary decision trees.
         trees = self.estimators_
@@ -119,8 +126,7 @@ class RandomForestRegressor(RFR):
         if uncertainty == "epistemic":
             return y_var_epist
 
-        y_var = y_var_epist + y_var_aleat
-        return y_var
+        return y_var_epist + y_var_aleat
 
     def get_corr(self, X_test: Array, alpha: float = 1e-12) -> Array:
         """Compute the matrix of Pearson correlation coefficients between

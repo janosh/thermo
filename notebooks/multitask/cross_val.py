@@ -15,7 +15,7 @@ from thermo.utils import ROOT
 
 
 # %%
-DIR = f"{ROOT}/results/multitask"
+OUT_DIR = f"{ROOT}/results/multitask"
 
 head = lambda: nn.Sequential(
     nn.Linear(20, 20),
@@ -74,7 +74,7 @@ loss_fn = nn.L1Loss()
 # %%
 try:
     for idx, model in enumerate(models):
-        state = torch.load(f"{DIR}/{','.join(target_names)}/model_{idx}")
+        state = torch.load(f"{OUT_DIR}/{','.join(target_names)}/model_{idx}")
         model.load_state_dict(state)
 except FileNotFoundError:
     pass
@@ -154,8 +154,8 @@ rmse_df = pd.DataFrame(test_rmse, columns=target_names).astype(float)
 # %%
 print(models[0])
 for idx, model in enumerate(models):
-    os.makedirs(f"{DIR}/{','.join(target_names)}", exist_ok=True)
-    torch.save(model.state_dict(), f"{DIR}/{','.join(target_names)}/model_{idx}")
+    os.makedirs(f"{OUT_DIR}/{','.join(target_names)}", exist_ok=True)
+    torch.save(model.state_dict(), f"{OUT_DIR}/{','.join(target_names)}/model_{idx}")
 
 
 # %%
@@ -214,4 +214,4 @@ for idx, name in enumerate(target_names):
     target = target[target < np.percentile(target, 90)]
     fig = plot_output(target, pred, title=name)
     filename = f"{name}-ep={models[0].epoch}-tasks={','.join(short_names)}"
-    fig.savefig(f"{DIR}/cross_val/{filename}.pdf")
+    fig.savefig(f"{OUT_DIR}/cross_val/{filename}.pdf")

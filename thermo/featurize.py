@@ -30,9 +30,7 @@ def featurize_with_magpy(df, input_col_name="formula", retain_cols=("T",)):
     # only the input for multi_featurizer (as a reference, not as an actual feature;
     # don't forget to drop this column before feeding the features into a model.)
     feature_columns = [input_col_name, *retain_cols, *multi_featurizer.feature_labels()]
-    features = features[feature_columns]
-
-    return features
+    return features[feature_columns]
 
 
 def generate_gaultois_features():

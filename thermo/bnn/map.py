@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-import thermo.bnn as bnn
+from thermo import bnn
 
 
 def get_map_trace(target_log_prob_fn, state, n_iter=1000, save_every=10, callbacks=()):

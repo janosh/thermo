@@ -65,7 +65,7 @@ def target_log_prob_fn_factory(w_prior, b_prior, X_train, y_train):
 
 
 def tracer_factory(X, y):
-    return lambda params: partial(bnn_log_prob_fn, X, y, get_mean=True)(params)
+    return partial(bnn_log_prob_fn, X, y, get_mean=True)
 
 
 def chunks(lst, n):

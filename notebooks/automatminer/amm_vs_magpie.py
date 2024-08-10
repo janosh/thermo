@@ -19,9 +19,9 @@ r_pearson = lambda *args: pearsonr(*args)[0]
 
 
 def print_err(true, pred):
-    print(f"- RMSE: {rmse(true,pred):.3g}")
-    print(f"- MAE: {mae(true,pred):.3g}")
-    print(f"- Pearson: {r_pearson(true,pred):.3g}")
+    print(f"- RMSE: {rmse(true, pred):.3g}")
+    print(f"- MAE: {mae(true, pred):.3g}")
+    print(f"- Pearson: {r_pearson(true, pred):.3g}")
 
 
 # %%
@@ -29,7 +29,7 @@ magpie_features, targets = load_gaultois(target_cols=["T", "formula", "zT"])
 
 targets, magpie_features = dropna(targets, magpie_features)
 
-targets.rename(columns={"formula": "composition"}, inplace=True)
+targets = targets.rename(columns={"formula": "composition"})
 
 [magpie_train, train_df], [magpie_test, test_df] = train_test_split(
     magpie_features, targets
@@ -112,7 +112,7 @@ df_errors = pd.DataFrame(
 
 # %%
 for c1, c2 in [[0, 1], [1, 2], [0, 2]]:
-    df_errors[f"{c1+1} to {c2+1}"] = -100 * (
+    df_errors[f"{c1 + 1} to {c2 + 1}"] = -100 * (
         1 - df_errors.iloc[:, c2] / df_errors.iloc[:, c1]
     )
 display(df_errors)
