@@ -5,7 +5,6 @@ against random forest (RF) (and dropout), testing first Magpie, then a
 automatminer-generated subselection of magpie features.
 """
 
-
 # %%
 import os
 

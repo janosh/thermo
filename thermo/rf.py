@@ -1,6 +1,7 @@
 """If enough time, compare our implementation
 with https://github.com/CitrineInformatics/lolo.
 """
+
 from collections.abc import Sequence
 from typing import Any
 

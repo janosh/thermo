@@ -6,24 +6,20 @@ default_stages: [commit]
 default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.252
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.7
     hooks:
       - id: ruff
         args: [--fix, --ignore, D]
-
-  - repo: https://github.com/psf/black
-    rev: 23.1.0
-    hooks:
-      - id: black-jupyter
+      - id: ruff-format
 
   - repo: https://github.com/janosh/format-ipy-cells
-    rev: v0.1.10
+    rev: v0.1.11
     hooks:
       - id: format-ipy-cells
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.6.0
     hooks:
       - id: check-case-conflict
       - id: check-symlinks
@@ -34,9 +30,12 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.2
+    rev: v2.3.0
     hooks:
       - id: codespell
         stages: [commit, commit-msg]
         exclude_types: [json, csv]
-        args: [--ignore-words-list, 'hist,ihs,te,hte,interruptable']
+        args:
+          - --ignore-words-list
+          - "hist,ihs,te,hte,interruptable"
+          - --check-filenames

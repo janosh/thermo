@@ -3,7 +3,6 @@ COD databases for promising thermoelectric candidates using random forest
 regression.
 """
 
-
 # %%
 import os
 import pickle
@@ -108,7 +107,7 @@ plt.savefig("zT_pred-vs-zT_std.png", bbox_inches="tight", dpi=200)
 
 # %%
 lrhr_idx = np.logical_and(zT_std < max_zT_std, zT_pred > min_zT_pred)
-(lrhr_candidates := candidates[lrhr_idx])
+print(lrhr_candidates := candidates[lrhr_idx])
 
 lrhr_candidates.to_csv("lrhr_candidates.csv", float_format="%g")
 # lrhr_candidates = pd.read_csv("lrhr_candidates.csv", index_col=[0, "id", "T"])

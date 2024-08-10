@@ -3,6 +3,7 @@ from functools import partial
 
 import numpy as np
 import pandas as pd
+from IPython.display import display
 from sklearn.model_selection import KFold
 
 from thermo.data import dropna, load_gaultois, normalize
@@ -58,7 +59,7 @@ for label, y_test, y_pred, y_var in zip(
 # %%
 print("correlation between aleatoric absolute error and standard deviation")
 al_err_std_corr = df_corr(abs(y_norm - al_y_pred), al_y_var**0.5)
-al_err_std_corr
+display(al_err_std_corr)
 
 
 # %% [markdown]
@@ -87,7 +88,7 @@ for label, y_test, y_pred, y_var in zip(
 # %%
 print("correlation between epistemic absolute error and standard deviation")
 ep_err_std_corr = df_corr(abs(y_norm - ep_y_pred), ep_y_var**0.5)
-ep_err_std_corr
+display(ep_err_std_corr)
 
 
 # %% [markdown]
@@ -120,7 +121,7 @@ for label, y_test, y_pred, y_var in zip(
 # %%
 print("correlation between aleatoric+epistemic absolute error and standard deviation")
 al_ep_err_std_corr = df_corr(abs(y_norm - al_ep_y_pred), al_ep_y_var**0.5)
-al_ep_err_std_corr
+display(al_ep_err_std_corr)
 
 
 # %%
@@ -143,19 +144,19 @@ pd.concat(
 # %%
 print("Aleatoric vs epistemic correlation")
 al_ep_corr = df_corr(al_y_var, ep_y_var)
-al_ep_corr
+display(al_ep_corr)
 
 
 # %%
 print("Aleatoric vs aleatoric_epistemic correlation")
 al_al_ep_corr = df_corr(al_y_var, al_ep_y_var)
-al_al_ep_corr
+display(al_al_ep_corr)
 
 
 # %%
 print("Epistemic vs aleatoric_epistemic correlation")
 ep_al_ep_corr = df_corr(ep_y_var, al_ep_y_var)
-ep_al_ep_corr
+display(ep_al_ep_corr)
 
 
 # %%

@@ -2,7 +2,6 @@
 for viable thermoelectrics.
 """
 
-
 # %%
 import os
 
@@ -246,7 +245,7 @@ for ax, cmap, (temp, group) in zip(
 
     # add axes legend
     leg = ax.get_legend()
-    leg.legendHandles[0].set_color(cmap[:-1])
+    leg.legend_handles[0].set_color(cmap[:-1])
 
 ax.text(max_zT_std, ymin, r"max $zT_\mathrm{std}$", ha="left", va="bottom")
 ax.text(xmax, min_zT_pred, r"min $zT_\mathrm{pred}$", ha="right", va="top")
@@ -258,7 +257,7 @@ plt.savefig("zT_pred-vs-zT_std.png", bbox_inches="tight", dpi=300)
 
 # %%
 lrhr_idx = np.logical_and(zT_std < max_zT_std, zT_pred > min_zT_pred)
-(lrhr_candidates := candidates[lrhr_idx])
+print(lrhr_candidates := candidates[lrhr_idx])
 
 
 # %%
