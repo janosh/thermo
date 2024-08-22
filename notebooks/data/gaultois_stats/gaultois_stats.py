@@ -7,8 +7,8 @@ the four target columns in the Gaultois database: rho, seebeck, kappa, zT.
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from pymatgen import Composition
-from pymatviz import hist_elemental_prevalence, ptable_heatmap, show_bar_values
+import pymatviz as pmv
+from pymatgen.core import Composition
 
 from thermo.utils import ROOT
 
@@ -23,13 +23,13 @@ targets = pd.read_csv(ROOT + "/data/gaultois_targets.csv", header=1)[cols]
 
 
 # %%
-ptable_heatmap(targets.formula.values, log_scale=True)
-plt.savefig("gaultois_elements.pdf", bbox_inches="tight")
+ax = pmv.ptable_heatmap(targets.formula.values, log_scale=True)
+pmv.save_fig(ax, "gaultois_elements.pdf", bbox_inches="tight")
 
 
 # %%
-hist_elemental_prevalence(targets.formula.values, keep_top=20, voffset=20)
-plt.savefig("hist_elements.pdf", bbox_inches="tight")
+ax = pmv.elements_hist(targets.formula.values, keep_top=20, voffset=20)
+pmv.save_fig(ax, "hist_elements.pdf", bbox_inches="tight")
 
 
 # %%
@@ -40,10 +40,9 @@ x_labels, y_counts = np.unique(
 )
 ax = plt.bar(x_labels, y_counts, align="center")
 plt.xticks(x_labels)
-plt.xlabel("number of elements in composition")
-plt.ylabel("sample count")
-show_bar_values(plt.gca())
-plt.savefig("hist_number_of_elements_in_composition.pdf", bbox_inches="tight")
+ax.set(xlabel="number of elements in composition", ylabel="sample count")
+pmv.powerups.annotate_bars(ax)
+pmv.save_fig(ax, "hist_number_of_elements_in_composition.pdf", bbox_inches="tight")
 
 
 # %% [markdown]
@@ -51,14 +50,14 @@ plt.savefig("hist_number_of_elements_in_composition.pdf", bbox_inches="tight")
 
 
 # %%
-xlabels = [
+x_labels = [
     "Electrical Resistivity [Ohm m]",
     "Seebeck Coefficient [V/K]",
     "Thermal Conductivity [W/(m K)]",
     "Figure of Merit",
 ]
 axs = targets.hist(bins=50, figsize=[15, 3], layout=[1, 4])
-for ax, name in zip(axs.ravel(), xlabels):
+for ax, name in zip(axs.ravel(), x_labels):
     ax.set_xlabel(name)
 
-plt.savefig("4_targets_hist.pdf", bbox_inches="tight")
+pmv.save_fig(ax, "4_targets_hist.pdf", bbox_inches="tight")

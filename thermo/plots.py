@@ -1,10 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import pymatviz as pmv
 import seaborn as sns
 from matplotlib.offsetbox import AnchoredText
-from pymatviz import err_decay, residual_hist, scatter_with_err_bar
-from pymatviz.ranking import get_err_decay, get_std_decay
 from scipy.stats import pearsonr
 
 
@@ -13,22 +12,19 @@ def plot_output(y_test, y_pred, y_std=None, **kwargs):
     analyzing a model's accuracy and quality of uncertainty estimates.
     """
     fig1 = plt.gcf()
-    scatter_with_err_bar(y_test, y_pred, yerr=y_std, **kwargs)
+    pmv.scatter_with_err_bar(y_test, y_pred, yerr=y_std, **kwargs)
     plt.show()
 
     if y_std is None:
         return fig1
 
     fig2 = plt.gcf()
-    err_decay(y_test, y_pred, y_std, **kwargs)
-    plt.show()
-
-    residual_hist(y_test, y_pred)
+    pmv.error_decay_with_uncert(y_test, y_pred, y_std, **kwargs)
     plt.show()
 
     abs_err = abs(y_test - y_pred)
     fig3 = plt.gcf()
-    scatter_with_err_bar(
+    pmv.scatter_with_err_bar(
         abs_err, y_std, xlabel="Absolute error", ylabel="Model uncertainty", **kwargs
     )
     plt.show()
@@ -92,8 +88,8 @@ def ci_err_decay(df, n_splits, title=None):
     dfs = []
     for df_i in np.array_split(df, n_splits):
         df_i = df_i.reset_index(drop=True)
-        decay_by_std = get_std_decay(*df_i.values.T)
-        decay_by_err = get_err_decay(*df_i.values.T)
+        decay_by_std = pmv.uncertainty.get_std_decay(*df_i.values.T)
+        decay_by_err = pmv.uncertainty.get_err_decay(*df_i.values.T)
         df_i["decay_by_std"] = decay_by_std
         df_i["decay_by_err"] = decay_by_err
         dfs.append(df_i)

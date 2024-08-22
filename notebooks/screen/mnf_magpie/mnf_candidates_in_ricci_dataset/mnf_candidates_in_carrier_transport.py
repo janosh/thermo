@@ -1,8 +1,8 @@
 # %%
 import matplotlib.pyplot as plt
 import pandas as pd
+import pymatviz as pmv
 from matminer.utils.io import load_dataframe_from_json
-from pymatviz import ptable_heatmap
 
 
 # %% this file is available at
@@ -27,32 +27,31 @@ mnf_in_carrier = carrier_transport.loc[
 
 
 # %%
-ptable_heatmap(mnf_in_carrier.pretty_formula.dropna(), log=True)
-plt.title(
+ax = pmv.ptable_heatmap(mnf_in_carrier.pretty_formula.dropna(), log=True)
+ax.set_title(
     "Elemental prevalence of MNF candidates in the Ricci carrier transport dataset"
 )
-plt.savefig("mnf-in-carrier-elements-log.pdf")
+pmv.save_fig(ax, "mnf-in-carrier-elements-log.pdf")
 
 
 # %%
-top_powerfactors = carrier_transport.sort_values(by="PF.p [µW/cm/K²/s]").tail(
+top_power_factors = carrier_transport.sort_values(by="PF.p [µW/cm/K²/s]").tail(
     len(mnf_in_carrier)
 )
-ptable_heatmap(top_powerfactors.pretty_formula.dropna(), log=True)
-plt.title(
-    "Elemental prevalence among highest powerfactor materials in "
+ax = pmv.ptable_heatmap(top_power_factors.pretty_formula.dropna(), log=True)
+ax.set_title(
+    "Elemental prevalence among highest power factor materials in "
     "the Ricci carrier transport dataset"
 )
-plt.savefig("top-pf-in-carrier-elements-log.pdf")
+pmv.save_fig(ax, "top-pf-in-carrier-elements-log.pdf")
 
 
 # %%
-mnf_in_carrier.hist(bins=50, log=True, figsize=[30, 16])
-plt.tight_layout()
+ax = mnf_in_carrier.hist(bins=50, log=True, figsize=[30, 16])
 plt.suptitle(
     "Properties of MNF Candidates according to Ricci carrier transport Dataset", y=1.05
 )
-plt.savefig("mnf-candidates-in-carrier-transport-hists.pdf")
+pmv.save_fig(ax, "mnf-candidates-in-carrier-transport-hists.pdf")
 
 
 # %%
@@ -67,14 +66,15 @@ dependent_vars = [
     "κₑᵉ.n.v [W/K/m/s]",
 ]
 
-mnf_in_carrier[dependent_vars].hist(bins=50, log=True, figsize=[15, 15], layout=[4, 2])
-plt.tight_layout()
+ax = mnf_in_carrier[dependent_vars].hist(
+    bins=50, log=True, figsize=[15, 15], layout=[4, 2]
+)
 plt.suptitle(
     "Carrier transport property distributions of MNF candidates "
     "present in Ricci carrier transport Dataset",
     y=1.05,
 )
-plt.savefig("mnf-candidates-carrier-transport-hists-dependent-vars.pdf")
+pmv.save_fig(ax, "mnf-candidates-carrier-transport-hists-dependent-vars.pdf")
 
 
 # %%

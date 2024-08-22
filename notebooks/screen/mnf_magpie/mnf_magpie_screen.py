@@ -8,15 +8,9 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import pymatviz as pmv
 import tensorflow as tf
 from gurobipy import GRB, Model, quicksum
-from pymatviz import (
-    density_hexbin_with_hist,
-    density_scatter,
-    marchenko_pastur,
-    ptable_heatmap,
-    qq_gaussian,
-)
 from tf_mnf.models import MNFFeedForward
 from tqdm import trange
 
@@ -126,11 +120,11 @@ mnf_preds = mnf_preds.numpy().reshape(-1, n_preds).T
 
 
 # %%
-# Use qq_gaussian which checks std calibration by comparing quantiles of
+# Use pmv.qq_gaussian which checks std calibration by comparing quantiles of
 # z_score = (y_true - y_pred) / y_std against those of a Gaussian. Used
 # here to eye-ball scaling factor for NF uncertainties.
 plt.title("scaled by 1.5")
-qq_gaussian(zT_test.values, mnf_preds.mean(0), 1.5 * mnf_preds.std(0))
+pmv.qq_gaussian(zT_test.values, mnf_preds.mean(0), 1.5 * mnf_preds.std(0))
 zT_pred = mnf_preds.mean(0)
 zT_std = 1.5 * mnf_preds.std(0)
 
@@ -199,7 +193,7 @@ candidates.sort_values(by="zT_pred", ascending=False).to_csv(
 
 
 # %%
-density_hexbin_with_hist(candidates.zT_std, candidates.zT_pred)
+pmv.density_hexbin_with_hist(candidates.zT_std, candidates.zT_pred)
 
 
 # %%
@@ -210,7 +204,7 @@ plt.subplots_adjust(wspace=0.1)
 for ax, cmap, (temp, group) in zip(
     axs, ["Blues", "Reds"], candidates.reset_index().groupby("T")
 ):
-    density_scatter(
+    pmv.density_scatter(
         xs=group.zT_std.values,
         ys=group.zT_pred.values,
         label=f"{temp} K",
@@ -252,7 +246,7 @@ ax.text(xmax, min_zT_pred, r"min $zT_\mathrm{pred}$", ha="right", va="top")
 
 plt.suptitle("Mean vs std.dev. of predicted zT at different temperatures")
 
-plt.savefig("zT_pred-vs-zT_std.png", bbox_inches="tight", dpi=300)
+pmv.save_fig(ax, "zT_pred-vs-zT_std.png", bbox_inches="tight", dpi=300)
 
 
 # %%
@@ -277,21 +271,20 @@ color_ax = plt.matshow(corr_mat)
 plt.colorbar(color_ax, fraction=0.047, pad=0.02)
 plt.gcf().set_size_inches(12, 12)
 plt.title("MNF correlation matrix")
-# plt.savefig("correlation_matrix_mnf.png", bbox_inches="tight", dpi=200)
+# pmv.save_fig(color_ax, "correlation_matrix_mnf.png", bbox_inches="tight", dpi=200)
 
 
 # %%
 # Ensure the correlation matrix contains significant eigenvalues larger than
 # the maximum expected in a random matrix based on Marchenko_pastur distribution
-marchenko_pastur(corr_mat, gamma=len(corr_mat) / n_preds)
+ax = pmv.marchenko_pastur(corr_mat, gamma=len(corr_mat) / n_preds)
 p, N = n_preds, len(corr_mat)
-plt.title(
+ax.set_title(
     "Marchenko-Pastur distribution of the MNF zT correlation matrix\n"
     f"{p = } MNF preds, {N = } candidate materials, gamma = p / N = {p / N:.2f}"
 )
-
-plt.yscale("log")
-plt.savefig("corr-mat-marchenko-pastur-dist.png")
+ax.set(yscale="log")
+pmv.save_fig(ax, "corr-mat-marchenko-pastur-dist.png")
 
 
 # %%
@@ -343,14 +336,14 @@ greedy_candidates = candidates.sort_values("zT_pred").tail(n_candidates)
 
 
 # %%
-ptable_heatmap(gurobi_candidates.formula)
-plt.title(f"elemental prevalence among {n_candidates} gurobi candidates")
-plt.savefig("gurobi-ptable-elements.pdf", bbox_inches="tight")
+ax = pmv.ptable_heatmap(gurobi_candidates.formula)
+ax.set_title(f"elemental prevalence among {n_candidates} gurobi candidates")
+pmv.save_fig(ax, "gurobi-ptable-elements.pdf", bbox_inches="tight")
 
 
-ptable_heatmap(greedy_candidates.formula)
-plt.title(f"elemental prevalence among {n_candidates} greedy candidates")
-plt.savefig("greedy-ptable-elements.pdf", bbox_inches="tight")
+ax = pmv.ptable_heatmap(greedy_candidates.formula)
+ax.set_title(f"elemental prevalence among {n_candidates} greedy candidates")
+pmv.save_fig(ax, "greedy-ptable-elements.pdf", bbox_inches="tight")
 
 
 # %%

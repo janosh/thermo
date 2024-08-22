@@ -53,7 +53,7 @@ for ax, [key, group] in zip(
     ax.scatter(group["tsne_1"], group["tsne_2"], c=group["zT"], cmap="hot", alpha=0.5)
     ax.set_title(f"{key} K")
 
-# plt.savefig("2d-tsne-of-magpie-features-for-gaultois-dataset-by-temps.pdf")
+# pmv.save_fig(fig, "2d-tsne-of-magpie-features-for-gaultois-dataset-by-temps.pdf")
 
 
 # %% 3D

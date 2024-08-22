@@ -5,6 +5,7 @@ risk management. See src/notebooks/screen/random_forest.py for details.
 
 # %%
 import pandas as pd
+import pymatviz as pmv
 from matplotlib import pyplot as plt
 
 from thermo.utils import ROOT
@@ -79,7 +80,9 @@ for name, df in zip(["GePtSe", "Bi2Te3"], [GePtSe, Bi2Te3]):
         ax.get_legend().remove()
     else:
         ax.legend([f"$10^{{{i}}}$" for i in range(17, 22)])
-    plt.savefig(f"{OUT_DIR}zT_el_{name}.pdf", bbox_inches="tight", transparent=True)
+    pmv.save_fig(
+        ax, f"{OUT_DIR}zT_el_{name}.pdf", bbox_inches="tight", transparent=True
+    )
 
 
 # %% [markdown]
@@ -100,9 +103,10 @@ zT_Bi2Te3.plot(x="T (K)", y="zT", marker="o", label="Bi$_2$Te$_3$", ax=ax)
 handles, labels = ax.get_legend_handles_labels()
 ax.legend(handles[::-1], labels[::-1])
 # ax.set_ylabel("zT")
-ax.set_xlabel("")
-ax.set_ylabel("")
-plt.savefig(f"{OUT_DIR}/zT_GePtSe_vs_Bi2Te3.pdf", bbox_inches="tight", transparent=True)
+ax.set(xlabel="", ylabel="")
+pmv.save_fig(
+    ax, f"{OUT_DIR}/zT_GePtSe_vs_Bi2Te3.pdf", bbox_inches="tight", transparent=True
+)
 
 
 # %% [markdown]
@@ -120,6 +124,5 @@ kph_Bi2Te3.plot(marker="o", x="T", ax=ax)
 plt.legend(["GePtSe", "Bi$_2$Te$_3$"])
 ax.set_ylabel(r"$\kappa_\mathrm{ph}$")
 ax.set_xlabel("T (K)")
-plt.savefig(
-    f"{OUT_DIR}/kappa_ph_GePtSe_vs_Bi2Te3.pdf", bbox_inches="tight", transparent=True
-)
+pdf_path = f"{OUT_DIR}/kappa_ph_GePtSe_vs_Bi2Te3.pdf"
+pmv.save_fig(ax, pdf_path, bbox_inches="tight", transparent=True)
