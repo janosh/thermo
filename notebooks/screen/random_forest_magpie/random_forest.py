@@ -9,9 +9,9 @@ import pickle
 
 import numpy as np
 import pandas as pd
+import pymatviz as pmv
 from gurobipy import GRB, Model, quicksum
 from matplotlib import pyplot as plt
-from pymatviz import marchenko_pastur, ptable_heatmap, qq_gaussian
 from sklearn.model_selection import train_test_split
 
 from thermo.correlation import expected_rand_obj_val, rand_obj_val_avr
@@ -57,7 +57,7 @@ zT_test_pred, zT_test_std, _ = rf_predict(
 )
 
 # random forest is slightly underconfident
-qq_gaussian(zT_test.values, zT_test_pred, 0.9 * zT_test_std)
+pmv.qq_gaussian(zT_test.values, zT_test_pred, 0.9 * zT_test_std)
 plt.show()
 
 plot_output(zT_test.values, zT_test_pred, 0.9 * zT_test_std)
@@ -122,10 +122,10 @@ greedy_candidates = pd.read_csv("greedy_candidates.csv", index_col=[0, "id", "T"
 
 
 # %%
-lrhr_candidates.plot.scatter(x="zT_std", y="zT_pred")
-plt.savefig("lrhr_materials_pred_vs_std.pdf", bbox_inches="tight")
+ax = lrhr_candidates.plot.scatter(x="zT_std", y="zT_pred")
 r_p = lrhr_candidates[["zT_std", "zT_pred"]].corr().iloc[0, 1]
-plt.text(0.03, 0.05, f"${r_p = :.3f}$", transform=plt.gca().transAxes)
+plt.text(0.03, 0.05, f"${r_p = :.3f}$", transform=ax.transAxes)
+pmv.save_fig(ax, "lrhr_materials_pred_vs_std.pdf", bbox_inches="tight")
 
 
 # %% [markdown]
@@ -149,31 +149,33 @@ color_ax = plt.matshow(zT_corr)
 plt.colorbar(color_ax, fraction=0.047, pad=0.02)
 plt.gcf().set_size_inches(12, 12)
 
-plt.savefig("correlation_matrix_rf.pdf", bbox_inches="tight")
+pmv.save_fig(color_ax, "correlation_matrix_rf.pdf", bbox_inches="tight")
 
 
 # %%
 # the weakly correlated elements contain lots of arsenide which is absent from
 # the gaultois training set while the strongly correlated materials contain
 # zero arsenide (compare these plots with notebooks/data/gaultois_elements.pdf)
-ptable_heatmap(zT_corr.columns[:190])
-plt.title("elements in weakly correlated (blue) part of zT correlation matrix")
-plt.savefig("zT_corr-elements-cols-0-190.pdf")
+ax = pmv.ptable_heatmap(zT_corr.columns[:190])
+ax.set_title("elements in weakly correlated (blue) part of zT correlation matrix")
+pmv.save_fig(ax, "zT_corr-elements-cols-0-190.pdf")
 
-ptable_heatmap(zT_corr.columns[190:])
-plt.title("elements in strongly correlated (yellow) part of zT correlation matrix")
-plt.savefig("zT_corr-elements-cols-190-end.pdf")
+ax = pmv.ptable_heatmap(zT_corr.columns[190:])
+ax.set_title("elements in strongly correlated (yellow) part of zT correlation matrix")
+pmv.save_fig(ax, "zT_corr-elements-cols-190-end.pdf")
 
 
 # %%
 n_candidates = len(lrhr_candidates)
-ptable_heatmap(lrhr_candidates.formula)
-plt.title(f"elemental prevalence among {n_candidates} low-risk high-return candidates")
-plt.savefig("lrhr-ptable-elements.pdf")
+ax = pmv.ptable_heatmap(lrhr_candidates.formula)
+ax.set_title(
+    f"elemental prevalence among {n_candidates} low-risk high-return candidates"
+)
+pmv.save_fig(ax, "lrhr-ptable-elements.pdf")
 
-ptable_heatmap(greedy_candidates.head(n_candidates).formula)
-plt.title(f"elemental prevalence among {n_candidates} greedy candidates")
-plt.savefig("greedy-ptable-elements.pdf")
+ax = pmv.ptable_heatmap(greedy_candidates.head(n_candidates).formula)
+ax.set_title(f"elemental prevalence among {n_candidates} greedy candidates")
+pmv.save_fig(ax, "greedy-ptable-elements.pdf")
 
 
 # %%
@@ -182,13 +184,13 @@ plt.savefig("greedy-ptable-elements.pdf")
 N = len(zT_corr)
 p = forest.n_estimators
 
-marchenko_pastur(zT_corr, gamma=p / N)
-plt.title(
+ax = pmv.marchenko_pastur(zT_corr, gamma=p / N)
+title = (
     "Marchenko-Pastur distribution of the MNF zT correlation matrix\n"
     f"{p = }, {N = }, gamma = p / N = {p / N:.2f}"
 )
-plt.yscale("log")
-plt.savefig("marchenko-pastur-dist.png")
+ax.set(title=title, yscale="log")
+pmv.save_fig(ax, "marchenko-pastur-dist.png")
 
 
 # %%
@@ -272,9 +274,9 @@ gurobi_candidates = lrhr_candidates.iloc[dec_vals]
 
 
 # %%
-ptable_heatmap(gurobi_candidates.formula)
-plt.title(f"elements in {len(gurobi_candidates)} Gurobi candidates")
-plt.savefig("gurobi-ptable-elements.pdf")
+ax = pmv.ptable_heatmap(gurobi_candidates.formula)
+ax.set_title(f"elements in {len(gurobi_candidates)} Gurobi candidates")
+pmv.save_fig(ax, "gurobi-ptable-elements.pdf")
 
 
 # %%
