@@ -1,13 +1,13 @@
 ci:
   autoupdate_schedule: quarterly
 
-default_stages: [commit]
+default_stages: [pre-commit]
 
 default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.1
+    rev: v0.11.4
     hooks:
       - id: ruff
         args: [--fix, --ignore, D]
@@ -19,7 +19,7 @@ repos:
       - id: format-ipy-cells
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: check-case-conflict
       - id: check-symlinks
@@ -30,10 +30,10 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.3.0
+    rev: v2.4.1
     hooks:
       - id: codespell
-        stages: [commit, commit-msg]
+        stages: [pre-commit, commit-msg]
         exclude_types: [json, csv]
         args:
           - --ignore-words-list
