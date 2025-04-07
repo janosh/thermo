@@ -239,9 +239,9 @@ grb_model.optimize()
 
 # %%
 # Save selected materials to dataframe and CSV file.
-assert (
-    sum(var.x for var in dvar) == n_select
-), "Gurobi selected a different number of materials than specified by n_select"
+assert sum(var.x for var in dvar) == n_select, (
+    "Gurobi selected a different number of materials than specified by n_select"
+)
 
 gurobi_candidates = lrhr_candidates.iloc[[bool(var.x) for var in dvar]]
 
