@@ -4,7 +4,7 @@ import automatminer as amm
 import matminer as mm
 from automatminer import MatPipe  # make MatPipe importable from this file
 
-from thermo.utils.decorators import interruptable
+from thermo.utils.decorators import interruptible
 
 
 try:
@@ -52,7 +52,7 @@ def pipe_config(preset="express", **tpot_kwargs):
     }
 
 
-@interruptable
+@interruptible
 def fit_pred_pipe(train_df, test_df, target, **kwargs):
     mat_pipe = MatPipe(**pipe_config(**kwargs))
     mat_pipe.fit(train_df[["T", "composition", target]], target)

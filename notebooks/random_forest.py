@@ -27,8 +27,7 @@ rho_train, kappa_train, zT_train, seebeck_train = y_train.to_numpy().T
 rho_test, kappa_test, zT_test, seebeck_test = y_test.to_numpy().T
 
 
-# %%
-# Remove NaNs from kappa and zT
+# %% Remove NaNs from kappa and zT
 kappa_train, zT_train, X_train_no_nan = dropna(kappa_train, zT_train, X_train)
 kappa_test, zT_test, X_test_no_nan = dropna(kappa_test, zT_test, X_test)
 

@@ -232,8 +232,7 @@ least_total_corr_candidates.to_csv(
 )
 
 
-# %%
-# Set environment variable GRB_LICENSE_FILE so that Gurobi finds its license file.
+# %% Set environment variable GRB_LICENSE_FILE so that Gurobi finds its license file.
 # An academic license can be obtained for free at
 # https://gurobi.com/downloads/end-user-license-agreement-academic.
 os.environ["GRB_LICENSE_FILE"] = f"{ROOT}/hpc/gurobi.lic"
@@ -243,13 +242,11 @@ grb_model = Model("quadratic_problem")
 grb_model.params.LogFile = "gurobi.log"
 
 
-# %%
-# Create decision variables.
+# %% Create decision variables.
 dec_vars = grb_model.addVars(len(lrhr_candidates), vtype=GRB.BINARY).values()
 
 
-# %%
-# Define the model objective to minimize the sum of pairwise correlations.
+# %% Define the model objective to minimize the sum of pairwise correlations.
 obj = zT_corr.dot(dec_vars).dot(dec_vars)
 grb_model.setObjective(obj, GRB.MINIMIZE)
 
@@ -265,8 +262,7 @@ constr = grb_model.addConstr(quicksum(dec_vars) >= n_select, "l1_norm")
 grb_model.optimize()
 
 
-# %%
-# Save selected materials to dataframe and CSV file.
+# %% Save selected materials to dataframe and CSV file.
 dec_vals = [bool(var.x) for var in dec_vars]
 print(f"final objective value: {zT_corr.dot(dec_vals).dot(dec_vals) = :.3f}")
 gurobi_candidates = lrhr_candidates.iloc[dec_vals]

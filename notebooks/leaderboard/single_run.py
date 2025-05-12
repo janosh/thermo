@@ -86,8 +86,7 @@ print(f"zT_log_computed mse: {zT_rmse:.4g}")
 # # Maximum A Posteriori Neural Network
 
 
-# %%
-# Per-label weight and bias priors in the order rho, seebeck, kappa, zT.
+# %% Per-label weight and bias priors in the order rho, seebeck, kappa, zT.
 weight_priors = [tfp.distributions.Normal(0, std) for std in [0.1, 0.1, 0.1, 0.1]]
 bias_priors = [tfp.distributions.Normal(0, std) for std in [1.0, 1.0, 1.0, 1.0]]
 map_predictors = [
@@ -141,8 +140,7 @@ print(f"zT_log_computed mse: {zT_rmse:.4g}")
 # # Gaussian Process Regression
 
 
-# %%
-# GPR might benefit from PCA
+# %% GPR might benefit from PCA
 # from sklearn.decomposition import PCA
 # n_features = X_train.shape[1]
 # pca = PCA(n_components=n_features // 4)
@@ -174,8 +172,7 @@ for label, y_true, y_pred, y_std in zip(
 # # Dropout Neural Network
 
 
-# %%
-# one of ["aleatoric", "epistemic", "aleatoric_epistemic"]
+# %% one of ["aleatoric", "epistemic", "aleatoric_epistemic"]
 do_uncertainty = "aleatoric_epistemic"
 tb_cb = tf.keras.callbacks.TensorBoard(log_dir=ROOT + "/logs/leaderboard/single-runs")
 

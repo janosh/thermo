@@ -3,7 +3,7 @@ from time import perf_counter
 from typing import Callable
 
 
-def interruptable(orig_func: Callable = None, handler: Callable = None):
+def interruptible(orig_func: Callable = None, handler: Callable = None):
     """Allows to gracefully abort calls to the decorated function with ctrl + c."""
 
     def wrapper(func: Callable):

@@ -28,9 +28,7 @@ def predict_multiple_targets(pred_func, X_train, y_train, X_test, y_test=None):
     if not callable(pred_func):
         # If pred_func is not a function, it must be a list of functions,
         # one for each label.
-        assert (
-            len(pred_func) == n_targets
-        ), f"len(pred_func) == {len(pred_func)} != len(y_train.columns) == {n_targets}"
+        assert len(pred_func) == n_targets, f"{len(pred_func)=} != {n_targets=}"
         assert all(callable(fn) for fn in pred_func), "Received non-callable pred_func"
     else:
         pred_func = [pred_func] * n_targets

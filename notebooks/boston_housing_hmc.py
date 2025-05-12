@@ -12,8 +12,7 @@ from thermo.plots import plot_output
 from thermo.rf import rf_predict
 
 
-# %%
-# About the data: https://kaggle.com/c/boston-housing
+# %% About the data: https://kaggle.com/c/boston-housing
 (X_train, y_train), (X_test, y_test) = tf.keras.datasets.boston_housing.load_data()
 
 X_train, y_train = X_train.astype("float32"), y_train.astype("float32")

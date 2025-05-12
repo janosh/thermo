@@ -9,8 +9,7 @@ import pandas as pd
 from scipy.optimize import curve_fit
 
 
-# %%
-# GeSe relaxation times extracted from fig. 2 in
+# %% GeSe relaxation times extracted from fig. 2 in
 # https://pubs.acs.org/doi/abs/10.1021/acs.chemmater.6b01164
 GeSe = [
     (299.131, 28.2573),
@@ -35,17 +34,18 @@ def GeSe_tau_decay(temp, a, b, c):
     return a / temp + b * temp + c
 
 
-popt, pcov = curve_fit(GeSe_tau_decay, GeSe.temp, GeSe.tau)
+optimal_params, param_covariance = curve_fit(GeSe_tau_decay, GeSe.temp, GeSe.tau)
 
 
 # %%
-plt.plot(np.arange(100, 1000, 50), GeSe_tau_decay(np.arange(100, 1000, 50), *popt))
+plt.plot(
+    np.arange(100, 1000, 50), GeSe_tau_decay(np.arange(100, 1000, 50), *optimal_params)
+)
 plt.scatter(*GeSe.values.T)
 
 
-# %%
-# Generate dataframe with GeSe relaxation times extrapolated from 100 to 1000 K.
+# %% Generate dataframe with GeSe relaxation times extrapolated from 100 to 1000 K.
 temps = np.linspace(100, 1000, 10, dtype=int)
 GeSe_extra = pd.DataFrame(
-    [temps, GeSe_tau_decay(temps, *popt)], index=["temp", "tau"]
+    [temps, GeSe_tau_decay(temps, *optimal_params)], index=["temp", "tau"]
 ).T

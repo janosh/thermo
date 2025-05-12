@@ -22,8 +22,7 @@ test_loader = DataLoader(test_set, batch_size=16 * 64, shuffle=True)
 both_net = TorchDropoutModel()
 
 
-# %%
-# since we use the test set also for validation, don't use EarlyStopping or
+# %% since we use the test set also for validation, don't use EarlyStopping or
 # similar methods that peak on the validation set. decide on a number of epochs
 # in advance and use the final model
 both_net.fit(train_loader, test_loader)

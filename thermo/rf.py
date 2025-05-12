@@ -109,7 +109,7 @@ class RandomForestRegressor(SklRandomForestRegressor):
             # Doesn't work well in experiments though.
             # leaf indices that each sample is predicted as.
             leaf_idx = tree.apply(X_test)
-            # Grab the impurity of assigned leafs.
+            # Grab the impurity of assigned leaves.
             y_var_tree = tree.tree_.impurity[leaf_idx]
             y_var_aleat += y_var_tree
 

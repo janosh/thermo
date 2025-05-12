@@ -73,8 +73,7 @@ for df in rf_out_by_label:
 # # Maximum A Posteriori Neural Network
 
 
-# %%
-# Per-label weight and bias priors in the order rho, seebeck, kappa, zT.
+# %% Per-label weight and bias priors in the order rho, seebeck, kappa, zT.
 weight_priors = [tfp.distributions.Normal(0, std) for std in [0.1, 0.1, 0.1, 0.1]]
 bias_priors = [tfp.distributions.Normal(0, std) for std in [0.1, 1.0, 1.0, 1.0]]
 map_predictors = [
@@ -248,8 +247,7 @@ for df in rf_out_by_label:
 # )
 
 
-# %%
-# Save all numerical results.
+# %% Save all numerical results.
 all_results = [
     [rf_y_pred, rf_y_var],
     [map_y_pred, map_y_var],
@@ -261,8 +259,7 @@ with open(ROOT + "/results/leaderboard_cv.pkl", "wb") as file:
     pickle.dump(all_results, file)
 
 
-# # %%
-# # Load all numerical results.
+# # %% # Load all numerical results.
 # with open(ROOT + "/results/leaderboard_cv.pkl", "rb") as file:
 #     all_results = pickle.load(file)
 # [
