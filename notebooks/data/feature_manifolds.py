@@ -62,8 +62,7 @@ tsne_3d = TSNE(n_components=3).fit_transform(magpie_features)
 tsne_3d = pd.DataFrame(tsne_3d, columns=tsne_cols)
 
 
-# %%
-# Consider using IHS transformation to shrink outlier spread.
+# %% Consider using IHS transformation to shrink outlier spread.
 # tsne_3d = np.arcsinh(tsne_3d)
 
 tsne_3d[targets.columns] = targets

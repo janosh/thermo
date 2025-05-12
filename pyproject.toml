@@ -20,7 +20,8 @@ dependencies = [
 ]
 
 [tool.codespell]
-ignore-words-list = "hist,ihs,te,hte,interruptable"
+ignore-words-list = "hist,ihs,te,hte,nd"
+check-filenames = true
 
 [tool.ruff]
 target-version = "py38"
@@ -55,3 +56,6 @@ ignore = [
 ]
 pydocstyle.convention = "google"
 isort.lines-after-imports = 2
+
+[tool.typos]
+default.extend-ignore-identifiers-re = ["Ba|HTE|Nd|hte|ihs|IHS"]

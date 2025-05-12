@@ -27,11 +27,10 @@ for df_data in [gaultois_df, screen_df]:
     df_data = df_data.rename(columns={"formula": "composition"})
 
 
-# %%
-# Form Cartesian product between screen features and the 4 temperatures ([300, 400, 700,
-# 1000] Kelvin) found in Gaultois' database. We'll predict each material at all 4 temps.
-# Note: None of the composition are predicted to achieve high zT at 300, 400 Kelvin.
-# Remove those to cut computation time in half.
+# %% Form Cartesian product between screen features and the 4 temperatures ([300, 400,
+# 700, 1000] Kelvin) found in Gaultois' database. We'll predict each material at all 4
+# temps. Note: None of the composition are predicted to achieve high zT at 300, 400
+# Kelvin. Remove those to cut computation time in half.
 temps = (700, 1000)
 temps_col = np.array(temps).repeat(len(screen_df))
 
@@ -188,8 +187,7 @@ plt.scatter(zT_corr_evecs[0], zT_corr_evecs[1])
 # https://stats.stackexchange.com/questions/110426)
 
 
-# %%
-# The idea for this way of reducing correlation came from
+# %% The idea for this way of reducing correlation came from
 # https://stats.stackexchange.com/a/327822/226996. Taking the element-wise
 # absolute value (rather than squaring) and then summing gives similar results.
 greedy_candidates = lrhr_candidates.copy(deep=True)
@@ -203,8 +201,7 @@ greedy_candidates = (
 )
 
 
-# %%
-# Set environment variable GRB_LICENSE_FILE so that Gurobi finds its license.
+# %% Set environment variable GRB_LICENSE_FILE so that Gurobi finds its license.
 # An academic license can be obtained for free at
 # https://www.gurobi.com/downloads/end-user-license-agreement-academic.
 os.environ["GRB_LICENSE_FILE"] = ROOT + "/hpc/gurobi.lic"
@@ -222,14 +219,12 @@ n_select = 20
 dvar = grb_model.addVars(len(lrhr_candidates), vtype=GRB.BINARY).values()
 
 
-# %%
-# Define the model objective to minimize the sum of pairwise correlations.
+# %% Define the model objective to minimize the sum of pairwise correlations.
 obj = zT_corr.dot(dvar).dot(dvar)
 grb_model.setObjective(obj, GRB.MINIMIZE)
 
 
-# %%
-# Add L1 constraint on dvar so that the optimization returns at least n_select formulas.
+# %% Add L1 constraint on dvar so that optimization returns at least n_select formulas.
 constr = grb_model.addConstr(quicksum(dvar) >= n_select, "l1_norm")
 
 
@@ -237,11 +232,12 @@ constr = grb_model.addConstr(quicksum(dvar) >= n_select, "l1_norm")
 grb_model.optimize()
 
 
-# %%
-# Save selected materials to dataframe and CSV file.
-assert (
-    sum(var.x for var in dvar) == n_select
-), "Gurobi selected a different number of materials than specified by n_select"
+# %% Save selected materials to dataframe and CSV file.
+n_actual = sum(var.x for var in dvar)
+assert n_actual == n_select, (
+    f"Gurobi selected a different number of materials than specified: "
+    f"{n_actual=} != {n_select=}"
+)
 
 gurobi_candidates = lrhr_candidates.iloc[[bool(var.x) for var in dvar]]
 
@@ -273,9 +269,8 @@ for name, df_cand in zip(
 # # Comparing greedy and Gurobi solution
 
 
-# %%
-# greedy_candidates contains all low-risk high-return materials sorted by their sum of
-# squared correlations with all other materials. If either the greedy or Gurobi method
+# %% greedy_candidates contains all low-risk high-return materials sorted by their sum
+# of squared correlations with all other materials. If either greedy or Gurobi method
 # (or both) picked materials entirely at random, we would expect formulas chosen by
 # Gurobi to have an average index in the list equal to the total list's average index.
 # The degree to which the average index of Gurobi materials in the greedy list is lower

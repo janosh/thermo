@@ -20,8 +20,7 @@ zT_el_greedy_gurobi = pd.read_excel(f"{OUT_DIR}/zT_el_greedy&gurobi.xlsx").dropn
 zT_el_greedy_gurobi.columns = range(len(zT_el_greedy_gurobi.columns))
 
 
-# %%
-# Get mask to distinguish string values in column 0.
+# %% Get mask to distinguish string values in column 0.
 m1 = pd.to_numeric(zT_el_greedy_gurobi[0], errors="coerce").isna()
 
 # Create new column 0 filled with strings.
@@ -34,8 +33,7 @@ m2 = zT_el_greedy_gurobi["tmp"].ne(zT_el_greedy_gurobi[0])
 zT_el_greedy_gurobi = zT_el_greedy_gurobi.set_index(["tmp", 0])
 
 
-# %%
-# Assign new column names by first row.
+# %% Assign new column names by first row.
 zT_el_greedy_gurobi.columns = [
     int(float(str(c).replace("K", ""))) for c in zT_el_greedy_gurobi.iloc[0]
 ]

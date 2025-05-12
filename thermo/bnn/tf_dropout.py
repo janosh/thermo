@@ -39,9 +39,10 @@ class TFDropoutModel(tf.keras.Model):
         uncertainty="aleatoric_epistemic",
         optim="adam",
     ):
-        assert (
-            len(h_sizes) == len(drop_rates) == len(activations)
-        ), "length mismatch in hypers"
+        assert len(h_sizes) == len(drop_rates) == len(activations), (
+            f"length mismatch in hyperparams {len(h_sizes)=}, {len(drop_rates)=}, "
+            f"{len(activations)=}"
+        )
 
         valid_uncert = ["aleatoric", "epistemic", "aleatoric_epistemic"]
         assert uncertainty in valid_uncert, f"unexpected uncertainty: {uncertainty}"

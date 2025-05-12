@@ -92,7 +92,7 @@ def ci_err_decay(df, n_splits, title=None):
         decay_by_err = pmv.uncertainty.get_err_decay(*df_i.values.T)
         df_i["decay_by_std"] = decay_by_std
         df_i["decay_by_err"] = decay_by_err
-        dfs.append(df_i)
+        dfs += [df_i]
 
     df = pd.concat(dfs)
 
