@@ -1,7 +1,9 @@
 from os.path import dirname
+from typing import Callable
 
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import BaseCrossValidator
 from tqdm import tqdm
 
 
@@ -10,6 +12,7 @@ ROOT = dirname(dirname(dirname(__file__)))
 
 
 def pd2np(*args):
+    """Convert pandas dataframes and series to numpy arrays."""
     return [a.values if isinstance(a, (pd.DataFrame, pd.Series)) else a for a in args]
 
 
@@ -51,7 +54,10 @@ def predict_multiple_targets(pred_func, X_train, y_train, X_test, y_test=None):
     ]
 
 
-def sequence_to_df(dfs, swap_index_levels=False):
+def sequence_to_df(
+    dfs: list[pd.DataFrame], swap_index_levels: bool = False
+) -> pd.DataFrame:
+    """Concatenate a list of dataframes and unstack the index."""
     # Adapted from https://stackoverflow.com/a/57338412.
     df_joined = pd.concat(dfs)
     df_joined = df_joined.set_index(
@@ -64,10 +70,17 @@ def sequence_to_df(dfs, swap_index_levels=False):
     return df_joined
 
 
-def cross_val_predict(splitter, features, targets, predict_fn):
+def cross_val_predict(
+    splitter: BaseCrossValidator,
+    features: pd.DataFrame,
+    targets: pd.DataFrame,
+    predict_fn: Callable | list[Callable],
+) -> list[pd.DataFrame]:
+    """Cross-validate a predictor function."""
     results = []
+    n_splits = getattr(splitter, "n_splits", splitter.get_n_splits(features))
     for train_idx, test_idx in tqdm(
-        splitter.split(features), desc=f"{splitter.n_splits}-fold CV"
+        splitter.split(features), desc=f"{n_splits}-fold CV"
     ):
         X_train, X_test = features.iloc[train_idx], features.iloc[test_idx]
         y_train, y_test = targets.iloc[train_idx], targets.iloc[test_idx]

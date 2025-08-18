@@ -35,16 +35,19 @@ def compute_log_zT_var(log_rho_var, log_seebeck_sqr_var, log_kappa_var):
 
 
 def df_corr(df1, df2, methods=("pearson", "spearman")):
+    """Compute the correlation between two dataframes with different methods."""
     return pd.DataFrame([df1.corrwith(df2, method=m) for m in methods], index=methods)
 
 
 def denorm(mean, std, y_pred, y_var):
+    """Denormalize predictions and variances."""
     y_pred = y_pred * std + mean
     y_var = std**2 * y_var
     return y_pred, y_var
 
 
 def unlog_preds(y_log_pred, y_log_var):
+    """Unlog predictions and variances."""
     y_pred = np.exp(y_log_pred)
     # See side panel of https://wikipedia.org/wiki/Log-normal_distribution
     # for the variance of a log-normally distributed variable.
@@ -57,9 +60,9 @@ def filter_low_risk_high_ret(
     y_std: Series,
     max_risk: float = 0.25,
     min_ret: float = 1,
-    risk_percentile: float = None,
-    return_percentile: float = None,
-) -> Series.index:
+    risk_percentile: float | None = None,
+    return_percentile: float | None = None,
+) -> pd.Index:
     """Filters a list of model predictions and uncertainties for those with highest
     return (high prediction) and low risk (low uncertainty).
 

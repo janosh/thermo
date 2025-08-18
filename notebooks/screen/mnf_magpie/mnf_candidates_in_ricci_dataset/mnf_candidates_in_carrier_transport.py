@@ -27,23 +27,23 @@ mnf_in_carrier = carrier_transport.loc[
 
 
 # %%
-ax = pmv.ptable_heatmap(mnf_in_carrier.pretty_formula.dropna(), log=True)
-ax.set_title(
+fig = pmv.ptable_heatmap_plotly(mnf_in_carrier.pretty_formula.dropna(), log=True)
+fig.layout.title = (
     "Elemental prevalence of MNF candidates in the Ricci carrier transport dataset"
 )
-pmv.save_fig(ax, "mnf-in-carrier-elements-log.pdf")
+pmv.save_fig(fig, "mnf-in-carrier-elements-log.pdf")
 
 
 # %%
 top_power_factors = carrier_transport.sort_values(by="PF.p [µW/cm/K²/s]").tail(
     len(mnf_in_carrier)
 )
-ax = pmv.ptable_heatmap(top_power_factors.pretty_formula.dropna(), log=True)
-ax.set_title(
+fig = pmv.ptable_heatmap_plotly(top_power_factors.pretty_formula.dropna(), log=True)
+fig.layout.title = (
     "Elemental prevalence among highest power factor materials in "
     "the Ricci carrier transport dataset"
 )
-pmv.save_fig(ax, "top-pf-in-carrier-elements-log.pdf")
+pmv.save_fig(fig, "top-pf-in-carrier-elements-log.pdf")
 
 
 # %%

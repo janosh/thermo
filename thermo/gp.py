@@ -2,6 +2,7 @@ from sklearn.gaussian_process import GaussianProcessRegressor, kernels
 
 
 def gp_predict(X_train, y_train, X_test, y_test):
+    """Predict with a Gaussian Process Regressor."""
     kernel = kernels.Matern(nu=0.5)
     model = GaussianProcessRegressor(
         kernel=kernel, n_restarts_optimizer=3, random_state=0

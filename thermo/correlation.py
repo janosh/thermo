@@ -24,16 +24,13 @@ def rand_obj_val_avr(corr_mat: np.ndarray, n_select: int, n_repeats: int = 50) -
     return avr / n_repeats
 
 
-def expected_rand_obj_val(corr_mat, n_select):
+def expected_rand_obj_val(corr_mat: np.ndarray, n_select: int) -> float:
     """Compute the expectation value for the discrete constrained optimization
     problem of finding the n_select least correlated candidates out of a pool of
     len(corr_mat) candidates pairwise correlated according to corr_mat.
 
     See https://math.stackexchange.com/q/3315535 for mathematical details.
     """
-    if corr_mat.to_numpy:
-        corr_mat = corr_mat.to_numpy()
-
     try:
         zT_chol = np.linalg.cholesky(corr_mat)
     except np.linalg.LinAlgError:

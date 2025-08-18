@@ -1,8 +1,13 @@
-from datetime import datetime
+# type: ignore
 
+from datetime import datetime
+from typing import Callable, Sequence
+
+import numpy as np
 import torch
+from pandas import DataFrame
 from torch import nn
-from torch.utils.data import Dataset
+from torch.utils.data import DataLoader, Dataset
 from torch.utils.tensorboard import SummaryWriter
 
 from thermo.data import dropna, load_gaultois, normalize, train_test_split
@@ -10,7 +15,7 @@ from thermo.utils import ROOT
 
 
 class Normalized(Dataset):
-    def __init__(self, features, targets):
+    def __init__(self, features: DataFrame, targets: DataFrame) -> None:
         super().__init__()
         self.features, self.targets = features, targets
 
@@ -24,19 +29,19 @@ class Normalized(Dataset):
         self.X = torch.tensor(X.to_numpy())
         self.y = torch.tensor(y.to_numpy())
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.X)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         return self.X[idx], self.y[idx]
 
-    def denorm(self, tensor, is_std=False):
+    def denorm(self, tensor: torch.Tensor, is_std: bool = False) -> torch.Tensor:
         """Revert z-scoring/normalization."""
         if is_std:
             return tensor * self.y_std
         return tensor * self.y_std + self.y_mean
 
-    def denorm_X(self, tensor, is_std=False):
+    def denorm_X(self, tensor: torch.Tensor, is_std: bool = False) -> torch.Tensor:
         """Revert z-scoring/normalization."""
         if is_std:
             return tensor * self.X_std
@@ -44,7 +49,14 @@ class Normalized(Dataset):
 
 
 class GaultoisData(Normalized):
-    def __init__(self, test_size=0.1, train=True, target_cols=None):
+    """Dataset for Gaultois thermoelectrics database."""
+
+    def __init__(
+        self,
+        test_size: float = 0.1,
+        train: bool = True,
+        target_cols: Sequence[str] = ("rho", "seebeck", "kappa", "zT"),
+    ):
         features, targets = load_gaultois(target_cols=target_cols)
         targets, features = dropna(targets, features)
 
@@ -75,6 +87,13 @@ class TorchDropoutModel(nn.Sequential):
     estimation.
     """
 
+    robust: bool
+    epochs: int
+    writer: SummaryWriter
+    metrics: dict[str, list]
+    optimizer: torch.optim.Optimizer
+    loss_fn: Callable
+
     def __init__(
         self,
         sizes=(146, 100, 50, 25, 10),
@@ -83,7 +102,7 @@ class TorchDropoutModel(nn.Sequential):
         robust=True,  # whether to use robust loss function
         optimizer=None,
         **kwargs,
-    ):
+    ) -> None:
         err_msg = "length mismatch in hyperparameters"
         assert len(sizes) - 1 == len(drop_rates) == len(activations), err_msg
 
@@ -127,20 +146,26 @@ class TorchDropoutModel(nn.Sequential):
 
         if self.robust:
             output, log_std = output.T
-            self.metrics[prefix + "/std_al"] = log_std.exp().mean()
+            self.metrics[f"{prefix}/std_al"] = log_std.exp().mean()
 
         targets, output = denorm(targets), denorm(output)
 
-        self.metrics[prefix + "/loss"] = loss
-        self.metrics[prefix + "/mae"] = (output - targets).abs().mean()
-        self.metrics[prefix + "/rmse"] = (output - targets).pow(2).mean().sqrt()
+        self.metrics[f"{prefix}/loss"] = loss
+        self.metrics[f"{prefix}/mae"] = (output - targets).abs().mean()
+        self.metrics[f"{prefix}/rmse"] = (output - targets).pow(2).mean().sqrt()
 
     def fit(
-        self, loader, val_loader=None, epochs=100, print_every=10, log=True, cbs=()
-    ):
+        self,
+        loader: DataLoader,
+        val_loader: DataLoader | None = None,
+        epochs: int = 100,
+        print_every: int = 10,
+        log: bool = True,
+        cbs: Sequence[Callable] = (),
+    ) -> None:
         self.train()
         # callable to revert z-scoring of targets and predictions to real units
-        denorm = loader.dataset.denorm
+        denorm = loader.dataset.denorm  # type: ignore[union-attr]
         metrics = self.metrics
         epochs += self.epochs
 
@@ -187,7 +212,9 @@ class TorchDropoutModel(nn.Sequential):
             self.epochs += 1
 
     @torch.no_grad()
-    def predict(self, data, n_preds=100, raw=False):
+    def predict(
+        self, data: Normalized, n_preds: int = 100, raw: bool = False
+    ) -> torch.Tensor | tuple[np.ndarray, np.ndarray, np.ndarray]:
         # calling self.train() to ensure nn.Dropout remains active
         self.train()
         output = torch.stack([self(data.X) for _ in range(n_preds)]).squeeze()

@@ -9,7 +9,7 @@ from thermo.utils import ROOT
 from thermo.utils.amm import MatPipe, featurize, fit_pred_pipe
 
 
-SAVE_TO = ROOT + "/results/amm/zT_direct_vs_indirect/"
+SAVE_TO = f"{ROOT}/results/amm/zT_direct_vs_indirect/"
 os.makedirs(SAVE_TO, exist_ok=True)
 
 
@@ -39,13 +39,13 @@ mat_pipe_kappa, pred_df_kappa = fit_pred_pipe(train_df, test_df, "kappa")
 
 
 # %%
-mat_pipe_zT.summarize(SAVE_TO + "pipe_summary.yml")
-mat_pipe_zT.inspect(SAVE_TO + "pipe_details.yml")
-mat_pipe_zT.save(SAVE_TO + "mat.pipe")
+mat_pipe_zT.summarize(f"{SAVE_TO}pipe_summary.yml")
+mat_pipe_zT.inspect(f"{SAVE_TO}pipe_details.yml")
+mat_pipe_zT.save(f"{SAVE_TO}mat.pipe")
 
 
 # %%
-loaded_mat_pipe = MatPipe.load(SAVE_TO + "mat.pipe")
+loaded_mat_pipe = MatPipe.load(f"{SAVE_TO}mat.pipe")
 
 
 # %%

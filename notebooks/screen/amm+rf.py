@@ -142,7 +142,7 @@ screen_df["zT_var"] = zT_var
 # estimated uncertainty. Baseline comparison to check if uncertainty estimation reduces
 # the false positive rate.
 screen_df.sort_values("zT_pred", ascending=False)[:20].to_csv(
-    ROOT + "/results/screen/hr-materials.csv", index=False, float_format="%g"
+    f"{ROOT}/results/screen/hr-materials.csv", index=False, float_format="%g"
 )
 
 
@@ -204,7 +204,7 @@ greedy_candidates = (
 # %% Set environment variable GRB_LICENSE_FILE so that Gurobi finds its license.
 # An academic license can be obtained for free at
 # https://www.gurobi.com/downloads/end-user-license-agreement-academic.
-os.environ["GRB_LICENSE_FILE"] = ROOT + "/hpc/gurobi.lic"
+os.environ["GRB_LICENSE_FILE"] = f"{ROOT}/hpc/gurobi.lic"
 # Create a model for solving the quadratic optimization problem of selecting p out of n
 # materials with least pairwise correlation according to the correlation matrix zT_corr.
 grb_model = Model("quadratic_problem")
@@ -293,12 +293,12 @@ greedy_obj_val = zT_corr.values.dot(greedy_indices_in_corr_mat).dot(
     greedy_indices_in_corr_mat
 )
 
-avr_rand_obj_val = rand_obj_val_avr(zT_corr, n_select, (n_repeats := 50))
+avr_rand_obj_val = rand_obj_val_avr(np.array(zT_corr), n_select, (n_repeats := 50))
 
 # If len(zT_corr) >> 500, expected_rand_obj_val will take a long time due to cubic
 # scaling. Consider decreasing max_risk or increasing min_ret in
 # filter_low_risk_high_ret to decrease len(zT_corr).
-exp_rand_obj_val = expected_rand_obj_val(zT_corr, n_select)
+exp_rand_obj_val = expected_rand_obj_val(np.array(zT_corr), n_select)
 
 print(
     f"objective values:\n- Gurobi: {grb_model.objVal:.4g}\n"

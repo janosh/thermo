@@ -20,8 +20,8 @@ def dropna(*args):
     """
     # (True|False) mask for each row based on NaN values present in the first dataframe
     mask = ~pd.isna(args[0])
-    if mask.ndim == 2:
-        mask = mask.all(1)  # in 2d array, keep row only if all values are not NaN
+    if getattr(mask, "ndim", 0) == 2:
+        mask = mask.all(1)  # type: ignore[union-attr]  # in 2d array, keep row only if all values are not NaN
 
     return [x.loc[mask] if isinstance(x, pd.DataFrame) else x[mask] for x in args]
 
@@ -48,11 +48,11 @@ def transform_df_cols(
 ):
     if transform == "log":
         # Seebeck coefficient can be negative. Use seebeck_abs when taking the log.
-        log_cols = [label + "_log" for label in cols]
+        log_cols = [f"{label}_log" for label in cols]
         df[log_cols] = np.log(df[cols])
     elif transform == "ihs":
         # ihs: inverse hyperbolic sine.
-        ihs_cols = [label + "_ihs" for label in cols]
+        ihs_cols = [f"{label}_ihs" for label in cols]
         df[ihs_cols] = np.arcsinh(df[cols])
 
     return df

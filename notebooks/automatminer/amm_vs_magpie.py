@@ -13,7 +13,7 @@ from thermo.utils import ROOT, amm
 
 
 # %%
-SAVE_TO = ROOT + "/results/amm/amm_vs_magpie/"
+SAVE_TO = f"{ROOT}/results/amm/amm_vs_magpie/"
 os.makedirs(SAVE_TO, exist_ok=True)
 r_pearson = lambda *args: pearsonr(*args)[0]
 
@@ -47,11 +47,11 @@ mat_pipe, amm_pred = amm.fit_pred_pipe(train_df, test_df, "zT")
 
 
 # %%
-# mat_pipe.save(SAVE_TO + "mat.pipe")
+# mat_pipe.save(f"{SAVE_TO}mat.pipe")
 
 
 # %%
-mat_pipe = amm.MatPipe.load(SAVE_TO + "mat.pipe")
+mat_pipe = amm.MatPipe.load(f"{SAVE_TO}mat.pipe")
 amm_pred = mat_pipe.predict(test_df, output_col="zT_pred")
 
 

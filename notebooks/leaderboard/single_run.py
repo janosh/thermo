@@ -29,11 +29,10 @@ norm_targets, [y_mean, y_std] = normalize(log_targets)
 
 [X_train, y_train], [X_test, y_test] = train_test_split(norm_features, norm_targets)
 
-Xy = [X_train, y_train, X_test, y_test]
-
 
 # %%
-def plot_log_probs(log_probs: list, title: str = None) -> None:
+def plot_log_probs(log_probs: list, title: str | None = None) -> None:
+    """Plot log probabilities for each label."""
     for legend_label, log_prob in log_probs:
         plt.plot(log_prob, label=legend_label)
 
@@ -48,7 +47,9 @@ def plot_log_probs(log_probs: list, title: str = None) -> None:
 
 
 # %%
-rf_y_pred, rf_y_var, rf_models = predict_multiple_targets(rf_predict, *Xy)
+rf_y_pred, rf_y_var, rf_models = predict_multiple_targets(
+    rf_predict, X_train, y_train, X_test, y_test
+)
 
 
 # %%
@@ -95,7 +96,7 @@ map_predictors = [
 
 
 # %%
-map_results = predict_multiple_targets(map_predictors, *Xy)
+map_results = predict_multiple_targets(map_predictors, X_train, y_train, X_test, y_test)
 map_y_pred, map_y_var, map_log_probs, map_initial_states = map_results
 
 
@@ -112,7 +113,7 @@ map_mae.to_frame().join(map_rmse)
 # %%
 for label, map_log_prob in zip(targets.columns, map_log_probs.values.T):
     print(f"\n{label}\n")
-    plot_log_probs(zip(["train", "test"], map_log_prob), title=label)
+    plot_log_probs(list(zip(["train", "test"], map_log_prob)), title=label)
     plt.show()
 
 
@@ -129,7 +130,10 @@ for label, y_true, y_pred, y_var in zip(
 
 # %%
 map_y_pred_orig["zT_log_computed"] = compute_zT(
-    *map_y_pred_orig.values[:3].T, y_test["T_log"]
+    map_y_pred_orig["rho"],
+    map_y_pred_orig["seebeck"],
+    map_y_pred_orig["kappa"],
+    y_test["T_log"],
 ).reset_index(drop=True)
 
 zT_rmse = rmse(y_test["zT_log"], map_y_pred_orig["zT_log_computed"])
@@ -147,7 +151,9 @@ print(f"zT_log_computed mse: {zT_rmse:.4g}")
 # X_train = pca.fit(X_train).transform(X_train)
 # X_test = pca.transform(X_test)
 
-gp_y_pred, gp_y_var, gp_models = predict_multiple_targets(gp_predict, *Xy)
+gp_y_pred, gp_y_var, gp_models = predict_multiple_targets(
+    gp_predict, X_train, y_train, X_test, y_test
+)
 
 
 # %%
@@ -174,10 +180,14 @@ for label, y_true, y_pred, y_std in zip(
 
 # %% one of ["aleatoric", "epistemic", "aleatoric_epistemic"]
 do_uncertainty = "aleatoric_epistemic"
-tb_cb = tf.keras.callbacks.TensorBoard(log_dir=ROOT + "/logs/leaderboard/single-runs")
+tb_cb = tf.keras.callbacks.TensorBoard(log_dir=f"{ROOT}/logs/leaderboard/single-runs")
 
 do_y_pred, do_y_var, do_histories, do_models = predict_multiple_targets(
-    partial(do_predict, uncertainty=do_uncertainty, cbs=[tb_cb], epochs=500), *Xy
+    partial(do_predict, uncertainty=do_uncertainty, cbs=[tb_cb], epochs=500),
+    X_train,
+    y_train,
+    X_test,
+    y_test,
 )
 
 

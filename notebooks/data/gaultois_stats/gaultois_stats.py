@@ -15,7 +15,7 @@ from thermo.utils import ROOT
 
 # %%
 cols = ["formula", "rho", "seebeck", "kappa", "zT"]
-targets = pd.read_csv(ROOT + "/data/gaultois_targets.csv", header=1)[cols]
+targets = pd.read_csv(f"{ROOT}/data/gaultois_targets.csv", header=1)[cols]
 
 
 # %% [markdown]
@@ -23,8 +23,9 @@ targets = pd.read_csv(ROOT + "/data/gaultois_targets.csv", header=1)[cols]
 
 
 # %%
-ax = pmv.ptable_heatmap(targets.formula.values, log_scale=True)
-pmv.save_fig(ax, "gaultois_elements.pdf", bbox_inches="tight")
+fig = pmv.ptable_heatmap_plotly(targets.formula.values, log_scale=True)
+fig.layout.title = "Elemental Prevalence in Gaultois Database"
+pmv.save_fig(fig, "gaultois_elements.pdf", bbox_inches="tight")
 
 
 # %%
@@ -41,7 +42,6 @@ x_labels, y_counts = np.unique(
 ax = plt.bar(x_labels, y_counts, align="center")
 plt.xticks(x_labels)
 ax.set(xlabel="number of elements in composition", ylabel="sample count")
-pmv.powerups.annotate_bars(ax)
 pmv.save_fig(ax, "hist_number_of_elements_in_composition.pdf", bbox_inches="tight")
 
 

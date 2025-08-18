@@ -20,7 +20,7 @@ from thermo.utils import ROOT, amm
 
 
 # %%
-SAVE_TO = ROOT + "/results/mnf/"
+SAVE_TO = f"{ROOT}/results/mnf/"
 os.makedirs(SAVE_TO, exist_ok=True)
 tf.random.set_seed(0)
 
@@ -32,7 +32,7 @@ zT = targets.pop("zT")
 
 
 # %%
-mat_pipe = amm.MatPipe.load(ROOT + "/results/amm/amm_vs_magpie/mat.pipe")
+mat_pipe = amm.MatPipe.load(f"{ROOT}/results/amm/amm_vs_magpie/mat.pipe")
 amm_fea = amm.featurize(mat_pipe, targets.rename(columns={"formula": "composition"}))
 
 
@@ -130,7 +130,7 @@ amm_mnf_figs = plot_output(
 # %%
 fig_titles = ["true_vs_pred", "decay_by_std", "abs_err_vs_std"]
 for fig, name in zip(mp_mnf_figs, fig_titles):
-    fig.savefig(SAVE_TO + name + "-mp-mnf.pdf", bbox_inches="tight")
+    fig.savefig(f"{SAVE_TO}{name}-mp-mnf.pdf", bbox_inches="tight")
 
 
 # %% [markdown]
@@ -155,7 +155,7 @@ figs_rf = plot_output(zT_test.values, amm_rf_pred, amm_rf_std, title="AMM + RF")
 
 # %%
 for fig, name in zip(figs_rf, fig_titles):
-    fig.savefig(SAVE_TO + name + "-mp-rf.pdf", bbox_inches="tight")
+    fig.savefig(f"{SAVE_TO}{name}-mp-rf.pdf", bbox_inches="tight")
 
 
 # %% [markdown]
@@ -176,7 +176,7 @@ do_model.fit(train_loader)
 
 
 # %%
-do_pred, do_var = do_model.predict(test_set.X)
+_, do_pred, do_var = do_model.predict(test_set)
 
 
 # %%

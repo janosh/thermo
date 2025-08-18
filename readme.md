@@ -2,7 +2,6 @@
 
 <h4 align='center'>
 
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/janosh/thermo/main.svg)](https://results.pre-commit.ci/latest/github/janosh/thermo/main)
 [![This project supports Python 3.8+](https://img.shields.io/badge/Python-3.8+-blue.svg?logo=python&logoColor=white)](https://python.org/downloads)
 [![GitHub Repo Size](https://img.shields.io/github/repo-size/janosh/thermo?label=Repo+Size)](https://github.com/janosh/thermo/graphs/contributors)
 </h4>

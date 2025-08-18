@@ -17,9 +17,11 @@ head = lambda: nn.Sequential(
 
 
 class MultiTaskMLP(nn.Module):
+    epoch: int
+
     def __init__(self, n_tasks):
         super().__init__()
-        self.epoch = 0
+        self.epoch = 0  # type: ignore[unresolved-attribute]
 
         self.trunk = nn.Sequential(
             nn.Linear(146, 50),
@@ -77,7 +79,7 @@ for model, optim, count in zip(models, optims, range(n_models)):
     total_epochs = model.epoch + epochs
 
     metrics = ["loss", "MAE", "RMSE", *(f"loss_{col}" for col in short_names)]
-    print("epoch".ljust(10) + "".join(f"{key:<10}" for key in metrics))
+    print(f"{'epoch':<10}{''.join(f'{key:<10}' for key in metrics)}")
     metrics = {key: [] for key in metrics}
 
     for epoch in range(model.epoch, total_epochs):
@@ -138,10 +140,10 @@ print(
 
 
 # %%
-preds = sum(test_preds) / len(test_preds)
+preds = torch.stack(test_preds).mean(dim=0)
 
 for idx, name in enumerate(target_names):
-    pred, target = preds.T[idx], test_targets.T[idx]
+    pred, target = preds.T[idx].numpy(), test_targets.T[idx].numpy()
     fig = plot_output(target, pred, title=name)
     filename = f"{name}-ep={models[0].epoch}-tasks={','.join(short_names)}"
     fig.savefig(f"{ROOT}/results/multitask/ensemble/{filename}.pdf")

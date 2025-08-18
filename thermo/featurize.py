@@ -9,6 +9,7 @@ from thermo.utils import ROOT
 
 
 def featurize_with_magpy(df, input_col_name="formula", retain_cols=("T",)):
+    """Featurize a dataframe with Magpie features."""
     # Convert the formula string into a composition object to be used by matminer.
     str_to_comp = StrToComposition(target_col_id="composition_obj")
     df = str_to_comp.featurize_dataframe(df, input_col_name)
@@ -34,16 +35,18 @@ def featurize_with_magpy(df, input_col_name="formula", retain_cols=("T",)):
 
 
 def generate_gaultois_features():
-    gaultois_targets = pd.read_csv(ROOT + "/data/gaultois_targets.csv", comment="#")
+    """Generate Magpie features for the Gaultois database."""
+    gaultois_targets = pd.read_csv(f"{ROOT}/data/gaultois_targets.csv", comment="#")
     gaultois_features = featurize_with_magpy(gaultois_targets)
     gaultois_features.to_csv(
-        ROOT + "/data/gaultois_magpie_features.csv", index=False, float_format="%g"
+        f"{ROOT}/data/gaultois_magpie_features.csv", index=False, float_format="%g"
     )
 
 
 def generate_screen_features():
-    screen_formulas = pd.read_csv(ROOT + "/data/screen_formulas.csv", comment="#")
+    """Generate Magpie features for the screen set."""
+    screen_formulas = pd.read_csv(f"{ROOT}/data/screen_formulas.csv", comment="#")
     screen_features = featurize_with_magpy(screen_formulas, retain_cols=[])
     screen_features.to_csv(
-        ROOT + "/data/screen_set_magpie_features.csv", index=False, float_format="%g"
+        f"{ROOT}/data/screen_set_magpie_features.csv", index=False, float_format="%g"
     )

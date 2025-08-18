@@ -205,8 +205,8 @@ for ax, cmap, (temp, group) in zip(
     axs, ["Blues", "Reds"], candidates.reset_index().groupby("T")
 ):
     pmv.density_scatter(
-        xs=group.zT_std.values,
-        ys=group.zT_pred.values,
+        x=group.zT_std.values,
+        y=group.zT_pred.values,
         label=f"{temp} K",
         identity=False,
         stats=False,
@@ -277,7 +277,8 @@ plt.title("MNF correlation matrix")
 # %%
 # Ensure the correlation matrix contains significant eigenvalues larger than
 # the maximum expected in a random matrix based on Marchenko_pastur distribution
-ax = pmv.marchenko_pastur(corr_mat, gamma=len(corr_mat) / n_preds)
+# TODO recover that plot from pymatviz git history and inline it here
+ax = pmv.marchenko_pastur(corr_mat, gamma=len(corr_mat) / n_preds)  # type: ignore[unresolved-attribute]
 p, N = n_preds, len(corr_mat)
 ax.set_title(
     "Marchenko-Pastur distribution of the MNF zT correlation matrix\n"
@@ -332,14 +333,14 @@ greedy_candidates = candidates.sort_values("zT_pred").tail(n_candidates)
 
 
 # %%
-ax = pmv.ptable_heatmap(gurobi_candidates.formula)
-ax.set_title(f"elemental prevalence among {n_candidates} gurobi candidates")
-pmv.save_fig(ax, "gurobi-ptable-elements.pdf", bbox_inches="tight")
+fig = pmv.ptable_heatmap_plotly(gurobi_candidates.formula)
+fig.layout.title = f"elemental prevalence among {n_candidates} gurobi candidates"
+pmv.save_fig(fig, "gurobi-ptable-elements.pdf", bbox_inches="tight")
 
 
-ax = pmv.ptable_heatmap(greedy_candidates.formula)
-ax.set_title(f"elemental prevalence among {n_candidates} greedy candidates")
-pmv.save_fig(ax, "greedy-ptable-elements.pdf", bbox_inches="tight")
+fig = pmv.ptable_heatmap_plotly(greedy_candidates.formula)
+fig.layout.title = f"elemental prevalence among {n_candidates} greedy candidates"
+pmv.save_fig(fig, "greedy-ptable-elements.pdf", bbox_inches="tight")
 
 
 # %%

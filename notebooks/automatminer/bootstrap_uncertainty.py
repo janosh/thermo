@@ -38,4 +38,4 @@ plot_output(*zT_stats_df[["zT_true", "mean", "std"]].values.T, title="zT")
 
 
 # %%
-zT_stats_df.to_csv(ROOT + "/results/amm/zT_stats.csv", index=False, float_format="%g")
+zT_stats_df.to_csv(f"{ROOT}/results/amm/zT_stats.csv", index=False, float_format="%g")

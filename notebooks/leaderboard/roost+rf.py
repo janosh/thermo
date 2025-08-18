@@ -34,11 +34,11 @@ data_params = {
     "collate_fn": collate_batch,
 }
 
-targets.to_csv(ROOT + "/data/for_roost.csv", index=False, float_format="%g")
+targets.to_csv(f"{ROOT}/data/for_roost.csv", index=False, float_format="%g")
 
 gaultois_db = CompositionData(
-    data_path=ROOT + "/data/for_roost.csv",
-    fea_path=ROOT + "/data/matscholar-embedding.json",
+    data_path=f"{ROOT}/data/for_roost.csv",
+    fea_path=f"{ROOT}/data/matscholar-embedding.json",
     task=task,
 )
 
@@ -54,8 +54,8 @@ train_set, test_set = random_split(
     gaultois_db, [round(len(gaultois_db) * 0.9), round(len(gaultois_db) * 0.1)]
 )
 
-train_generator = DataLoader(train_set, **data_params)
-test_generator = DataLoader(test_set, **data_params)
+train_generator = DataLoader(train_set, **data_params)  # type: ignore[invalid-argument-type]
+test_generator = DataLoader(test_set, **data_params)  # type: ignore[invalid-argument-type]
 
 
 # %%

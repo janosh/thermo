@@ -29,13 +29,13 @@ magpie_features = magpie_features.drop(columns="T")
 # %% 2D
 tsne_2d = TSNE(n_components=2).fit_transform(magpie_features)
 
-tsne_cols = ["tsne_1", "tsne_2"]
+tsne_cols = t_col_1, t_col_2 = ("tsne_1", "tsne_2")
 tsne_2d = pd.DataFrame(tsne_2d, columns=tsne_cols)
 
 
 # %%
 tsne_2d[targets.columns] = targets
-px.scatter(tsne_2d, *tsne_cols, hover_data=targets.columns)
+px.scatter(tsne_2d, x=t_col_1, y=t_col_2, hover_data=targets.columns)
 
 
 # %%
@@ -57,7 +57,7 @@ for ax, [key, group] in zip(
 
 
 # %% 3D
-tsne_cols = ["tsne_1", "tsne_2", "tsne_3"]
+tsne_cols = t_col_1, t_col_2, t_col_3 = ("tsne_1", "tsne_2", "tsne_3")
 tsne_3d = TSNE(n_components=3).fit_transform(magpie_features)
 tsne_3d = pd.DataFrame(tsne_3d, columns=tsne_cols)
 
@@ -66,7 +66,7 @@ tsne_3d = pd.DataFrame(tsne_3d, columns=tsne_cols)
 # tsne_3d = np.arcsinh(tsne_3d)
 
 tsne_3d[targets.columns] = targets
-px.scatter_3d(tsne_3d, *tsne_cols, hover_data=targets.columns)
+px.scatter_3d(tsne_3d, x=t_col_1, y=t_col_2, z=t_col_3, hover_data=targets.columns)
 
 
 # %% [markdown]
@@ -76,24 +76,24 @@ px.scatter_3d(tsne_3d, *tsne_cols, hover_data=targets.columns)
 # %% 2D
 umap_2d = UMAP(n_components=2).fit_transform(magpie_features)
 
-umap_cols = ["umap_1", "umap_2"]
+umap_cols = u_col_1, u_col_2 = ("umap_1", "umap_2")
 umap_2d = pd.DataFrame(umap_2d, columns=umap_cols)
 
 
 # %%
 umap_2d[targets.columns] = targets
-px.scatter(umap_2d, *umap_cols, hover_data=targets.columns)
+px.scatter(umap_2d, x=u_col_1, y=u_col_2, hover_data=targets.columns)
 
 
 # %% 3D
-umap_cols = ["umap_1", "umap_2", "umap_3"]
+umap_cols = u_col_1, u_col_2, u_col_3 = ("umap_1", "umap_2", "umap_3")
 umap_3d = UMAP(n_components=3).fit_transform(magpie_features)
 umap_3d = pd.DataFrame(umap_3d, columns=umap_cols)
 
 
 # %%
 umap_3d[targets.columns] = targets
-px.scatter_3d(umap_3d, *umap_cols, hover_data=targets.columns)
+px.scatter_3d(umap_3d, x=u_col_1, y=u_col_2, z=u_col_3, hover_data=targets.columns)
 
 
 # %% [markdown]
@@ -103,21 +103,21 @@ px.scatter_3d(umap_3d, *umap_cols, hover_data=targets.columns)
 # %% 2D
 pca_2d = PCA(n_components=2).fit_transform(magpie_features)
 
-pca_cols = ["pca_1", "pca_2"]
+pca_cols = p_col_1, p_col_2 = ("pca_1", "pca_2")
 pca_2d = pd.DataFrame(pca_2d, columns=pca_cols)
 
 
 # %%
 pca_2d[targets.columns] = targets
-px.scatter(pca_2d, *pca_cols, hover_data=targets.columns)
+px.scatter(pca_2d, x=p_col_1, y=p_col_2, hover_data=targets.columns)
 
 
 # %% 3D
-pca_cols = ["pca_1", "pca_2", "pca_3"]
+pca_cols = p_col_1, p_col_2, p_col_3 = ("pca_1", "pca_2", "pca_3")
 pca_3d = PCA(n_components=3).fit_transform(magpie_features)
 pca_3d = pd.DataFrame(pca_3d, columns=pca_cols)
 
 
 # %%
 pca_3d[targets.columns] = targets
-px.scatter_3d(pca_3d, *pca_cols, hover_data=targets.columns)
+px.scatter_3d(pca_3d, x=p_col_1, y=p_col_2, z=p_col_3, hover_data=targets.columns)

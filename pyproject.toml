@@ -59,3 +59,10 @@ isort.lines-after-imports = 2
 
 [tool.typos]
 default.extend-ignore-identifiers-re = ["Ba|HTE|Nd|hte|ihs|IHS"]
+
+[tool.ty.rules]
+unresolved-import = "ignore"
+unused-ignore-comment = "warn"
+
+[dependency-groups]
+dev = ["prek>=0.2.13", "ty>=0.0.1a26"]

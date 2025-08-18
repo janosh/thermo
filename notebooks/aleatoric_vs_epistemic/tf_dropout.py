@@ -24,8 +24,6 @@ log_targets = np.log(targets.drop(columns=["seebeck"]))
 X_norm, [X_mean, X_std] = normalize(features)
 y_norm, [y_mean, y_std] = normalize(log_targets)
 
-Xy = [X_norm, y_norm]
-
 # Shuffling in KFold is important since the materials in Gaultois'
 # database are sorted by family.
 kfold = KFold(n_splits=5, shuffle=True, random_state=0)
@@ -38,7 +36,9 @@ kfold = KFold(n_splits=5, shuffle=True, random_state=0)
 # %%
 al_predict = partial(do_predict, uncertainty="aleatoric", epochs=1000, n_preds=1000)
 
-al_y_pred, al_y_var, al_histories, al_models = cross_val_predict(kfold, *Xy, al_predict)
+al_y_pred, al_y_var, al_histories, al_models = cross_val_predict(
+    kfold, X_norm, y_norm, al_predict
+)
 
 
 # %%
@@ -69,7 +69,9 @@ display(al_err_std_corr)
 # %%
 ep_predict = partial(do_predict, uncertainty="epistemic", epochs=1000, n_preds=1000)
 
-ep_y_pred, ep_y_var, ep_histories, ep_models = cross_val_predict(kfold, *Xy, ep_predict)
+ep_y_pred, ep_y_var, ep_histories, ep_models = cross_val_predict(
+    kfold, X_norm, y_norm, ep_predict
+)
 
 
 # %%
@@ -103,7 +105,7 @@ al_ep_predict = partial(
 )
 
 al_ep_y_pred, al_ep_y_var, al_ep_histories, al_ep_models = cross_val_predict(
-    kfold, *Xy, al_ep_predict
+    kfold, X_norm, y_norm, al_ep_predict
 )
 
 
@@ -134,7 +136,7 @@ pd.concat(
     axis=1,
     keys=["aleatoric", "epistemic", "aleatoric + epistemic"],
 ).to_latex(
-    ROOT + "/results/al_vs_ep/do/abs_err_vs_y_std_corr.tex",
+    f"{ROOT}/results/al_vs_ep/do/abs_err_vs_y_std_corr.tex",
     escape=False,
     float_format="%.3g",
     multicolumn_format="c",
@@ -169,7 +171,7 @@ pd.concat(
     axis=1,
     keys=["aleatoric vs epistemic", "aleatoric vs full", "epistemic vs full"],
 ).to_latex(
-    ROOT + "/results/al_vs_ep/do/al_ep_corr.tex",
+    f"{ROOT}/results/al_vs_ep/do/al_ep_corr.tex",
     escape=False,
     float_format="%.3g",
     multicolumn_format="c",

@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 from thermo.utils import ROOT
 
 
-OUT_DIR = ROOT + "/results/screen/dft"
+OUT_DIR = f"{ROOT}/results/screen/dft"
 
 
 # %%

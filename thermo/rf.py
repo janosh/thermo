@@ -27,6 +27,7 @@ class RandomForestRegressor(SklRandomForestRegressor):
     """
 
     def __init__(self, *args: Sequence[Any], **kwargs: Any) -> None:
+        """Initialize a RandomForestRegressor."""
         self.params = {"args": args, **kwargs}
         super().__init__(*args, **kwargs)
 
@@ -89,6 +90,7 @@ class RandomForestRegressor(SklRandomForestRegressor):
             X_test (array-like, shape=(n_samples, n_features)): Input data.
             y_pred (array-like, shape=(n_samples,)): Prediction for each sample
                 as returned by RFR.predict(X_test).
+            uncertainty (str): One of 'aleatoric', 'epistemic' or 'full'.
 
         Returns:
             array-like, shape=(n_samples,): variance of y_pred given X_test.
@@ -172,6 +174,7 @@ def rf_predict(
         y_test (Array, optional): Test targets (unused). Defaults to None.
         uncertainty (str, optional): Which uncertainty types to return. One of
             'aleatoric', 'epistemic' or 'full'. Defaults to "full".
+        kwargs (dict): Passed to RandomForestRegressor.
 
     Returns:
         Tuple[Array, Array, RandomForestRegressor]: Predictions, their corresponding

@@ -11,23 +11,21 @@ def plot_output(y_test, y_pred, y_std=None, **kwargs):
     """Convenience function for generating multiple plots in one go for
     analyzing a model's accuracy and quality of uncertainty estimates.
     """
-    fig1 = plt.gcf()
-    pmv.scatter_with_err_bar(y_test, y_pred, yerr=y_std, **kwargs)
-    plt.show()
+    fig1 = pmv.density_scatter(x=y_test, y=y_pred, **kwargs)
 
     if y_std is None:
         return fig1
 
-    fig2 = plt.gcf()
-    pmv.error_decay_with_uncert(y_test, y_pred, y_std, **kwargs)
-    plt.show()
+    fig2 = pmv.error_decay_with_uncert(y_test, y_pred, y_std, **kwargs)
 
     abs_err = abs(y_test - y_pred)
-    fig3 = plt.gcf()
-    pmv.scatter_with_err_bar(
-        abs_err, y_std, xlabel="Absolute error", ylabel="Model uncertainty", **kwargs
+    fig3 = pmv.density_scatter(
+        x=abs_err,
+        y=y_std,
+        xlabel="Absolute error",
+        ylabel="Model uncertainty",
+        **kwargs,
     )
-    plt.show()
     return fig1, fig2, fig3
 
 
@@ -64,7 +62,10 @@ def nm_to_mn_cols(dfs, keys):
     return mxn_dfs
 
 
-def mse_boxes(mse_dfs, x_axis_labels, title=None):
+def mse_boxes(
+    mse_dfs: list[pd.DataFrame], x_axis_labels: list[str], title: str | None = None
+) -> None:
+    """Plot MSEs of multiple models."""
     # nm_to_mn_cols converts MSEs from being ordered by ML method to
     # being ordered by label (rho, seebeck, ...).
     mse_dfs = nm_to_mn_cols(mse_dfs, x_axis_labels)
@@ -88,8 +89,16 @@ def ci_err_decay(df, n_splits, title=None):
     dfs = []
     for df_i in np.array_split(df, n_splits):
         df_i = df_i.reset_index(drop=True)
-        decay_by_std = pmv.uncertainty.get_std_decay(*df_i.values.T)
-        decay_by_err = pmv.uncertainty.get_err_decay(*df_i.values.T)
+        y_true, y_pred, y_std = df_i.values.T
+        abs_err = np.abs(y_true - y_pred)
+        n_samples = len(abs_err)
+
+        # Calculate decay by uncertainty (std)
+        decay_by_std = abs_err[np.argsort(y_std)].cumsum() / np.arange(1, n_samples + 1)
+
+        # Calculate optimal decay by error
+        decay_by_err = np.sort(abs_err).cumsum() / np.arange(1, n_samples + 1)
+
         df_i["decay_by_std"] = decay_by_std
         df_i["decay_by_err"] = decay_by_err
         dfs += [df_i]

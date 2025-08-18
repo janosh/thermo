@@ -1,19 +1,20 @@
 import os
+from typing import Any
 
 import automatminer as amm
-import matminer as mm
+import matminer.featurizers.composition as cf
 from automatminer import MatPipe  # make MatPipe importable from this file
 
 from thermo.utils.decorators import interruptible
 
 
 try:
-    os.remove(os.getcwd() + "/automatminer.log")  # delete since not needed
+    os.remove(f"{os.getcwd()}/automatminer.log")  # delete since not needed
 except FileNotFoundError:
     pass
 
 featurizers = {
-    "composition": [mm.featurizers.composition.ElementProperty.from_preset("magpie")],
+    "composition": [cf.ElementProperty.from_preset("magpie")],
     "structure": [],
 }
 
@@ -35,10 +36,8 @@ for key in list(tpot_config):
         del tpot_config[key]
 
 
-# pipe_config needs to be a function rather than a dict. Else multiple pipes
-# running concurrently will receive a handle to the same learner (pipe.learner)
-# and overwrite each other's fitting.
-def pipe_config(preset="express", **tpot_kwargs):
+def pipe_config(preset="express", **tpot_kwargs) -> dict[str, Any]:
+    """Return a MatPipe configuration dictionary."""
     tpot_default = {"max_time_mins": 10}  # "config_dict": tpot_config
     tpot_default.update(tpot_kwargs)
     return {
@@ -54,10 +53,11 @@ def pipe_config(preset="express", **tpot_kwargs):
 
 @interruptible
 def fit_pred_pipe(train_df, test_df, target, **kwargs):
+    """Fit a MatPipe and predict on a test set."""
     mat_pipe = MatPipe(**pipe_config(**kwargs))
     mat_pipe.fit(train_df[["T", "composition", target]], target)
     pred_df = mat_pipe.predict(
-        test_df[["T", "composition"]], output_col=target + "_pred"
+        test_df[["T", "composition"]], output_col=f"{target}_pred"
     )
     return mat_pipe, pred_df
 

@@ -27,9 +27,11 @@ head = lambda: nn.Sequential(
 
 
 class MultiTaskMLP(nn.Module):
+    """Multi-task neural network with shared trunk and task-specific heads."""
+
     def __init__(self, n_tasks):
         super().__init__()
-        self.register_buffer("epoch", 0)
+        self.epoch = 0  # type: ignore[unresolved-attribute]
 
         self.trunk = nn.Sequential(
             nn.Linear(146, 50),
@@ -43,6 +45,7 @@ class MultiTaskMLP(nn.Module):
         self.heads = nn.ModuleList(heads)
 
     def forward(self, x):
+        """Forward pass through trunk and task-specific heads."""
         x = self.trunk(x)
         ys = [head(x).squeeze() for head in self.heads]
         return torch.stack(ys).T
@@ -51,10 +54,10 @@ class MultiTaskMLP(nn.Module):
 # target_names = ["rho", "seebeck", "kappa", "zT"]
 # target_names = ["rho", "seebeck", "kappa"]
 target_names = ["kappa"]
-features, targets = load_gaultois(target_names, drop_outliers=True)
-print(f"Sparse samples: {len(targets)}")
-targets, features = dropna(targets, features)
-print(f"Dense samples: {len(targets)}")
+features, df_targets = load_gaultois(target_names, drop_outliers=True)
+print(f"Sparse samples: {len(df_targets)}")
+df_targets, features = dropna(df_targets, features)
+print(f"Dense samples: {len(df_targets)}")
 
 
 # %%
@@ -83,16 +86,16 @@ except FileNotFoundError:
 # %%
 test_mae, test_rmse, test_preds, test_targets = [], [], [], []
 
-for count, (train_idx, test_idx) in enumerate(kfold.split(features, targets)):
+for count, (train_idx, test_idx) in enumerate(kfold.split(features, df_targets)):
     print(f"\n\nfold {count + 1}/{folds}")
     model, optim = models[count], optims[count]
     total_epochs = model.epoch + epochs
 
-    train_set = Normalized(features.iloc[train_idx], targets.iloc[train_idx])
-    test_set = Normalized(features.iloc[test_idx], targets.iloc[test_idx])
+    train_set = Normalized(features.iloc[train_idx], df_targets.iloc[train_idx])
+    test_set = Normalized(features.iloc[test_idx], df_targets.iloc[test_idx])
 
     metrics = ["loss", "MAE", "RMSE", *(f"loss_{col}" for col in short_names)]
-    print("epoch".ljust(10) + "".join(f"{key:<10}" for key in metrics))
+    print(f"{'epoch':<10}{''.join(f'{key:<10}' for key in metrics)}")
     metrics = {key: [] for key in metrics}
 
     for epoch in range(model.epoch, total_epochs):
@@ -107,7 +110,7 @@ for count, (train_idx, test_idx) in enumerate(kfold.split(features, targets)):
 
             metrics["loss"] += [loss]
             if n_tasks > 1:
-                for name, y_hat, y in zip(short_names, preds.T, targets.T):
+                for name, y_hat, y in zip(short_names, preds.T, df_targets.T):
                     metrics[f"loss_{name}"] += [loss_fn(y_hat, y)]
 
             preds = test_set.denorm(preds)
@@ -147,8 +150,8 @@ for count, (train_idx, test_idx) in enumerate(kfold.split(features, targets)):
 
     print(f"\ntest set: avg. MAE = {mae.mean():.3f}, avg. RMSE = {rmse.mean():.3f}")
 
-mae_df = pd.DataFrame(test_mae, columns=target_names).astype(float)
-rmse_df = pd.DataFrame(test_rmse, columns=target_names).astype(float)
+mae_df = pd.DataFrame(test_mae, columns=target_names)
+rmse_df = pd.DataFrame(test_rmse, columns=target_names)
 
 
 # %%
@@ -176,14 +179,14 @@ mean_pm_std = lambda vals: f"{vals.mean():.3g} +/- {vals.std():.3g}"
 std_over_mean = lambda vals: f"(std/mean = {vals.std() / vals.mean():.3g})"
 
 print("\nTest MAE")
-for key, col in mae_df.iteritems():
+for key, col in mae_df.items():
     print(f"{key:<7} = {mean_pm_std(col).ljust(22)} {std_over_mean(col)}")
 
 if n_tasks > 1:
     print(f"{'all':<7} = {mae_df.mean().mean():.3g} +/- {mae_df.std().mean():.3g}")
 
 print("\nTest RMSE")
-for key, col in rmse_df.iteritems():
+for key, col in rmse_df.items():
     print(f"{key:<7} = {mean_pm_std(col).ljust(22)} {std_over_mean(col)}")
 
 if n_tasks > 1:
@@ -193,8 +196,8 @@ if n_tasks > 1:
 dummy_mae = lambda y: (y - y.mean()).abs().mean()
 dummy_rmse = lambda y: (y - y.mean()).pow(2).mean() ** 0.5
 
-print("\nDummy MAE".ljust(25) + "Dummy RMSE")
-for key, col in targets.iteritems():
+print(f"\n{'Dummy MAE':<25}{'Dummy RMSE'}")
+for key, col in df_targets.items():
     print(
         f"{key:<7} = {dummy_mae(col):.3g}".ljust(24)
         + f"{key:<7} = {dummy_rmse(col):.3g}"
@@ -202,8 +205,8 @@ for key, col in targets.iteritems():
 
 if n_tasks > 1:
     print(
-        f"{'all':<7} = {dummy_mae(targets).mean():.3g}".ljust(24)
-        + f"{'all':<7} = {dummy_rmse(targets).mean():.3g}"
+        f"{'all':<7} = {dummy_mae(df_targets).mean():.3g}".ljust(24)
+        + f"{'all':<7} = {dummy_rmse(df_targets).mean():.3g}"
     )
 
 

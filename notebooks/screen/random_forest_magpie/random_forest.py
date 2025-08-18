@@ -149,33 +149,35 @@ color_ax = plt.matshow(zT_corr)
 plt.colorbar(color_ax, fraction=0.047, pad=0.02)
 plt.gcf().set_size_inches(12, 12)
 
-pmv.save_fig(color_ax, "correlation_matrix_rf.pdf", bbox_inches="tight")
+plt.savefig("correlation_matrix_rf.pdf", bbox_inches="tight")
 
 
 # %%
 # the weakly correlated elements contain lots of arsenide which is absent from
 # the gaultois training set while the strongly correlated materials contain
 # zero arsenide (compare these plots with notebooks/data/gaultois_elements.pdf)
-ax = pmv.ptable_heatmap(zT_corr.columns[:190])
-ax.set_title("elements in weakly correlated (blue) part of zT correlation matrix")
-pmv.save_fig(ax, "zT_corr-elements-cols-0-190.pdf")
+fig = pmv.ptable_heatmap_plotly(zT_corr.columns[:190])
+fig.layout.title = "elements in weakly correlated (blue) part of zT correlation matrix"
+pmv.save_fig(fig, "zT_corr-elements-cols-0-190.pdf")
 
-ax = pmv.ptable_heatmap(zT_corr.columns[190:])
-ax.set_title("elements in strongly correlated (yellow) part of zT correlation matrix")
-pmv.save_fig(ax, "zT_corr-elements-cols-190-end.pdf")
+fig = pmv.ptable_heatmap_plotly(zT_corr.columns[190:])
+fig.layout.title = (
+    "elements in strongly correlated (yellow) part of zT correlation matrix"
+)
+pmv.save_fig(fig, "zT_corr-elements-cols-190-end.pdf")
 
 
 # %%
 n_candidates = len(lrhr_candidates)
-ax = pmv.ptable_heatmap(lrhr_candidates.formula)
-ax.set_title(
+fig = pmv.ptable_heatmap_plotly(lrhr_candidates.formula)
+fig.layout.title = (
     f"elemental prevalence among {n_candidates} low-risk high-return candidates"
 )
-pmv.save_fig(ax, "lrhr-ptable-elements.pdf")
+pmv.save_fig(fig, "lrhr-ptable-elements.pdf")
 
-ax = pmv.ptable_heatmap(greedy_candidates.head(n_candidates).formula)
-ax.set_title(f"elemental prevalence among {n_candidates} greedy candidates")
-pmv.save_fig(ax, "greedy-ptable-elements.pdf")
+fig = pmv.ptable_heatmap_plotly(greedy_candidates.head(n_candidates).formula)
+fig.layout.title = f"elemental prevalence among {n_candidates} greedy candidates"
+pmv.save_fig(fig, "greedy-ptable-elements.pdf")
 
 
 # %%
@@ -184,7 +186,7 @@ pmv.save_fig(ax, "greedy-ptable-elements.pdf")
 N = len(zT_corr)
 p = forest.n_estimators
 
-ax = pmv.marchenko_pastur(zT_corr, gamma=p / N)
+ax = pmv.marchenko_pastur(zT_corr, gamma=p / N)  # type: ignore[unresolved-attribute]
 title = (
     "Marchenko-Pastur distribution of the MNF zT correlation matrix\n"
     f"{p = }, {N = }, gamma = p / N = {p / N:.2f}"
@@ -270,8 +272,8 @@ gurobi_candidates = lrhr_candidates.iloc[dec_vals]
 
 
 # %%
-ax = pmv.ptable_heatmap(gurobi_candidates.formula)
-ax.set_title(f"elements in {len(gurobi_candidates)} Gurobi candidates")
+fig = pmv.ptable_heatmap_plotly(gurobi_candidates.formula)
+fig.layout.title = f"elements in {len(gurobi_candidates)} Gurobi candidates"
 pmv.save_fig(ax, "gurobi-ptable-elements.pdf")
 
 
@@ -319,12 +321,12 @@ greedy_obj_val = zT_corr.values.dot(greedy_indices_in_corr_mat).dot(
     greedy_indices_in_corr_mat
 )
 
-avr_rand_obj_val = rand_obj_val_avr(zT_corr, n_select, (n_repeats := 50))
+avr_rand_obj_val = rand_obj_val_avr(zT_corr.to_numpy(), n_select, (n_repeats := 50))
 
 # If len(zT_corr) >> 500, expected_rand_obj_val will take a long time due to cubic
 # scaling. Consider decreasing max_risk or increasing min_ret in
 # filter_low_risk_high_ret to decrease len(zT_corr).
-exp_rand_obj_val = expected_rand_obj_val(zT_corr, n_select)
+exp_rand_obj_val = expected_rand_obj_val(zT_corr.to_numpy(), n_select)
 
 print(
     f"objective values:\n- Gurobi: {grb_model.objVal:.4g}\n"

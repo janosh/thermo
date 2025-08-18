@@ -61,7 +61,7 @@ class TFDropoutModel(tf.keras.Model):
         outputs = tf.keras.layers.Dense(
             1 if uncertainty == "epistemic" else 2, activation="linear"
         )(head)
-        super().__init__(inputs, outputs, name=uncertainty + "_dropout_model")
+        super().__init__(inputs, outputs, name=f"{uncertainty}_dropout_model")
 
         aleatoric_loss = lambda y_true, output: robust_mse(
             y_true, *tf.unstack(output, axis=-1)

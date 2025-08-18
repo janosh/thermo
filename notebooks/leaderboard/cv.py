@@ -31,8 +31,6 @@ log_targets = np.log(targets.drop(columns=["seebeck"]))
 X_norm, [X_mean, X_std] = normalize(features)
 y_norm, [y_mean, y_std] = normalize(log_targets)
 
-Xy = [X_norm, y_norm]
-
 # Shuffling in KFold is important since the materials in Gaultois'
 # database are sorted by family.
 kfold = KFold(n_splits=5, shuffle=True, random_state=0)
@@ -43,7 +41,7 @@ kfold = KFold(n_splits=5, shuffle=True, random_state=0)
 
 
 # %%
-rf_y_pred, rf_y_var, rf_models = cross_val_predict(kfold, *Xy, rf_predict)
+rf_y_pred, rf_y_var, rf_models = cross_val_predict(kfold, X_norm, y_norm, rf_predict)
 
 
 # %%
@@ -83,7 +81,7 @@ map_predictors = [
 
 # %%
 map_y_pred, map_y_var, map_log_probs, map_initial_states = cross_val_predict(
-    kfold, *Xy, map_predictors
+    kfold, X_norm, y_norm, map_predictors
 )
 
 
@@ -96,7 +94,7 @@ pd.concat(
 
 
 # %%
-with open(ROOT + "/results/map_initial_states.pkl", "wb") as file:
+with open(f"{ROOT}/results/map_initial_states.pkl", "wb") as file:
     pickle.dump(map_initial_states, file)
 
 
@@ -123,8 +121,10 @@ for df in rf_out_by_label:
 
 
 # %%
-do_predict = partial(do_predict, uncertainty="aleatoric_epistemic", epochs=500)
-do_y_pred, do_y_var, do_histories, do_models = cross_val_predict(kfold, *Xy, do_predict)
+do_predict_fn = partial(do_predict, uncertainty="aleatoric_epistemic", epochs=500)
+do_y_pred, do_y_var, do_histories, do_models = cross_val_predict(
+    kfold, X_norm, y_norm, do_predict_fn
+)
 
 
 # %%
@@ -155,7 +155,7 @@ for df in rf_out_by_label:
 
 
 # %%
-gp_y_pred, gp_y_var, gp_models = cross_val_predict(kfold, *Xy, gp_predict)
+gp_y_pred, gp_y_var, gp_models = cross_val_predict(kfold, X_norm, y_norm, gp_predict)
 
 
 # %%
@@ -186,7 +186,7 @@ for df in rf_out_by_label:
 
 
 # %%
-# with open(ROOT + "/results/map_initial_states.pkl", "rb") as file:
+# with open(f"{ROOT}/results/map_initial_states.pkl", "rb") as file:
 #     map_initial_states = pickle.load(file)
 
 
@@ -201,12 +201,12 @@ hmc_predictors = [
 
 # %%
 hmc_y_pred, hmc_y_var, hmc_kernel_results = cross_val_predict(
-    kfold, *Xy, hmc_predictors
+    kfold, X_norm, y_norm, hmc_predictors
 )
 
 
 # %%
-with open(ROOT + "/results/hmc_results.pkl", "wb") as file:
+with open(f"{ROOT}/results/hmc_results.pkl", "wb") as file:
     pickle.dump([hmc_y_pred, hmc_y_var, hmc_kernel_results], file)
 
 
@@ -255,12 +255,12 @@ all_results = [
     [gp_y_pred, gp_y_var],
     [hmc_y_pred, hmc_y_var],
 ]
-with open(ROOT + "/results/leaderboard_cv.pkl", "wb") as file:
+with open(f"{ROOT}/results/leaderboard_cv.pkl", "wb") as file:
     pickle.dump(all_results, file)
 
 
 # # %% # Load all numerical results.
-# with open(ROOT + "/results/leaderboard_cv.pkl", "rb") as file:
+# with open(f"{ROOT}/results/leaderboard_cv.pkl", "rb") as file:
 #     all_results = pickle.load(file)
 # [
 #     [rf_mses, rf_ys_scd, rf_ys, rf_y_scalers],

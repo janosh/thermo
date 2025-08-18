@@ -22,7 +22,8 @@ def to_type(df: DataFrame, dtype: str = "float32") -> DataFrame:
 
 
 def load_gaultois(
-    target_cols: Sequence[str] = ("rho", "seebeck", "kappa", "zT"), drop_outliers=False
+    target_cols: Sequence[str] = ("rho", "seebeck", "kappa", "zT"),
+    drop_outliers: bool = False,
 ) -> tuple[DataFrame, DataFrame]:
     """Load Magpie features and targets of the hand-curated
     Gaultois thermoelectrics database.
@@ -34,17 +35,18 @@ def load_gaultois(
     - thermoelectric figure of merit (zT): dimensionless
 
     Args:
-        target_cols (list[str], optional): Which targets to load.
-        Defaults to ("rho", "seebeck", "kappa", "zT").
+        target_cols (list[str]): Which targets to load. Defaults to ("rho", "seebeck",
+            "kappa", "zT").
+        drop_outliers (bool): Whether to drop rows with outliers. Defaults to False.
 
     Returns:
         tuple: 2 dataframes for features and targets
     """
-    features = read_csv(ROOT + "/data/gaultois_magpie_features.csv").drop(
+    features = read_csv(f"{ROOT}/data/gaultois_magpie_features.csv").drop(
         columns=["formula"]
     )
     targets = read_csv(
-        ROOT + "/data/gaultois_targets.csv",
+        f"{ROOT}/data/gaultois_targets.csv",
         header=1,
         na_values="",  # only consider empty string as missing value
         keep_default_na=False,  # no longer consider NaN as missing
@@ -65,10 +67,10 @@ def load_screen() -> tuple[DataFrame, DataFrame]:
     are formula, database ID and MagPie features for over 80,000 compositions pulled
     from COD and ICSD.
     """
-    features = read_csv(ROOT + "/data/screen_set_magpie_features.csv")
+    features = read_csv(f"{ROOT}/data/screen_set_magpie_features.csv")
     # na_filter=False prevents sodium amide (NaN) from being parsed as 'not a number'
     formulas = read_csv(
-        ROOT + "/data/screen_formulas.csv",
+        f"{ROOT}/data/screen_formulas.csv",
         comment="#",
         na_values="",  # only consider empty string as missing value
         keep_default_na=False,  # no longer consider NaN as missing
