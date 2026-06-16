@@ -1,3 +1,5 @@
+"""Automatminer featurization and pipeline helpers."""
+
 import os
 from typing import Any
 
@@ -36,7 +38,7 @@ for key in list(tpot_config):
         del tpot_config[key]
 
 
-def pipe_config(preset="express", **tpot_kwargs) -> dict[str, Any]:
+def pipe_config(preset="express", **tpot_kwargs: Any) -> dict[str, Any]:
     """Return a MatPipe configuration dictionary."""
     tpot_default = {"max_time_mins": 10}  # "config_dict": tpot_config
     tpot_default.update(tpot_kwargs)
@@ -52,7 +54,7 @@ def pipe_config(preset="express", **tpot_kwargs) -> dict[str, Any]:
 
 
 @interruptible
-def fit_pred_pipe(train_df, test_df, target, **kwargs):
+def fit_pred_pipe(train_df, test_df, target, **kwargs: Any) -> tuple:
     """Fit a MatPipe and predict on a test set."""
     mat_pipe = MatPipe(**pipe_config(**kwargs))
     mat_pipe.fit(train_df[["T", "composition", target]], target)
@@ -62,7 +64,7 @@ def fit_pred_pipe(train_df, test_df, target, **kwargs):
     return mat_pipe, pred_df
 
 
-def featurize(pipe, df_in):
+def featurize(pipe, df_in) -> Any:
     """Use a fitted MatPipe, specifically its autofeaturizer, cleaner and
     reducer components, to featurize a dataframe. Can be used in combination
     with custom models that don't fit into the Automatminer API like

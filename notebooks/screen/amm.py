@@ -1,3 +1,5 @@
+"""Screen candidate materials for high zT using an Automatminer pipeline."""
+
 # %%
 import os
 
@@ -17,8 +19,8 @@ _, train_df = load_gaultois(target_cols=["T", "formula", "zT"])
 
 screen_df, _ = load_screen()
 
-for df_data in (train_df, screen_df):
-    df_data = df_data.rename(columns={"formula": "composition"})
+train_df = train_df.rename(columns={"formula": "composition"})
+screen_df = screen_df.rename(columns={"formula": "composition"})
 
 
 # %% Form Cartesian product between screen features and the 4 temperatures ([300, 400,

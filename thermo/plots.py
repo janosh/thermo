@@ -1,3 +1,7 @@
+"""Plotting utilities for model accuracy and uncertainty diagnostics."""
+
+from typing import Any
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -7,7 +11,7 @@ from matplotlib.offsetbox import AnchoredText
 from scipy.stats import pearsonr
 
 
-def plot_output(y_test, y_pred, y_std=None, **kwargs):
+def plot_output(y_test, y_pred, y_std=None, **kwargs: Any) -> Any:
     """Convenience function for generating multiple plots in one go for
     analyzing a model's accuracy and quality of uncertainty estimates.
     """
@@ -29,7 +33,7 @@ def plot_output(y_test, y_pred, y_std=None, **kwargs):
     return fig1, fig2, fig3
 
 
-def dfs_have_same_col_names(dfs, sort=False):
+def dfs_have_same_col_names(dfs, *, sort=False) -> np.bool_:
     """Returns True when a list of dataframes have the same column names
     in the same order. Pass sort=True if order doesn't matter.
 
@@ -43,7 +47,7 @@ def dfs_have_same_col_names(dfs, sort=False):
     return np.all([list(dfs[0].columns) == list(i.columns) for i in dfs])
 
 
-def nm_to_mn_cols(dfs, keys):
+def nm_to_mn_cols(dfs, keys) -> list[pd.DataFrame]:
     """Creates m n-column dataframes from n m-column dataframes.
     Adapted from https://stackoverflow.com/a/57339017.
 
@@ -53,7 +57,7 @@ def nm_to_mn_cols(dfs, keys):
     """
     assert dfs_have_same_col_names(dfs), "Unequal column names in passed dataframes."
 
-    df_concat = pd.concat(dfs, keys=keys).unstack(0)
+    df_concat = pd.concat(dfs, keys=keys).unstack(0)  # noqa: PD010  # reshape, not aggregation
     mxn_dfs = [df_concat.xs(i, axis=1, level=0) for i in df_concat.columns.levels[0]]
 
     for i, df in enumerate(mxn_dfs):
@@ -77,19 +81,19 @@ def mse_boxes(
             *rgb, _alpha = patch.get_facecolor()
             patch.set_facecolor((*rgb, 0.8))
 
-        plt.title(title)
+        plt.title(title or "")
         plt.xlabel("model")
         plt.ylabel("$\\epsilon_\\mathrm{mse}$")
 
         plt.show()
 
 
-def ci_err_decay(df, n_splits, title=None):
+def ci_err_decay(df, n_splits, title=None) -> None:
     """Error decay curves with 0.95 confidence intervals."""
     dfs = []
-    for df_i in np.array_split(df, n_splits):
-        df_i = df_i.reset_index(drop=True)
-        y_true, y_pred, y_std = df_i.values.T
+    for idx_chunk in np.array_split(np.arange(len(df)), n_splits):
+        df_split = df.iloc[idx_chunk].reset_index(drop=True)
+        y_true, y_pred, y_std = df_split.to_numpy().T
         abs_err = np.abs(y_true - y_pred)
         n_samples = len(abs_err)
 
@@ -99,9 +103,9 @@ def ci_err_decay(df, n_splits, title=None):
         # Calculate optimal decay by error
         decay_by_err = np.sort(abs_err).cumsum() / np.arange(1, n_samples + 1)
 
-        df_i["decay_by_std"] = decay_by_std
-        df_i["decay_by_err"] = decay_by_err
-        dfs += [df_i]
+        df_split["decay_by_std"] = decay_by_std
+        df_split["decay_by_err"] = decay_by_err
+        dfs += [df_split]
 
     df = pd.concat(dfs)
 
@@ -118,6 +122,6 @@ def ci_err_decay(df, n_splits, title=None):
     plt.gca().add_artist(text_box)
 
     plt.gca().invert_xaxis()
-    plt.title(title)
+    plt.title(title or "")
 
     plt.show()

@@ -221,7 +221,7 @@ print(evals[evals > max_theoretical_eval])
 # absolute value (rather than squaring) and then summing gives similar results.
 least_total_corr_candidates = lrhr_candidates.copy(deep=True)
 
-least_total_corr_candidates["rough_correlation"] = (zT_corr**2).sum().values
+least_total_corr_candidates["rough_correlation"] = (zT_corr**2).sum().to_numpy()
 
 least_total_corr_candidates = (
     least_total_corr_candidates.reset_index()
@@ -281,6 +281,7 @@ pmv.save_fig(ax, "gurobi-ptable-elements.pdf")
 for name, df in zip(
     ["gurobi_candidates", "least_total_corr_candidates"],
     [gurobi_candidates, least_total_corr_candidates.iloc[:n_select]],
+    strict=True,
 ):
     df.sort_values(["formula", "T"]).reset_index().to_latex(
         f"{name}.tex",
@@ -317,7 +318,7 @@ print(
 greedy_indices_in_corr_mat = lrhr_candidates.index.isin(
     least_total_corr_candidates.orig_index[:n_select]
 )
-greedy_obj_val = zT_corr.values.dot(greedy_indices_in_corr_mat).dot(
+greedy_obj_val = zT_corr.to_numpy().dot(greedy_indices_in_corr_mat).dot(
     greedy_indices_in_corr_mat
 )
 
@@ -348,7 +349,7 @@ dft_seebeck = pd.read_csv("dft/gurobi_seebeck.csv")[
 
 # %%
 rf_seebeck = (
-    screen_features[["formula", "seebeck_abs_pred", "T"]]
+    screen_features[["formula", "seebeck_abs_pred", "T"]]  # noqa: PD010  # unique keys, no aggregation
     .loc[screen_features.formula.isin(dft_seebeck.index)]
     .pivot(index="formula", columns="T", values="seebeck_abs_pred")
 ) * 1e6  # conversion from SI to common units (V/K -> uV/K)

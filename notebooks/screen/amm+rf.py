@@ -1,3 +1,5 @@
+"""Screen candidate materials for high zT using Automatminer and random forest."""
+
 # %%
 import os
 
@@ -23,8 +25,8 @@ os.makedirs(OUT_DIR, exist_ok=True)
 magpie_features, gaultois_df = load_gaultois(target_cols=["formula", "zT", "T"])
 screen_df, _ = load_screen()
 
-for df_data in [gaultois_df, screen_df]:
-    df_data = df_data.rename(columns={"formula": "composition"})
+gaultois_df = gaultois_df.rename(columns={"formula": "composition"})
+screen_df = screen_df.rename(columns={"formula": "composition"})
 
 
 # %% Form Cartesian product between screen features and the 4 temperatures ([300, 400,
@@ -192,7 +194,7 @@ plt.scatter(zT_corr_evecs[0], zT_corr_evecs[1])
 # absolute value (rather than squaring) and then summing gives similar results.
 greedy_candidates = lrhr_candidates.copy(deep=True)
 
-greedy_candidates["rough_correlation"] = (zT_corr**2).sum().values
+greedy_candidates["rough_correlation"] = (zT_corr**2).sum().to_numpy()
 
 greedy_candidates = (
     greedy_candidates.reset_index()
@@ -256,10 +258,11 @@ greedy_candidates = pd.read_csv(f"{OUT_DIR}/greedy_candidates.csv", index_col=0)
 for name, df_cand in zip(
     ["gurobi_candidates", "greedy_candidates"],
     [gurobi_candidates, greedy_candidates.iloc[:20]],
+    strict=True,
 ):
-    df_cand.sort_values(["formula", "T"]).to_latex(
+    df_cand.sort_values(["composition", "T"]).to_latex(
         f"{OUT_DIR}{name}.tex",
-        columns=["formula", "database", "id", "T", "zT_pred", "zT_var"],
+        columns=["composition", "database", "id", "T", "zT_pred", "zT_var"],
         float_format="%.3g",
         index=False,
     )
@@ -289,7 +292,7 @@ print(
 greedy_indices_in_corr_mat = lrhr_candidates.index.isin(
     greedy_candidates.orig_index[:n_select]
 )
-greedy_obj_val = zT_corr.values.dot(greedy_indices_in_corr_mat).dot(
+greedy_obj_val = zT_corr.to_numpy().dot(greedy_indices_in_corr_mat).dot(
     greedy_indices_in_corr_mat
 )
 

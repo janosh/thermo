@@ -57,7 +57,7 @@ x_labels = [
     "Figure of Merit",
 ]
 axs = targets.hist(bins=50, figsize=[15, 3], layout=[1, 4])
-for ax, name in zip(axs.ravel(), x_labels):
+for ax, name in zip(axs.ravel(), x_labels, strict=True):
     ax.set_xlabel(name)
 
 pmv.save_fig(ax, "4_targets_hist.pdf", bbox_inches="tight")

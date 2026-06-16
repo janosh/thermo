@@ -1,3 +1,5 @@
+"""Train an ensemble of multi-task neural networks on the Gaultois targets."""
+
 # %%
 import torch
 from torch import nn
@@ -17,9 +19,12 @@ head = lambda: nn.Sequential(
 
 
 class MultiTaskMLP(nn.Module):
+    """Multi-task neural network with shared trunk and task-specific heads."""
+
     epoch: int
 
-    def __init__(self, n_tasks):
+    def __init__(self, n_tasks) -> None:
+        """Build a shared trunk and one regression head per task."""
         super().__init__()
         self.epoch = 0  # type: ignore[unresolved-attribute]
 
@@ -33,7 +38,8 @@ class MultiTaskMLP(nn.Module):
         )
         self.heads = nn.ModuleList([head() for _ in range(n_tasks)])
 
-    def forward(self, x):
+    def forward(self, x) -> torch.Tensor:
+        """Run inputs through the shared trunk and stack each head's output."""
         x = self.trunk(x)
         ys = [head(x).squeeze() for head in self.heads]
         return torch.stack(ys).T
@@ -74,7 +80,7 @@ test_targets = train_set.denorm(test_set.y)
 # %%
 test_mae, test_rmse, test_preds = [], [], []
 
-for model, optim, count in zip(models, optims, range(n_models)):
+for model, optim, count in zip(models, optims, range(n_models), strict=True):
     print(f"\n\nmodel {count + 1}/{n_models}")
     total_epochs = model.epoch + epochs
 
@@ -94,16 +100,16 @@ for model, optim, count in zip(models, optims, range(n_models)):
 
             metrics["loss"] += [loss]
             if n_tasks > 1:
-                for name, y_hat, y in zip(short_names, preds.T, targets.T):
+                for name, y_hat, y in zip(short_names, preds.T, targets.T, strict=True):
                     metrics[f"loss_{name}"] += [loss_fn(y_hat, y)]
 
-            preds = train_set.denorm(preds)
-            targets = train_set.denorm(targets)
+            preds_denorm = train_set.denorm(preds)
+            targets_denorm = train_set.denorm(targets)
 
-            MAE = (preds - targets).abs().mean()
+            MAE = (preds_denorm - targets_denorm).abs().mean()
             metrics["MAE"] += [MAE]
 
-            RMSE = (preds - targets).pow(2).mean().sqrt()
+            RMSE = (preds_denorm - targets_denorm).pow(2).mean().sqrt()
             metrics["RMSE"] += [RMSE]
 
         if epoch % report_every == 0:

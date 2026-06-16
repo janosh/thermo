@@ -1,16 +1,21 @@
+"""Hamiltonian Monte Carlo sampling and prediction for BNNs."""
+
+from typing import Any
+
 import tensorflow as tf
 import tensorflow_probability as tfp
 
 from thermo.bnn import build_net, chunks, target_log_prob_fn_factory
 
 
-def pre_train_nn(X_train, y_train, nodes_per_layer, epochs=100):
+def pre_train_nn(x_train, y_train, nodes_per_layer, epochs=100) -> tuple:
     """Pre-train NN to get good starting point for HMC.
 
     Args:
-        nodes_per_layer (list): the number of nodes in each dense layer
-        X_train (Tensor or np.array): training samples
+        x_train (Tensor or np.array): training samples
         y_train (Tensor or np.array): training targets
+        nodes_per_layer (list): the number of nodes in each dense layer
+        epochs (int): number of training epochs. Defaults to 100.
 
     Returns:
         Tensor: list of arrays specifying the weights of the trained network
@@ -21,11 +26,11 @@ def pre_train_nn(X_train, y_train, nodes_per_layer, epochs=100):
     model = tf.keras.Sequential(layers)
 
     model.compile(loss="mse", optimizer="adam")
-    model.fit(X_train, y_train, epochs=epochs, verbose=0)
+    model.fit(x_train, y_train, epochs=epochs, verbose=0)
     return model.get_weights(), model
 
 
-def trace_fn(current_state, kernel_results, summary_freq=10, callbacks=()):
+def trace_fn(current_state, kernel_results, summary_freq=10, callbacks=()) -> tuple:
     """Can be passed to the HMC kernel to obtain a trace of intermediate
     kernel results and histograms of the network parameters in Tensorboard.
     """
@@ -39,7 +44,7 @@ def trace_fn(current_state, kernel_results, summary_freq=10, callbacks=()):
 
 
 @tf.function(experimental_compile=True)
-def sample_chain(*args, **kwargs):
+def sample_chain(*args: Any, **kwargs: Any) -> Any:
     """Compile static graph for sample_chain to improve performance."""
     return tfp.mcmc.sample_chain(*args, **kwargs)
 
@@ -55,13 +60,28 @@ def run_hmc(
     log_dir="logs/hmc/",
     sampler="nuts",
     step_size_adapter="dual_averaging",
-    **kwargs,
-):
+    **kwargs: Any,
+) -> tuple:
     """Use adaptive HMC to generate a Markov chain of length num_results.
 
     Args:
-        target_log_prob_fn {callable}: Determines the stationary distribution
-        the Markov chain should converge to.
+        target_log_prob_fn (callable): Determines the stationary distribution
+            the Markov chain should converge to.
+        step_size (float): Initial leapfrog step size. Defaults to 0.01.
+        num_leapfrog_steps (int): Number of leapfrog steps per HMC proposal
+            (only used by the "hmc" sampler). Defaults to 10.
+        num_burn_in_steps (int): Number of warm-up steps used for step size
+            adaptation and discarded from the chain. Defaults to 1000.
+        num_results (int): Number of samples to keep after burn-in. Defaults to 1000.
+        current_state (list, optional): Initial parameter state to start sampling
+            from. Required unless resume is given.
+        resume (tuple, optional): Previous (chain, trace, kernel_results) to
+            continue sampling from. Required unless current_state is given.
+        log_dir (str): Directory for TensorBoard summaries. Defaults to "logs/hmc/".
+        sampler (str): Either "nuts" or "hmc". Defaults to "nuts".
+        step_size_adapter (str): Either "simple" or "dual_averaging". Defaults to
+            "dual_averaging".
+        **kwargs: Additional keyword arguments forwarded to sample_chain.
 
     Returns:
         burn_in(s): Discarded samples generated during warm-up
@@ -128,22 +148,21 @@ def run_hmc(
     if resume:
         chain = nest_concat(prev_chain, chain)
         trace = nest_concat(prev_trace, trace)
-    burn_in, samples = zip(*((t[:-num_results], t[-num_results:]) for t in chain))
+    burn_in, samples = zip(
+        *((t[:-num_results], t[-num_results:]) for t in chain), strict=True
+    )
     return burn_in, samples, trace, final_kernel_results
 
 
-def predict_from_chain(chain, X_test, uncertainty="aleatoric_epistemic"):
+def predict_from_chain(chain, x_test, uncertainty="aleatoric_epistemic") -> tuple:
     """Takes a Markov chain of NN configurations and does the actual
-    prediction on a test set X_test including aleatoric and optionally
+    prediction on a test set x_test including aleatoric and optionally
     epistemic uncertainty estimation.
     """
-    err = f"unrecognized uncertainty type: {uncertainty}"
-    assert uncertainty in ["aleatoric", "aleatoric_epistemic"], err
-
     if uncertainty == "aleatoric":
         post_params = [tf.reduce_mean(t, axis=0) for t in chain]
         post_model = build_net(post_params)
-        y_pred, y_var = post_model(X_test, training=False)
+        y_pred, y_var = post_model(x_test, training=False)
 
         return y_pred.numpy(), y_var.numpy()
 
@@ -152,9 +171,9 @@ def predict_from_chain(chain, X_test, uncertainty="aleatoric_epistemic"):
             [tensor[i] for tensor in chain] for i in range(len(chain[0]))
         ]
 
-        def predict(params):
+        def predict(params) -> tuple[tf.Tensor, tf.Tensor]:
             post_model = build_net(params)
-            y_pred, y_var = post_model(X_test, training=False)
+            y_pred, y_var = post_model(x_test, training=False)
             return y_pred, y_var
 
         preds = [predict(chunks(params, 2)) for params in restructured_chain]
@@ -163,18 +182,26 @@ def predict_from_chain(chain, X_test, uncertainty="aleatoric_epistemic"):
         y_var_aleat = tf.reduce_mean(y_var_mc_samples, axis=0)
         y_var_tot = y_var_epist + y_var_aleat
         return y_pred, y_var_tot
-    return None
+
+    raise ValueError(f"unrecognized uncertainty type: {uncertainty}")
 
 
 def hmc_predict(
-    weight_prior, bias_prior, init_state, X_train, y_train, X_test, y_test=None, **kwds
-):
+    weight_prior,
+    bias_prior,
+    init_state,
+    x_train,
+    y_train,
+    x_test,
+    _y_test=None,
+    **kwds: Any,
+) -> tuple:
     """Top-level function that ties together run_hmc and predict_from_chain by accepting
     a train and test set plus parameter priors to construct the BNN's log probability
-    function given the training data X_train, y_train.
+    function given the training data x_train, y_train.
     """
     bnn_log_prob_fn = target_log_prob_fn_factory(
-        weight_prior, bias_prior, X_train, y_train
+        weight_prior, bias_prior, x_train, y_train
     )
     # Flatten init_state since TFP's sample_chain can't handle sublists.
     init_state = [i for sublist in init_state for i in sublist]
@@ -182,33 +209,35 @@ def hmc_predict(
         bnn_log_prob_fn, current_state=init_state, **kwds
     )
 
-    y_pred, y_var = predict_from_chain(samples, X_test)
+    y_pred, y_var = predict_from_chain(samples, x_test)
     return y_pred.numpy(), y_var.numpy(), final_kernel_results
 
 
-def nest_concat(*args, axis=0):
+def nest_concat(*args: Any, axis=0) -> Any:
     """Utility function for concatenating a new Markov chain or trace with
     older ones when resuming a previous calculation.
     """
     return tf.nest.map_structure(lambda *parts: tf.concat(parts, axis=axis), *args)
 
 
-def ess(chains, **kwargs):
+def ess(chains, **kwargs: Any) -> Any:
     """Estimate effective sample size of Markov chain(s).
 
-    Arguments:
-        chains {Tensor or list of Tensors}: If list, first
+    Args:
+        chains (Tensor or list of Tensors): If list, first
             dimension should index identically distributed states.
+        **kwargs: Additional keyword arguments forwarded to
+            tfp.mcmc.effective_sample_size.
     """
     return tfp.mcmc.effective_sample_size(chains, **kwargs)
 
 
-def r_hat(tensors):
-    """TFP docs: http://tiny.cc/5bq6tz."""
+def r_hat(tensors) -> list:
+    """TFP docs https://www.tensorflow.org/probability."""
     return [tfp.mcmc.diagnostic.potential_scale_reduction(t) for t in tensors]
 
 
-def count_chains(target_log_prob_fn, current_state):
+def count_chains(target_log_prob_fn, current_state) -> Any:
     """Check how many chains your kernel thinks it's dealing
     with. Can help with debugging.
     """

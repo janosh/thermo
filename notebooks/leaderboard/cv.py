@@ -54,7 +54,11 @@ pd.concat(
 
 # %%
 for label, y_test, y_pred, y_std in zip(
-    targets.columns, y_norm.values.T, rf_y_pred.values.T, rf_y_var.values.T**0.5
+    y_norm.columns,
+    y_norm.to_numpy().T,
+    rf_y_pred.to_numpy().T,
+    rf_y_var.to_numpy().T**0.5,
+    strict=True,
 ):
     plot_output(y_test, y_pred, y_std, title=label)
 
@@ -75,7 +79,8 @@ for df in rf_out_by_label:
 weight_priors = [tfp.distributions.Normal(0, std) for std in [0.1, 0.1, 0.1, 0.1]]
 bias_priors = [tfp.distributions.Normal(0, std) for std in [0.1, 1.0, 1.0, 1.0]]
 map_predictors = [
-    partial(map_predict, *priors) for priors in zip(weight_priors, bias_priors)
+    partial(map_predict, *priors)
+    for priors in zip(weight_priors, bias_priors, strict=True)
 ]
 
 
@@ -100,10 +105,11 @@ with open(f"{ROOT}/results/map_initial_states.pkl", "wb") as file:
 
 # %%
 for label, y_test, y_pred, y_std in zip(
-    targets.columns,
-    y_norm.values.T,
-    map_y_pred.values.T,
-    map_y_var.values.T**0.5,
+    y_norm.columns,
+    y_norm.to_numpy().T,
+    map_y_pred.to_numpy().T,
+    map_y_var.to_numpy().T**0.5,
+    strict=True,
 ):
     plot_output(y_test, y_pred, y_std, title=label)
 
@@ -137,7 +143,11 @@ pd.concat(
 
 # %%
 for label, y_test, y_pred, y_std in zip(
-    targets.columns, y_norm.values.T, do_y_pred.values.T, do_y_var.values.T**0.5
+    y_norm.columns,
+    y_norm.to_numpy().T,
+    do_y_pred.to_numpy().T,
+    do_y_var.to_numpy().T**0.5,
+    strict=True,
 ):
     plot_output(y_test, y_pred, y_std, title=label)
 
@@ -168,7 +178,11 @@ pd.concat(
 
 # %%
 for label, y_test, y_pred, y_std in zip(
-    targets.columns, y_norm.values.T, gp_y_pred.values.T, gp_y_var.values.T**0.5
+    y_norm.columns,
+    y_norm.to_numpy().T,
+    gp_y_pred.to_numpy().T,
+    gp_y_var.to_numpy().T**0.5,
+    strict=True,
 ):
     plot_output(y_test, y_pred, y_std, title=label)
 
@@ -194,7 +208,7 @@ for df in rf_out_by_label:
 hmc_predictors = [
     partial(hmc_predict, *priors, list(init_state))
     for *priors, init_state in zip(
-        weight_priors, bias_priors, map_initial_states[-1].values.T
+        weight_priors, bias_priors, map_initial_states[-1].to_numpy().T, strict=True
     )
 ]
 
@@ -220,10 +234,11 @@ pd.concat(
 
 # %%
 for label, y_test, y_pred, y_std in zip(
-    targets.columns,
-    y_norm.values.T,
-    hmc_y_pred.values.T,
-    hmc_y_var.values.T**0.5,
+    y_norm.columns,
+    y_norm.to_numpy().T,
+    hmc_y_pred.to_numpy().T,
+    hmc_y_var.to_numpy().T**0.5,
+    strict=True,
 ):
     plot_output(y_test, y_pred, y_std, title=label)
 

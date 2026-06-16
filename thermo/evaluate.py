@@ -1,52 +1,57 @@
+"""Error metrics and thermoelectric figure-of-merit computations."""
+
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
 from pandas import Series
 
 
-def mse(arr1, arr2, axis=0):
-    return np.square(arr1 - arr2).mean(axis)
+# scalar for 1d inputs, NDArray/Series/DataFrame for 2d inputs
+FloatArray = float | NDArray[np.floating] | Series | pd.DataFrame
 
 
-def rmse(arr1, arr2, axis=0):
-    return np.sqrt(mse(arr1, arr2, axis))
+def rmse(arr1, arr2, axis=0) -> FloatArray:
+    """Root mean squared error between arr1 and arr2 along the given axis."""
+    return np.sqrt(np.square(arr1 - arr2).mean(axis))
 
 
-def mae(arr1, arr2, axis=0):
+def mae(arr1, arr2, axis=0) -> FloatArray:
+    """Mean absolute error between arr1 and arr2 along the given axis."""
     return abs(arr1 - arr2).mean(axis)
 
 
-def compute_zT(rho, seebeck, kappa, temperature):
+def compute_zT(rho, seebeck, kappa, temperature) -> FloatArray:  # noqa: N802
     """Returns the thermoelectric figure of merit.
     Note: All inputs should have SI units.
     """
     return seebeck**2 * temperature / (rho * kappa)
 
 
-def compute_log_zT(log_rho, log_seebeck, log_kappa, log_temperature):
+def compute_log_zT(log_rho, log_seebeck, log_kappa, log_temperature) -> FloatArray:  # noqa: N802
     """Returns the log of the thermoelectric figure of merit."""
     return 2 * log_seebeck + log_temperature - log_rho - log_kappa
 
 
-def compute_log_zT_var(log_rho_var, log_seebeck_sqr_var, log_kappa_var):
+def compute_log_zT_var(log_rho_var, log_seebeck_sqr_var, log_kappa_var) -> FloatArray:  # noqa: N802
     """Compute the variance of the logarithmic thermoelectric figure
     of merit zT.
     """
     return log_rho_var + log_seebeck_sqr_var + log_kappa_var
 
 
-def df_corr(df1, df2, methods=("pearson", "spearman")):
+def df_corr(df1, df2, methods=("pearson", "spearman")) -> pd.DataFrame:
     """Compute the correlation between two dataframes with different methods."""
     return pd.DataFrame([df1.corrwith(df2, method=m) for m in methods], index=methods)
 
 
-def denorm(mean, std, y_pred, y_var):
+def denorm(mean, std, y_pred, y_var) -> tuple[FloatArray, FloatArray]:
     """Denormalize predictions and variances."""
     y_pred = y_pred * std + mean
     y_var = std**2 * y_var
     return y_pred, y_var
 
 
-def unlog_preds(y_log_pred, y_log_var):
+def unlog_preds(y_log_pred, y_log_var) -> tuple[FloatArray, FloatArray]:
     """Unlog predictions and variances."""
     y_pred = np.exp(y_log_pred)
     # See side panel of https://wikipedia.org/wiki/Log-normal_distribution

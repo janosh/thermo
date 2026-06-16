@@ -1,19 +1,27 @@
+"""Decorators for timing, graceful interruption and output squeezing."""
+
+from collections.abc import Callable
 from functools import wraps
 from time import perf_counter
-from typing import Callable
+from typing import Any, TypeVar
 
 
-def interruptible(orig_func: Callable | None = None, handler: Callable | None = None):
+R = TypeVar("R")
+
+
+def interruptible(
+    orig_func: Callable | None = None, handler: Callable | None = None
+) -> Callable:
     """Allows to gracefully abort calls to the decorated function with ctrl + c."""
 
-    def wrapper(func: Callable):
+    def wrapper(func: Callable[..., R]) -> Callable[..., R]:
         @wraps(func)
-        def wrapped_function(*args, **kwargs):
+        def wrapped_function(*args: Any, **kwargs: Any) -> R:
             try:
                 return func(*args, **kwargs)
             except KeyboardInterrupt:
                 handler() if handler else print(
-                    f"\nDetected KeyboardInterrupt: Aborting call to {func.__name__}"  # type: ignore[unresolved-attribute]
+                    f"\nDetected KeyboardInterrupt: Aborting call to {func.__name__}"  # ty: ignore[unresolved-attribute]
                 )
                 raise
 
@@ -25,14 +33,14 @@ def interruptible(orig_func: Callable | None = None, handler: Callable | None = 
     return wrapper
 
 
-def timed(func: Callable) -> Callable:
+def timed(func: Callable[..., R]) -> Callable[..., R]:
     """Measures execution time of decorated functions."""
 
     @wraps(func)
-    def timed_func(*args, **kwargs):
+    def timed_func(*args: Any, **kwargs: Any) -> R:
         start = perf_counter()
         result = func(*args, **kwargs)
-        print(f"{func.__name__} took {perf_counter() - start:.3g} sec")  # type: ignore[unresolved-attribute]
+        print(f"{func.__name__} took {perf_counter() - start:.3g} sec")  # ty: ignore[unresolved-attribute]
         return result
 
     return timed_func
@@ -43,7 +51,7 @@ def squeeze(func: Callable) -> Callable:
     is_iter = lambda x: isinstance(x, (list, tuple))
 
     @wraps(func)
-    def squeezed_func(*args, **kwargs):
+    def squeezed_func(*args: Any, **kwargs: Any) -> object:
         result = func(*args, **kwargs)
 
         if is_iter(result):

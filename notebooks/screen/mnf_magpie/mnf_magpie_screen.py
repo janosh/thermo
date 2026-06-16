@@ -4,6 +4,7 @@ for viable thermoelectrics.
 
 # %%
 import os
+from collections.abc import Callable
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -77,8 +78,10 @@ optimizer = tf.optimizers.Adam()
 
 
 # %%
-def loss_factory(model):
-    def loss_fn(y_true, y_pred):
+def loss_factory(model) -> Callable:
+    """Build a loss combining MSE with the model's reweighted KL divergence."""
+
+    def loss_fn(y_true, y_pred) -> tf.Tensor:
         mse = tf.metrics.mse(y_true, y_pred)
         # KL div is reweighted such that it's applied once per epoch
         kl_loss = model.kl_div() / len(X_train) * 1e-3
@@ -115,7 +118,7 @@ pd.DataFrame(train_hist.history).plot(
 
 # %%
 n_preds = 500
-mnf_preds = mnf_model(X_test.values.repeat(n_preds, axis=0))
+mnf_preds = mnf_model(X_test.to_numpy().repeat(n_preds, axis=0))
 mnf_preds = mnf_preds.numpy().reshape(-1, n_preds).T
 
 
@@ -202,7 +205,7 @@ _, axs = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(12, 4))
 plt.subplots_adjust(wspace=0.1)
 
 for ax, cmap, (temp, group) in zip(
-    axs, ["Blues", "Reds"], candidates.reset_index().groupby("T")
+    axs, ["Blues", "Reds"], candidates.reset_index().groupby("T"), strict=True
 ):
     pmv.density_scatter(
         x=group.zT_std.values,

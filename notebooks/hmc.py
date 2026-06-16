@@ -36,7 +36,8 @@ data_sets = [X_train, y_train, X_test, y_test]
 weight_priors = [tfp.distributions.Normal(0, std) for std in [0.1, 0.1, 0.1, 0.1]]
 bias_priors = [tfp.distributions.Normal(0, std) for std in [0.1, 1.0, 1.0, 1.0]]
 map_predictors = [
-    partial(map_predict, *priors) for priors in zip(weight_priors, bias_priors)
+    partial(map_predict, *priors)
+    for priors in zip(weight_priors, bias_priors, strict=True)
 ]
 
 
@@ -72,7 +73,7 @@ y_pred, y_var = predict_from_chain(samples, X_test.values)
 hmc_predictors = [
     partial(hmc_predict, *priors, list(init_state))
     for *priors, init_state in zip(
-        weight_priors, bias_priors, map_initial_states.values.T
+        weight_priors, bias_priors, map_initial_states.values.T, strict=True
     )
 ]
 

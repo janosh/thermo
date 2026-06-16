@@ -8,7 +8,9 @@ from matminer.featurizers.conversions import StrToComposition
 from thermo.utils import ROOT
 
 
-def featurize_with_magpy(df, input_col_name="formula", retain_cols=("T",)):
+def featurize_with_magpy(
+    df, input_col_name="formula", retain_cols=("T",)
+) -> pd.DataFrame:
     """Featurize a dataframe with Magpie features."""
     # Convert the formula string into a composition object to be used by matminer.
     str_to_comp = StrToComposition(target_col_id="composition_obj")
@@ -34,7 +36,7 @@ def featurize_with_magpy(df, input_col_name="formula", retain_cols=("T",)):
     return features[feature_columns]
 
 
-def generate_gaultois_features():
+def generate_gaultois_features() -> None:
     """Generate Magpie features for the Gaultois database."""
     gaultois_targets = pd.read_csv(f"{ROOT}/data/gaultois_targets.csv", comment="#")
     gaultois_features = featurize_with_magpy(gaultois_targets)
@@ -43,7 +45,7 @@ def generate_gaultois_features():
     )
 
 
-def generate_screen_features():
+def generate_screen_features() -> None:
     """Generate Magpie features for the screen set."""
     screen_formulas = pd.read_csv(f"{ROOT}/data/screen_formulas.csv", comment="#")
     screen_features = featurize_with_magpy(screen_formulas, retain_cols=[])

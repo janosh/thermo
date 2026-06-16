@@ -1,3 +1,5 @@
+"""Compare Automatminer and Magpie features for zT prediction."""
+
 # %%
 import os
 
@@ -18,7 +20,8 @@ os.makedirs(SAVE_TO, exist_ok=True)
 r_pearson = lambda *args: pearsonr(*args)[0]
 
 
-def print_err(true, pred):
+def print_err(true, pred) -> None:
+    """Print RMSE, MAE and Pearson correlation between true and pred."""
     print(f"- RMSE: {rmse(true, pred):.3g}")
     print(f"- MAE: {mae(true, pred):.3g}")
     print(f"- Pearson: {r_pearson(true, pred):.3g}")

@@ -23,7 +23,8 @@ targets, [y_mean, y_std] = normalize(targets)
 
 
 # %%
-def plot_loss_history(hist):
+def plot_loss_history(hist) -> None:
+    """Plot loss and other metrics from a training history dict."""
     fig = plt.figure(figsize=[12, 5])
     for key, data in hist.items():
         if "loss" in key:

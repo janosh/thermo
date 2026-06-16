@@ -1,3 +1,5 @@
+"""Load the Gaultois thermoelectrics database and screening dataset."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -23,6 +25,7 @@ def to_type(df: DataFrame, dtype: str = "float32") -> DataFrame:
 
 def load_gaultois(
     target_cols: Sequence[str] = ("rho", "seebeck", "kappa", "zT"),
+    *,
     drop_outliers: bool = False,
 ) -> tuple[DataFrame, DataFrame]:
     """Load Magpie features and targets of the hand-curated

@@ -7,6 +7,8 @@ Target units (in /data/gaultois_targets.csv):
 - thermoelectric figure of merit (zT): dimensionless
 """
 
+from typing import Any
+
 import numpy as np
 import pandas as pd
 
@@ -14,9 +16,11 @@ from thermo.utils.decorators import squeeze
 
 
 @squeeze
-def dropna(*args):
+def dropna(*args: Any) -> Any:
     """Accepts a list of arrays and/or dataframes. Removes all rows containing
     NaNs in the first array/dataframe from each list item.
+
+    Returns a single object when called with one arg (see @squeeze), else a list.
     """
     # (True|False) mask for each row based on NaN values present in the first dataframe
     mask = ~pd.isna(args[0])
@@ -27,9 +31,9 @@ def dropna(*args):
 
 
 @squeeze
-def train_test_split(*dfs, test_size: float = 0.1, train=None):
+def train_test_split(*dfs: Any, test_size: float = 0.1, train=None) -> Any:
     """Returns training set, test set or both set (split according to test_size)
-    depending on train being True, False or None.
+    depending on train being True, False or None. @squeeze unwraps single-arg calls.
     """
     test_index = dfs[0].sample(frac=test_size, random_state=0).index
     mask = dfs[0].index.isin(test_index)
@@ -45,7 +49,8 @@ def train_test_split(*dfs, test_size: float = 0.1, train=None):
 
 def transform_df_cols(
     df, transform="log", cols=("rho", "seebeck_abs", "kappa", "zT", "T")
-):
+) -> pd.DataFrame:
+    """Add log- or inverse-hyperbolic-sine-transformed copies of the given columns."""
     if transform == "log":
         # Seebeck coefficient can be negative. Use seebeck_abs when taking the log.
         log_cols = [f"{label}_log" for label in cols]
@@ -58,7 +63,7 @@ def transform_df_cols(
     return df
 
 
-def normalize(df, mean=None, std=None):
+def normalize(df, mean=None, std=None) -> tuple[Any, list]:
     """If mean and std are None, normalize array/dataframe columns to have
     zero mean and unit std. Else use mean and std as provided for normalization.
     """

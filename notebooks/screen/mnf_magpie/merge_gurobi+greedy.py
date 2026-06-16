@@ -1,3 +1,5 @@
+"""Merge Gurobi and greedy candidate selections and fetch their structures."""
+
 # %%
 import pandas as pd
 from pymatgen.ext.cod import COD
@@ -68,9 +70,8 @@ for idx, formula, database, *_ in tqdm(candidates[130:].itertuples()):
         elif len(data) == 0:
             missing_icsd_ids.append([db_id, formula])
         else:
-            raise ValueError(
-                "An ICSD ID returned more than 1 MP ID, this shouldn't happen."
-            )
+            msg = "An ICSD ID returned more than 1 MP ID, this shouldn't happen."
+            raise ValueError(msg)
 
 # make sure, the same number of COD IDs that could not be matched to an MP ID
 # ended up in invalid_cod_cifs

@@ -1,35 +1,50 @@
+"""Maximum a posteriori (MAP) training and prediction for BNNs."""
+
 import numpy as np
 import tensorflow as tf
 
 from thermo import bnn
 
 
-def get_map_trace(target_log_prob_fn, state, n_iter=1000, save_every=10, callbacks=()):
+def get_map_trace(
+    target_log_prob_fn, state, n_iter=1000, save_every=10, callbacks=()
+) -> tuple[list, list]:
+    """Run Adam to maximize target_log_prob_fn, returning a trace of states.
+
+    The trace records the parameter state and any callback outputs every
+    save_every iterations.
+    """
     optimizer = tf.optimizers.Adam()
 
     @tf.function
-    def minimize():
+    def minimize() -> None:
         optimizer.minimize(lambda: -target_log_prob_fn(*state), state)
 
     state_trace, cb_trace = [], [[] for _ in callbacks]
     for i in range(n_iter):
         if i % save_every == 0:
             state_trace.append(state)
-            for trace, cb in zip(cb_trace, callbacks):
+            for trace, cb in zip(cb_trace, callbacks, strict=True):
                 trace.append(cb(state).numpy())
         minimize()
 
     return state_trace, cb_trace
 
 
-def get_best_map_state(map_trace, map_log_probs):
+def get_best_map_state(map_trace, map_log_probs) -> list:
+    """Return the MAP state that achieved the highest test set log probability."""
     # map_log_probs[0/1]: train/test log probability
     test_set_max_log_prob_idx = np.argmax(map_log_probs[1])
     # Return MAP params that achieved highest test set likelihood.
     return map_trace[test_set_max_log_prob_idx]
 
 
-def get_nodes_per_layer(n_features, net_taper=(1, 0.5, 0.2, 0.1)):
+def get_nodes_per_layer(n_features, net_taper=(1, 0.5, 0.2, 0.1)) -> list[int]:
+    """Compute the node count per layer by tapering down from n_features.
+
+    A final layer of two nodes is appended for the predictive mean and learned
+    loss attenuation.
+    """
     nodes_per_layer = [int(n_features * x) for x in net_taper]
     # Ensure the last layer has two nodes so that output can be split into
     # predictive mean and learned loss attenuation (see eq. (7) of
@@ -38,25 +53,28 @@ def get_nodes_per_layer(n_features, net_taper=(1, 0.5, 0.2, 0.1)):
     return nodes_per_layer
 
 
-def map_predict(weight_prior, bias_prior, X_train, y_train, X_test, y_test):
+def map_predict(weight_prior, bias_prior, x_train, y_train, x_test, y_test) -> tuple:
     """Generate maximum a posteriori neural network predictions.
 
     Args:
         weight_prior (tfp.distribution): Prior probability for the weights
         bias_prior (tfp.distribution): Prior probability for the biases
-        [X/y_train/test] (np.arrays): Train and test sets
+        x_train (np.array): Training features
+        y_train (np.array): Training targets
+        x_test (np.array): Test features
+        y_test (np.array): Test targets
     """
     log_prob_tracers = (
-        bnn.tracer_factory(X_train, y_train),
-        bnn.tracer_factory(X_test, y_test),
+        bnn.tracer_factory(x_train, y_train),
+        bnn.tracer_factory(x_test, y_test),
     )
 
-    n_features = X_train.shape[-1]
+    n_features = x_train.shape[-1]
     nodes = get_nodes_per_layer(n_features, net_taper=(1, 0.5, 0.3))
     random_initial_state = bnn.get_random_initial_state(weight_prior, bias_prior, nodes)
 
     trace, log_probs = get_map_trace(
-        bnn.target_log_prob_fn_factory(weight_prior, bias_prior, X_train, y_train),
+        bnn.target_log_prob_fn_factory(weight_prior, bias_prior, x_train, y_train),
         random_initial_state,
         n_iter=5000,
         callbacks=log_prob_tracers,
@@ -65,5 +83,5 @@ def map_predict(weight_prior, bias_prior, X_train, y_train, X_test, y_test):
     best_params = get_best_map_state(trace, log_probs)
 
     model = bnn.build_net(best_params)
-    y_pred, y_var = model(X_test, training=False)
+    y_pred, y_var = model(x_test, training=False)
     return y_pred.numpy(), y_var.numpy(), log_probs, best_params

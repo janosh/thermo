@@ -1,11 +1,12 @@
 [project]
+version = "0.1.0"
+requires-python = ">=3.11"
 name = "dielectrics"
 dependencies = [
     "automatminer",
     "gurobipy",
     "matminer",
     "matplotlib",
-    "ml-matrics",
     "numpy",
     "pandas",
     "scikit-learn",
@@ -24,35 +25,33 @@ ignore-words-list = "hist,ihs,te,hte,nd"
 check-filenames = true
 
 [tool.ruff]
-target-version = "py38"
 output-format = "concise"
 
 [tool.ruff.lint]
-select = [
-    "B",   # flake8-bugbear
-    "D",   # pydocstyle
-    "E",   # pycodestyle error
-    "F",   # pyflakes
-    "I",   # isort
-    "PLE", # pylint error
-    "PLW", # pylint warning
-    "PYI", # flakes8-pyi
-    "Q",   # flake8-quotes
-    "SIM", # flake8-simplify
-    "TID", # tidy imports
-    "UP",  # pyupgrade
-    "W",   # pycodestyle warning
-    "YTT", # flake8-2020
-]
+select = ["ALL"]
 ignore = [
+    "ANN001",  # Missing type annotation for function argument (research/notebook code)
+    "ANN401",  # Dynamically typed (Any) **kwargs
     "COM812",  # Missing trailing comma
-    "D100",    # Missing docstring in public module
-    "D104",    # Missing docstring in public package
     "D205",    # 1 blank line required between summary line and description
     "E731",    # Do not assign a lambda expression, use a def
-    "PLW2901", # Outer for loop variable overwritten by inner assignment target
+    "EM101",
+    "EM102",   # Exception must not use an f-string literal
+    "ERA001",  # Commented-out code (common in research notebooks)
+    "FIX002",  # Line contains TODO
+    "INP001",  # Implicit namespace package (notebooks aren't packages)
+    "N816",    # mixedCase variable in global scope (allow e.g. zT, GeSe)
+    "PLR0913", # Too many arguments in function definition
+    "PLR2004", # Magic value used in comparison
+    "PTH",     # flake8-use-pathlib (project prefers os.path over pathlib)
+    "S101",    # Use of assert
     "SIM105",  # Use contextlib.suppress(FileNotFoundError) instead of try-except-pass
     "SIM115",  # Use context handler for opening files
+    "T201",
+    "TD002",   # Missing author in TODO
+    "TD003",   # Missing issue link for TODO
+    "TD004",   # Missing colon in TODO
+    "TRY003",
 ]
 pydocstyle.convention = "google"
 isort.lines-after-imports = 2
@@ -65,4 +64,4 @@ unresolved-import = "ignore"
 unused-ignore-comment = "warn"
 
 [dependency-groups]
-dev = ["prek>=0.2.13", "ty>=0.0.1a26"]
+dev = ["prek>=0.4.5", "ty>=0.0.49"]

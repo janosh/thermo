@@ -1,20 +1,32 @@
+"""Bayesian neural network building blocks: priors, likelihoods and nets."""
+
+import itertools
+from collections.abc import Callable
 from functools import partial
+from typing import Any
 
 import tensorflow as tf
 import tensorflow_probability as tfp
 
 
-def dense(inputs, w, b, activation=tf.identity):
+def dense(inputs, w, b, activation=tf.identity) -> tf.Tensor:
+    """Apply a single dense layer: activation(inputs @ w + b)."""
     return activation(tf.matmul(inputs, w) + b)
 
 
-def build_net(params, activation=tf.nn.relu):
-    def model(X, training=True):
+def build_net(params, activation=tf.nn.relu) -> Callable:
+    """Build a feed-forward net from a list of [weight, bias] layer params.
+
+    The final layer is linear and outputs a mean and log-variance, which are
+    turned into a Normal predictive distribution during training.
+    """
+
+    def model(x, *, training=True) -> object:
         for w, b in params[:-1]:
-            X = dense(X, w, b, activation)
+            x = dense(x, w, b, activation)
         # final linear layer
-        X = dense(X, *params[-1])
-        y_pred, y_log_var = tf.unstack(X, axis=-1)
+        x = dense(x, *params[-1])
+        y_pred, y_log_var = tf.unstack(x, axis=-1)
         y_var = tf.exp(y_log_var)
         if training:
             return tfp.distributions.Normal(loc=y_pred, scale=tf.sqrt(y_var))
@@ -23,11 +35,11 @@ def build_net(params, activation=tf.nn.relu):
     return model
 
 
-def bnn_log_prob_fn(X, y, params, get_mean=False):
-    """Compute log likelihood of predictions y given features X and params.
+def bnn_log_prob_fn(x, y, params, *, get_mean=False) -> tf.Tensor:
+    """Compute log likelihood of predictions y given features x and params.
 
     Args:
-        X (np.array): 2d feature values.
+        x (np.array): 2d feature values.
         y (np.array): 1d predictions (ground truth).
         params (list): [[w1, b1], ...] containing 2d/1d arrays for weights/biases.
         get_mean (bool, optional): Whether to return the mean log
@@ -38,13 +50,14 @@ def bnn_log_prob_fn(X, y, params, get_mean=False):
         tf.tensor: Sum or mean of log probabilities of all predictions.
     """
     net = build_net(params)
-    pred_dist = net(X)
+    pred_dist = net(x)
     if get_mean:
         return tf.reduce_mean(pred_dist.log_prob(y))
     return tf.reduce_sum(pred_dist.log_prob(y))
 
 
-def prior_log_prob_fn(w_prior, b_prior, params):
+def prior_log_prob_fn(w_prior, b_prior, params) -> tf.Tensor:
+    """Compute the summed log prior probability of all weights and biases."""
     log_prob = 0
     for w, b in params:
         log_prob += tf.reduce_sum(w_prior.log_prob(w))
@@ -52,34 +65,38 @@ def prior_log_prob_fn(w_prior, b_prior, params):
     return log_prob
 
 
-def target_log_prob_fn_factory(w_prior, b_prior, X_train, y_train):
+def target_log_prob_fn_factory(w_prior, b_prior, x_train, y_train) -> Callable:
+    """Build the target (posterior) log prob function used by the HMC kernel."""
+
     # This signature is forced by TFP's HMC kernel which calls log_prob_fn(*chains).
-    def target_log_prob_fn(*params):
-        if not isinstance(params[0], (list, tuple)):
-            params = chunks(params, 2)
-        log_prob = prior_log_prob_fn(w_prior, b_prior, params)
-        log_prob += bnn_log_prob_fn(X_train, y_train, params)
+    def target_log_prob_fn(*params: Any) -> tf.Tensor:
+        param_pairs = (
+            params if isinstance(params[0], (list, tuple)) else chunks(params, 2)
+        )
+        log_prob = prior_log_prob_fn(w_prior, b_prior, param_pairs)
+        log_prob += bnn_log_prob_fn(x_train, y_train, param_pairs)
         return log_prob
 
     return target_log_prob_fn
 
 
-def tracer_factory(X, y):
-    return partial(bnn_log_prob_fn, X, y, get_mean=True)
+def tracer_factory(x, y) -> Callable:
+    """Return a callable computing the mean log likelihood on (x, y) for tracing."""
+    return partial(bnn_log_prob_fn, x, y, get_mean=True)
 
 
-def chunks(lst, n):
-    # Subdivide lst into successive n-sized chunks.
+def chunks(lst, n) -> list:
+    """Subdivide lst into successive n-sized chunks."""
     return [lst[i : i + n] for i in range(0, len(lst), n)]
 
 
-def get_random_initial_state(w_prior, b_prior, nodes_per_layer, overdisp=1.0):
+def get_random_initial_state(w_prior, b_prior, nodes_per_layer, overdisp=1.0) -> list:
     """Draw random samples for weights and biases of a NN according to some
     specified priors. distributions. This set of parameter values can serve as a
     starting point for MCMC or gradient descent training.
     """
     init_state = []
-    for n1, n2 in zip(nodes_per_layer, nodes_per_layer[1:]):
+    for n1, n2 in itertools.pairwise(nodes_per_layer):
         w_shape, b_shape = [n1, n2], n2
         # Use overdispersion > 1 for better R-hat statistics.
         w = w_prior.sample(w_shape) * overdisp

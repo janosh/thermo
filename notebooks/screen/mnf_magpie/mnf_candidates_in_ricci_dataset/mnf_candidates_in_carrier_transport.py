@@ -1,3 +1,5 @@
+"""Check which MNF candidates appear in the Ricci carrier transport dataset."""
+
 # %%
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -65,7 +67,6 @@ dependent_vars = [
     "κₑᵉ.p.v [W/K/m/s]",
     "κₑᵉ.n.v [W/K/m/s]",
 ]
-
 ax = mnf_in_carrier[dependent_vars].hist(
     bins=50, log=True, figsize=[15, 15], layout=[4, 2]
 )
@@ -89,7 +90,7 @@ carrier_transport[dependent_vars].describe()
 # probably not a reliable way of computing zT_el due to
 # https://nature.com/articles/sdata201785#Sec15
 # > It is also important to note that when a derived property is needed (e.g., the power
-# > factor S^2 σ), it would be wrong to operate on eigenvalues (since they might not
+# > factor S^2 σ), it would be wrong to operate on eigenvalues (since they might not  # noqa: E501, RUF003
 # > refer to corresponding directions). Therefore, we strongly suggest to instead
 # > perform the operations on the full tensors. Eigenvalues can be obtained by running
 # > an adequate algorithm on the resulting full tensor.

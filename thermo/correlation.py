@@ -1,3 +1,5 @@
+"""Correlation-based candidate selection and random baselines."""
+
 from random import shuffle
 
 import numpy as np
@@ -32,12 +34,12 @@ def expected_rand_obj_val(corr_mat: np.ndarray, n_select: int) -> float:
     See https://math.stackexchange.com/q/3315535 for mathematical details.
     """
     try:
-        zT_chol = np.linalg.cholesky(corr_mat)
+        chol = np.linalg.cholesky(corr_mat)
     except np.linalg.LinAlgError:
         # Handle correlation matrices that are only slightly non-positive definite
         # due to rounding errors.
         np.fill_diagonal(corr_mat, corr_mat.diagonal() + 1e-10)
-        zT_chol = np.linalg.cholesky(corr_mat)
+        chol = np.linalg.cholesky(corr_mat)
         print(
             "Warning: a small offset (1e-10) was added to the diagonal "
             "of the correlation matrix to make it positive definite"
@@ -46,10 +48,10 @@ def expected_rand_obj_val(corr_mat: np.ndarray, n_select: int) -> float:
     res, n_variables = 0, len(corr_mat)
     for j in range(n_variables):
         for i in range(j, n_variables):
-            res += zT_chol[i][j] ** 2
+            res += chol[i][j] ** 2
             temp = 0
             for k in range(i + 1, n_variables):
-                temp += zT_chol[i][j] * zT_chol[k][j]
+                temp += chol[i][j] * chol[k][j]
             res += 2 * (n_select - 1) / (n_variables - 1) * temp
 
     return n_select / n_variables * res

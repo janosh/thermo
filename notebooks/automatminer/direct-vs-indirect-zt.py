@@ -1,3 +1,5 @@
+"""Compare direct vs indirect (computed from rho/Seebeck/kappa) zT prediction."""
+
 # %%
 import os
 

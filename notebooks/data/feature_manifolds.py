@@ -48,7 +48,9 @@ tsne_2d.assign(**targets).dropna().plot.scatter(
 fig, axs = plt.subplots(2, 2, figsize=(10, 8))
 fig.suptitle("2d TSNE of Magpie features for Gaultois dataset by temperatures")
 for ax, [key, group] in zip(
-    axs.flat, tsne_2d.assign(**targets).dropna().groupby("T", as_index=False)
+    axs.flat,
+    tsne_2d.assign(**targets).dropna().groupby("T", as_index=False),
+    strict=True,
 ):
     ax.scatter(group["tsne_1"], group["tsne_2"], c=group["zT"], cmap="hot", alpha=0.5)
     ax.set_title(f"{key} K")

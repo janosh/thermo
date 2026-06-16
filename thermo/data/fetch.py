@@ -1,7 +1,9 @@
+"""Fetch crystal structures from external databases."""
+
 from pymatgen.ext.cod import COD
 
 
-def fetch_cod(formulas=None, ids=None, get_ids_for=None):
+def fetch_cod(formulas=None, ids=None, get_ids_for=None) -> list:
     """Fetch data from the Crystallography Open Database (COD).
     Docs at https://pymatgen.org/pymatgen.ext.cod.
     Needs the mysql binary to be in path to run queries. Installable

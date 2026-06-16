@@ -22,7 +22,7 @@ class RandomForestRegressor(SklRandomForestRegressor):
     """Adapted from scikit-optimize.
     https://github.com/scikit-optimize/scikit-optimize/blob/master/skopt/learning/forest.py.
 
-    Uncertainty estimation: get_var() computes var(y|X_test) as described in sec. 4.3.2
+    Uncertainty estimation: get_var() computes var(y|x_test) as described in sec. 4.3.2
     of https://arxiv.org/abs/1211.0906.
     """
 
@@ -31,7 +31,7 @@ class RandomForestRegressor(SklRandomForestRegressor):
         self.params = {"args": args, **kwargs}
         super().__init__(*args, **kwargs)
 
-    def get_params(self, _deep: bool = True) -> dict:
+    def get_params(self, deep: bool = True) -> dict:  # noqa: ARG002, FBT001, FBT002
         """This method overrides the one inherited from sklearn.base.BaseEstimator
         which when trying to inspect instances of this class would throw a
         RuntimeError complaining that "scikit-learn estimators should always specify
@@ -42,11 +42,11 @@ class RandomForestRegressor(SklRandomForestRegressor):
         """
         return self.params
 
-    def predict(self, X_test: Array, uncertainty: str = "full") -> tuple[Array, Array]:
-        """Predict y_pred and uncertainty y_var for X_test.
+    def predict(self, X: Array, uncertainty: str = "full") -> tuple[Array, Array]:  # noqa: N803
+        """Predict y_pred and uncertainty y_var for X.
 
         Args:
-            X_test (array-like, shape=(n_samples, n_features)): Input data.
+            X (array-like, shape=(n_samples, n_features)): Input data.
             uncertainty (str): One of 'aleatoric', 'epistemic' or 'full'.
 
         Returns:
@@ -55,13 +55,13 @@ class RandomForestRegressor(SklRandomForestRegressor):
         if self.criterion != "mse":
             raise ValueError(f"impurity must be 'mse', got {self.criterion}")
 
-        y_pred = super().predict(X_test)
-        y_var = self.get_var(X_test, y_pred, uncertainty)
+        y_pred = super().predict(X)
+        y_var = self.get_var(X, y_pred, uncertainty)
 
         return y_pred, y_var
 
-    def get_var(self, X_test: Array, y_pred: Array, uncertainty: str = "full") -> Array:
-        """Uses law of total variance to compute var(Y|X_test) as
+    def get_var(self, x_test: Array, y_pred: Array, uncertainty: str = "full") -> Array:
+        """Uses law of total variance to compute var(Y|x_test) as
         Var(E[Y|Tree]) + E[Var(Y|Tree)]. The first term represents epistemic uncertainty
         and is captured by the variance over the means predicted by individual trees.
         This uncertainty increases the more different trees disagree. The second term
@@ -87,35 +87,34 @@ class RandomForestRegressor(SklRandomForestRegressor):
         to be more accurate.
 
         Args:
-            X_test (array-like, shape=(n_samples, n_features)): Input data.
+            x_test (array-like, shape=(n_samples, n_features)): Input data.
             y_pred (array-like, shape=(n_samples,)): Prediction for each sample
-                as returned by RFR.predict(X_test).
+                as returned by RFR.predict(x_test).
             uncertainty (str): One of 'aleatoric', 'epistemic' or 'full'.
 
         Returns:
-            array-like, shape=(n_samples,): variance of y_pred given X_test.
-                Since self.criterion is set to "mse", var[i] ~= var(y | X_test[i]).
+            array-like, shape=(n_samples,): variance of y_pred given x_test.
+                Since self.criterion is set to "mse", var[i] ~= var(y | x_test[i]).
         """
         valid_uncerts = ["epistemic", "aleatoric", "full"]
         if uncertainty not in valid_uncerts:
-            raise ValueError(
-                f"uncertainty must be one of {valid_uncerts}, got {uncertainty}"
-            )
+            msg = f"uncertainty must be one of {valid_uncerts}, got {uncertainty}"
+            raise ValueError(msg)
 
         # trees is a list of fitted binary decision trees.
         trees = self.estimators_
-        y_var_epist, y_var_aleat = np.zeros([2, len(X_test)])
+        y_var_epist, y_var_aleat = np.zeros([2, len(x_test)])
 
         for tree in trees:
             # We use tree impurity as a proxy for aleatoric uncertainty.
             # Doesn't work well in experiments though.
             # leaf indices that each sample is predicted as.
-            leaf_idx = tree.apply(X_test)
+            leaf_idx = tree.apply(x_test)
             # Grab the impurity of assigned leaves.
             y_var_tree = tree.tree_.impurity[leaf_idx]
             y_var_aleat += y_var_tree
 
-            y_pred_tree = tree.predict(X_test)
+            y_pred_tree = tree.predict(x_test)
             y_var_epist += y_pred_tree**2
 
         y_var_aleat /= len(trees)
@@ -130,48 +129,48 @@ class RandomForestRegressor(SklRandomForestRegressor):
 
         return y_var_epist + y_var_aleat
 
-    def get_corr(self, X_test: Array, alpha: float = 1e-12) -> Array:
+    def get_corr(self, x_test: Array, alpha: float = 1e-12) -> Array:
         """Compute the matrix of Pearson correlation coefficients between
-        random forest predictions for each sample in X_test.
+        random forest predictions for each sample in x_test.
 
         See https://docs.scipy.org/doc/numpy/reference/generated/numpy.corrcoef.html.
 
         Args:
-            X_test (Array shape [n_samples, n_features]): Input data.
+            x_test (Array shape [n_samples, n_features]): Input data.
             alpha (float): additive
 
         Returns:
-            Array shape [n_samples, n_samples]: Correlation matrix of samples in X_test.
+            Array shape [n_samples, n_samples]: Correlation matrix of samples in x_test.
         """
         # Each row in preds corresponds to a variable, in this case different samples
-        # in X_test, while each column contains a series of observations corresponding
+        # in x_test, while each column contains a series of observations corresponding
         # to predictions from different trees in the forest.
-        preds = np.array([tree.predict(X_test) for tree in self.estimators_]).T
+        preds = np.array([tree.predict(x_test) for tree in self.estimators_]).T
 
         # Ensure the correlation matrix is positive definite despite rounding errors.
-        psd = np.eye(len(X_test)) * alpha
+        psd = np.eye(len(x_test)) * alpha
 
         return np.corrcoef(preds) + psd
 
 
 def rf_predict(
-    X_train: Array,
+    x_train: Array,
     y_train: Array,
-    X_test: Array,
-    y_test: Array = None,
+    x_test: Array,
+    _y_test: Array | None = None,
     uncertainty: str = "full",
-    **kwargs,
+    **kwargs: Any,
 ) -> tuple[Array, Array, RandomForestRegressor]:
-    """Fit a random forest to (X_train, y_train) and predict on X_test.
+    """Fit a random forest to (x_train, y_train) and predict on x_test.
 
-    y_test is unused and only serves to make the function callable by other
+    _y_test is unused and only serves to make the function callable by other
     functions that pass it in, like predict_multiple_targets().
 
     Args:
-        X_train (Array): Training features
+        x_train (Array): Training features
         y_train (Array): Training targets
-        X_test (Array): Test features.
-        y_test (Array, optional): Test targets (unused). Defaults to None.
+        x_test (Array): Test features.
+        _y_test (Array, optional): Test targets (unused). Defaults to None.
         uncertainty (str, optional): Which uncertainty types to return. One of
             'aleatoric', 'epistemic' or 'full'. Defaults to "full".
         kwargs (dict): Passed to RandomForestRegressor.
@@ -181,7 +180,7 @@ def rf_predict(
             uncertainties and the forest that did the predicting.
     """
     forest = RandomForestRegressor(random_state=0, **kwargs)
-    forest.fit(X_train, y_train)
+    forest.fit(x_train, y_train)
 
-    y_pred, y_var = forest.predict(X_test, uncertainty=uncertainty)
+    y_pred, y_var = forest.predict(x_test, uncertainty=uncertainty)
     return y_pred, y_var**0.5, forest

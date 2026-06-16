@@ -1,3 +1,5 @@
+"""Cross-validate a multi-task neural network on the Gaultois targets."""
+
 # %%
 import os
 
@@ -29,7 +31,8 @@ head = lambda: nn.Sequential(
 class MultiTaskMLP(nn.Module):
     """Multi-task neural network with shared trunk and task-specific heads."""
 
-    def __init__(self, n_tasks):
+    def __init__(self, n_tasks) -> None:
+        """Build a shared trunk and one regression head per task."""
         super().__init__()
         self.epoch = 0  # type: ignore[unresolved-attribute]
 
@@ -44,7 +47,7 @@ class MultiTaskMLP(nn.Module):
         heads = [head() for _ in range(n_tasks)]
         self.heads = nn.ModuleList(heads)
 
-    def forward(self, x):
+    def forward(self, x) -> torch.Tensor:
         """Forward pass through trunk and task-specific heads."""
         x = self.trunk(x)
         ys = [head(x).squeeze() for head in self.heads]
@@ -110,16 +113,18 @@ for count, (train_idx, test_idx) in enumerate(kfold.split(features, df_targets))
 
             metrics["loss"] += [loss]
             if n_tasks > 1:
-                for name, y_hat, y in zip(short_names, preds.T, df_targets.T):
+                for name, y_hat, y in zip(
+                    short_names, preds.T, targets.T, strict=True
+                ):
                     metrics[f"loss_{name}"] += [loss_fn(y_hat, y)]
 
-            preds = test_set.denorm(preds)
-            targets = test_set.denorm(targets)
+            preds_denorm = train_set.denorm(preds)
+            targets_denorm = train_set.denorm(targets)
 
-            MAE = (preds - targets).abs().mean()
+            MAE = (preds_denorm - targets_denorm).abs().mean()
             metrics["MAE"] += [MAE]
 
-            RMSE = (preds - targets).pow(2).mean().sqrt()
+            RMSE = (preds_denorm - targets_denorm).pow(2).mean().sqrt()
             metrics["RMSE"] += [RMSE]
 
         if epoch % report_every == 0:

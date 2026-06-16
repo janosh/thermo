@@ -40,7 +40,7 @@ zT_el_greedy_gurobi.columns = [
 
 # Filter out by mask and remove index, columns names.
 zT_el_greedy_gurobi = (
-    zT_el_greedy_gurobi[m2.values]
+    zT_el_greedy_gurobi[m2.to_numpy()]
     .rename_axis(["formula", "n"])
     .rename_axis(None, axis=1)
 )
@@ -59,7 +59,9 @@ zT_el_greedy_gurobi.to_csv(f"{OUT_DIR}/zT_el_greedy&gurobi.csv", float_format="%
 # %%
 fig, axs = plt.subplots(5, 4, figsize=(15, 15))
 fig.tight_layout()
-for ax, (key, material) in zip(axs.flat, zT_el_greedy_gurobi.groupby("formula")):
+for ax, (key, material) in zip(
+    axs.flat, zT_el_greedy_gurobi.groupby("formula"), strict=True
+):
     material.T.plot(ax=ax)
     ax.get_legend().remove()
     ax.set_title(key)
@@ -72,7 +74,7 @@ GePtSe, Bi2Te3 = (zT_el_greedy_gurobi.loc[m1] for m1 in ["GePtSe", "Bi2Te3"])
 
 
 # %%
-for name, df in zip(["GePtSe", "Bi2Te3"], [GePtSe, Bi2Te3]):
+for name, df in zip(["GePtSe", "Bi2Te3"], [GePtSe, Bi2Te3], strict=True):
     ax = df.T.plot(marker="o")
     if name != "GePtSe":
         ax.get_legend().remove()

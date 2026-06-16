@@ -1,3 +1,7 @@
+"""TensorFlow Monte Carlo dropout model with uncertainty estimation."""
+
+from typing import Any
+
 import tensorflow as tf
 
 from thermo.utils.decorators import timed
@@ -11,14 +15,16 @@ class Dropout(tf.keras.layers.Layer):
     with probability self.rate.
     """
 
-    def __init__(self, rate, **kwargs):
+    def __init__(self, rate, **kwargs: Any) -> None:
+        """Store the dropout rate and forward remaining kwargs to the base layer."""
         super().__init__(**kwargs)
         self.rate = rate
 
-    def call(self, inputs):
+    def call(self, inputs) -> tf.Tensor:
+        """Randomly drop input nodes with probability self.rate."""
         return tf.nn.dropout(inputs, self.rate)
 
-    def get_config(self):
+    def get_config(self) -> dict:
         """Enables model.save and restoration through tf.keras.models.load_model."""
         config = super().get_config()
         config["rate"] = self.rate
@@ -38,7 +44,10 @@ class TFDropoutModel(tf.keras.Model):
         activations=("tanh", "relu", "relu", "relu"),
         uncertainty="aleatoric_epistemic",
         optim="adam",
-    ):
+    ) -> None:
+        """Assemble the dropout network's layers and compile it with the loss
+        matching the requested uncertainty type.
+        """
         assert len(h_sizes) == len(drop_rates) == len(activations), (
             f"length mismatch in hyperparams {len(h_sizes)=}, {len(drop_rates)=}, "
             f"{len(activations)=}"
@@ -51,7 +60,9 @@ class TFDropoutModel(tf.keras.Model):
 
         inputs = head = tf.keras.Input(shape=[n_features])
 
-        for size, drop_rate, act_func in zip(h_sizes, drop_rates, activations):
+        for size, drop_rate, act_func in zip(
+            h_sizes, drop_rates, activations, strict=True
+        ):
             head = tf.keras.layers.Dense(size, activation=act_func)(head)
             head = Dropout(drop_rate)(head)
 
@@ -73,18 +84,18 @@ class TFDropoutModel(tf.keras.Model):
 
 
 @timed
-def predict(model, X_test, n_preds=100):
+def predict(model, x_test, n_preds=100) -> tuple:
     """Perform n_preds Monte Carlo predictions (i.e. with dropout)
     save and return predictive mean and total uncertainty
     model: pre-trained Keras model
-    X_test: features tensor
+    x_test: features tensor
     n_preds: number of predictions (with dropout).
     """
     if model.uncertainty == "aleatoric":
-        y_pred, y_log_var = tf.squeeze(model.predict(X_test))
+        y_pred, y_log_var = tf.squeeze(model.predict(x_test))
         y_var = tf.exp(y_log_var)
     else:
-        output = tf.squeeze([model.predict(X_test) for _ in range(n_preds)])
+        output = tf.squeeze([model.predict(x_test) for _ in range(n_preds)])
         if model.uncertainty == "epistemic":
             y_pred, y_var = tf.nn.moments(output, axes=0)
         if model.uncertainty == "aleatoric_epistemic":
@@ -98,7 +109,8 @@ def predict(model, X_test, n_preds=100):
     return y_pred.numpy(), y_var.numpy()
 
 
-def do_predict(X_train, y_train, X_test, y_test, **kwargs):
+def do_predict(x_train, y_train, x_test, _y_test=None, **kwargs: Any) -> tuple:
+    """Train a TFDropoutModel and return its predictions, history and the model."""
     defaults = [
         ("epochs", 100),
         ("n_preds", 100),
@@ -109,21 +121,22 @@ def do_predict(X_train, y_train, X_test, y_test, **kwargs):
         kwargs.pop(key, default) for key, default in defaults
     )
 
-    model = TFDropoutModel(X_train.shape[1], uncertainty=uncertainty)
+    model = TFDropoutModel(x_train.shape[1], uncertainty=uncertainty)
     history = model.fit(
-        X_train, y_train, epochs=epochs, validation_split=0.1, callbacks=cbs, **kwargs
+        x_train, y_train, epochs=epochs, validation_split=0.1, callbacks=cbs, **kwargs
     )
-    y_pred, y_var = predict(model, X_test, n_preds=n_preds)
+    y_pred, y_var = predict(model, x_test, n_preds=n_preds)
     return y_pred, y_var, history.history, model
 
 
-def load_model(path, filename="model.h5"):
+def load_model(path, filename="model.h5") -> Any:
+    """Load a saved TFDropoutModel, registering the custom Dropout layer."""
     return tf.keras.models.load_model(
         path + filename, custom_objects={"Dropout": Dropout}
     )
 
 
-def robust_mse(y_true, y_pred, y_log_var):
+def robust_mse(y_true, y_pred, y_log_var) -> tf.Tensor:
     """See torch_dropout.py for docstring."""
     loss = 0.5 * tf.square(y_true - y_pred) * tf.exp(-y_log_var) + 0.5 * y_log_var
     return tf.reduce_mean(loss)

@@ -1,3 +1,5 @@
+"""Single-run comparison of RF, MAP, GP and dropout models on the leaderboard."""
+
 # %%
 from functools import partial
 
@@ -64,7 +66,7 @@ rf_mae.to_frame().join(rf_rmse)
 
 # %%
 for label, y_true, y_pred, y_var in zip(
-    y_test.columns, y_test.values.T, rf_y_pred.values.T, rf_y_var.values.T
+    y_test.columns, y_test.values.T, rf_y_pred.values.T, rf_y_var.values.T, strict=True
 ):
     print(f"\n{label}\n")
     plot_output(y_true, y_pred, y_var**0.5, title=label)
@@ -91,7 +93,8 @@ print(f"zT_log_computed mse: {zT_rmse:.4g}")
 weight_priors = [tfp.distributions.Normal(0, std) for std in [0.1, 0.1, 0.1, 0.1]]
 bias_priors = [tfp.distributions.Normal(0, std) for std in [1.0, 1.0, 1.0, 1.0]]
 map_predictors = [
-    partial(map_predict, *priors) for priors in zip(weight_priors, bias_priors)
+    partial(map_predict, *priors)
+    for priors in zip(weight_priors, bias_priors, strict=True)
 ]
 
 
@@ -111,18 +114,19 @@ map_mae.to_frame().join(map_rmse)
 
 
 # %%
-for label, map_log_prob in zip(targets.columns, map_log_probs.values.T):
+for label, map_log_prob in zip(y_test.columns, map_log_probs.values.T, strict=True):
     print(f"\n{label}\n")
-    plot_log_probs(list(zip(["train", "test"], map_log_prob)), title=label)
+    plot_log_probs(list(zip(["train", "test"], map_log_prob, strict=True)), title=label)
     plt.show()
 
 
 # %%
 for label, y_true, y_pred, y_var in zip(
-    targets.columns,
+    y_test.columns,
     y_test.values.T,
     map_y_pred.values.T,
     map_y_var.values.T,
+    strict=True,
 ):
     print(f"\n{label}\n")
     plot_output(y_true, y_pred, y_var**0.5, title=label)
@@ -168,7 +172,11 @@ gp_mae.to_frame().join(gp_rmse)
 
 # %%
 for label, y_true, y_pred, y_std in zip(
-    targets.columns, y_test.values.T, gp_y_pred.values.T, gp_y_var.values.T**0.5
+    y_test.columns,
+    y_test.values.T,
+    gp_y_pred.values.T,
+    gp_y_var.values.T**0.5,
+    strict=True,
 ):
     print(f"\n{label}\n")
     plot_output(y_true, y_pred, y_std, title=label)
@@ -203,10 +211,11 @@ do_mae.to_frame().join(do_rmse)
 
 # %%
 for label, y_true, y_pred, y_std in zip(
-    targets.columns,
+    y_test.columns,
     y_test.values.T,
     do_y_pred.values.T,
     do_y_var.values.T**0.5,
+    strict=True,
     # models,
 ):
     print(f"\n{label}\n")

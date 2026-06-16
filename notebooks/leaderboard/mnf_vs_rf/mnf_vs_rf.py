@@ -7,6 +7,7 @@ automatminer-generated subselection of magpie features.
 
 # %%
 import os
+from collections.abc import Callable
 
 import tensorflow as tf
 from tf_mnf.models import MNFFeedForward
@@ -58,8 +59,10 @@ n_samples = len(mp_train)
 
 
 # %%
-def loss_factory(model):
-    def loss_fn(y_true, y_pred):
+def loss_factory(model) -> Callable:
+    """Build a loss combining MSE with the model's reweighted KL divergence."""
+
+    def loss_fn(y_true, y_pred) -> tf.Tensor:
         mse = tf.metrics.mse(y_true, y_pred)
         # KL div is reweighted such that it's applied once per epoch
         kl_loss = model.kl_div() / n_samples * 1e-3
@@ -129,7 +132,7 @@ amm_mnf_figs = plot_output(
 
 # %%
 fig_titles = ["true_vs_pred", "decay_by_std", "abs_err_vs_std"]
-for fig, name in zip(mp_mnf_figs, fig_titles):
+for fig, name in zip(mp_mnf_figs, fig_titles, strict=True):
     fig.savefig(f"{SAVE_TO}{name}-mp-mnf.pdf", bbox_inches="tight")
 
 
@@ -154,7 +157,7 @@ figs_rf = plot_output(zT_test.values, amm_rf_pred, amm_rf_std, title="AMM + RF")
 
 
 # %%
-for fig, name in zip(figs_rf, fig_titles):
+for fig, name in zip(figs_rf, fig_titles, strict=True):
     fig.savefig(f"{SAVE_TO}{name}-mp-rf.pdf", bbox_inches="tight")
 
 

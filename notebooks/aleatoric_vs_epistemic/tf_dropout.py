@@ -1,3 +1,5 @@
+"""Compare aleatoric vs epistemic uncertainty from a TensorFlow dropout model."""
+
 # %%
 from functools import partial
 
@@ -51,7 +53,11 @@ pd.concat(
 
 # %%
 for label, y_test, y_pred, y_var in zip(
-    targets.columns, y_norm.values.T, al_y_pred.values.T, al_y_var.values.T
+    y_norm.columns,
+    y_norm.to_numpy().T,
+    al_y_pred.to_numpy().T,
+    al_y_var.to_numpy().T,
+    strict=True,
 ):
     plot_output(y_test, y_pred, y_var**0.5, title=label)
 
@@ -84,7 +90,11 @@ pd.concat(
 
 # %%
 for label, y_test, y_pred, y_var in zip(
-    targets.columns, y_norm.values.T, ep_y_pred.values.T, ep_y_var.values.T
+    y_norm.columns,
+    y_norm.to_numpy().T,
+    ep_y_pred.to_numpy().T,
+    ep_y_var.to_numpy().T,
+    strict=True,
 ):
     plot_output(y_test, y_pred, y_var**0.5, title=label)
 
@@ -119,7 +129,11 @@ pd.concat(
 
 # %%
 for label, y_test, y_pred, y_var in zip(
-    targets.columns, y_norm.values.T, al_ep_y_pred.values.T, al_ep_y_var.values.T
+    y_norm.columns,
+    y_norm.to_numpy().T,
+    al_ep_y_pred.to_numpy().T,
+    al_ep_y_var.to_numpy().T,
+    strict=True,
 ):
     plot_output(y_test, y_pred, y_var**0.5, title=label)
 

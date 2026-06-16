@@ -1,3 +1,5 @@
+"""Compare aleatoric vs epistemic uncertainty from a PyTorch dropout model."""
+
 # %%
 from sklearn.metrics import r2_score
 from torch.utils.data import DataLoader

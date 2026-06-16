@@ -29,7 +29,8 @@ GeSe.tau = GeSe.tau * 1e-15
 
 
 # %%
-def GeSe_tau_decay(temp, a, b, c):
+def GeSe_tau_decay(temp, a, b, c) -> np.ndarray | float:  # noqa: N802
+    """Model GeSe relaxation time as a 1/temp term plus a linear temp term."""
     # 1/x + linear fit.
     return a / temp + b * temp + c
 
@@ -41,7 +42,7 @@ optimal_params, param_covariance = curve_fit(GeSe_tau_decay, GeSe.temp, GeSe.tau
 plt.plot(
     np.arange(100, 1000, 50), GeSe_tau_decay(np.arange(100, 1000, 50), *optimal_params)
 )
-plt.scatter(*GeSe.values.T)
+plt.scatter(*GeSe.to_numpy().T)
 
 
 # %% Generate dataframe with GeSe relaxation times extrapolated from 100 to 1000 K.

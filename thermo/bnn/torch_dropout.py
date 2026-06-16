@@ -1,7 +1,8 @@
-# type: ignore
+"""PyTorch Monte Carlo dropout model with uncertainty estimation."""
 
-from datetime import datetime
-from typing import Callable, Sequence
+from collections.abc import Callable, Sequence
+from datetime import UTC, datetime
+from typing import Any
 
 import numpy as np
 import torch
@@ -15,33 +16,38 @@ from thermo.utils import ROOT
 
 
 class Normalized(Dataset):
+    """Dataset that z-score normalizes its features and targets on construction."""
+
     def __init__(self, features: DataFrame, targets: DataFrame) -> None:
+        """Normalize features and targets, storing their means and stds."""
         super().__init__()
         self.features, self.targets = features, targets
 
-        X, [X_mean, X_std] = normalize(features)
-        self.X_mean, self.X_std = torch.tensor(X_mean), torch.tensor(X_std)
+        x, [x_mean, x_std] = normalize(features)
+        self.X_mean, self.X_std = torch.tensor(x_mean), torch.tensor(x_std)
 
         # transpose targets to make target_cols the first dimension
         y, [y_mean, y_std] = normalize(targets)
         self.y_mean, self.y_std = torch.tensor(y_mean), torch.tensor(y_std)
 
-        self.X = torch.tensor(X.to_numpy())
+        self.X = torch.tensor(x.to_numpy())
         self.y = torch.tensor(y.to_numpy())
 
     def __len__(self) -> int:
+        """Return the number of samples in the dataset."""
         return len(self.X)
 
-    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:  # ty: ignore[invalid-method-override]
+        """Return the (features, targets) tensor pair at the given index."""
         return self.X[idx], self.y[idx]
 
-    def denorm(self, tensor: torch.Tensor, is_std: bool = False) -> torch.Tensor:
+    def denorm(self, tensor: torch.Tensor, *, is_std: bool = False) -> torch.Tensor:
         """Revert z-scoring/normalization."""
         if is_std:
             return tensor * self.y_std
         return tensor * self.y_std + self.y_mean
 
-    def denorm_X(self, tensor: torch.Tensor, is_std: bool = False) -> torch.Tensor:
+    def denorm_X(self, tensor: torch.Tensor, *, is_std: bool = False) -> torch.Tensor:  # noqa: N802
         """Revert z-scoring/normalization."""
         if is_std:
             return tensor * self.X_std
@@ -54,9 +60,11 @@ class GaultoisData(Normalized):
     def __init__(
         self,
         test_size: float = 0.1,
+        *,
         train: bool = True,
         target_cols: Sequence[str] = ("rho", "seebeck", "kappa", "zT"),
-    ):
+    ) -> None:
+        """Load, drop NaNs from and split the Gaultois data into train/test."""
         features, targets = load_gaultois(target_cols=target_cols)
         targets, features = dropna(targets, features)
 
@@ -66,7 +74,7 @@ class GaultoisData(Normalized):
         super().__init__(features, targets)
 
 
-def robust_l1_loss(targets, preds, log_stds):
+def robust_l1_loss(targets, preds, log_stds) -> torch.Tensor:
     """Robust L1 loss using a Lorentzian prior.
     Allows for aleatoric uncertainty estimation.
     """
@@ -74,7 +82,7 @@ def robust_l1_loss(targets, preds, log_stds):
     return loss.mean()
 
 
-def robust_l2_loss(targets, preds, log_stds):
+def robust_l2_loss(targets, preds, log_stds) -> torch.Tensor:
     """Robust L2 loss using a Gaussian prior.
     Allows for aleatoric uncertainty estimation.
     """
@@ -99,10 +107,12 @@ class TorchDropoutModel(nn.Sequential):
         sizes=(146, 100, 50, 25, 10),
         drop_rates=(0.5, 0.3, 0.3, 0.3),
         activations=["LeakyReLU"] * 4,
+        *,
         robust=True,  # whether to use robust loss function
         optimizer=None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
+        """Build the dropout network's layers and set up optimizer, loss and logging."""
         err_msg = "length mismatch in hyperparameters"
         assert len(sizes) - 1 == len(drop_rates) == len(activations), err_msg
 
@@ -110,7 +120,7 @@ class TorchDropoutModel(nn.Sequential):
 
         # build network
         for idx, [n_in, n_out, act, dr] in enumerate(
-            zip(sizes, sizes[1:], activations, drop_rates), 1
+            zip(sizes, sizes[1:], activations, drop_rates, strict=True), 1
         ):
             self.add_module(f"{idx}a", nn.Linear(n_in, n_out))
             self.add_module(f"{idx}b", nn.Dropout(dr))
@@ -121,7 +131,7 @@ class TorchDropoutModel(nn.Sequential):
         self.robust = robust
         self.epochs = 0
 
-        now = f"{datetime.now():%Y-%m-%d_%H:%M:%S}"
+        now = f"{datetime.now(tz=UTC):%Y-%m-%d_%H:%M:%S}"
         self.writer = SummaryWriter(
             f"{ROOT}/runs/torch_dropout{'_robust' if robust else ''}/{now}"
         )
@@ -139,7 +149,7 @@ class TorchDropoutModel(nn.Sequential):
         )
 
     @torch.no_grad()
-    def write_metrics(self, targets, output, denorm, prefix):
+    def write_metrics(self, targets, output, denorm, prefix) -> None:
         """After an epoch, save evaluation metrics to a dict."""
         output, targets = torch.cat(output), torch.cat(targets)
         loss = self.loss_fn(targets, output)
@@ -160,12 +170,14 @@ class TorchDropoutModel(nn.Sequential):
         val_loader: DataLoader | None = None,
         epochs: int = 100,
         print_every: int = 10,
+        *,
         log: bool = True,
         cbs: Sequence[Callable] = (),
     ) -> None:
+        """Train the model for the given number of epochs, logging metrics."""
         self.train()
         # callable to revert z-scoring of targets and predictions to real units
-        denorm = loader.dataset.denorm  # type: ignore[union-attr]
+        denorm = loader.dataset.denorm  # ty: ignore[unresolved-attribute]
         metrics = self.metrics
         epochs += self.epochs
 
@@ -193,7 +205,9 @@ class TorchDropoutModel(nn.Sequential):
 
             if val_loader is not None:
                 with torch.no_grad():
-                    output, targets = zip(*([self(x), y] for x, y in loader))
+                    output, targets = zip(
+                        *([self(x), y] for x, y in val_loader), strict=True
+                    )
                     self.write_metrics(targets, output, denorm, "validation")
 
             if log:
@@ -213,8 +227,9 @@ class TorchDropoutModel(nn.Sequential):
 
     @torch.no_grad()
     def predict(
-        self, data: Normalized, n_preds: int = 100, raw: bool = False
+        self, data: Normalized, n_preds: int = 100, *, raw: bool = False
     ) -> torch.Tensor | tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Run n_preds Monte Carlo dropout passes, returning targets, mean and std."""
         # calling self.train() to ensure nn.Dropout remains active
         self.train()
         output = torch.stack([self(data.X) for _ in range(n_preds)]).squeeze()
@@ -240,14 +255,16 @@ class TorchDropoutModel(nn.Sequential):
         pred = data.denorm(pred)
         std = data.denorm(std, is_std=True)
 
-        return data.targets.values, pred.numpy(), std.numpy()
+        return data.targets.to_numpy(), pred.numpy(), std.numpy()
 
-    def write_graph(self, loader):
+    def write_graph(self, loader) -> None:
+        """Write the model's computational graph to TensorBoard."""
         samples, _ = next(iter(loader))
         self.writer.add_graph(self, samples)
         self.writer.flush()
 
-    def write_params(self, epoch, write_grads=False):
+    def write_params(self, epoch, *, write_grads=False) -> None:
+        """Log histograms of model parameters (and optionally grads) to TensorBoard."""
         for name, child in self.named_children():
             for kind, param in child.named_parameters():
                 self.writer.add_histogram(f"{name}_{kind}", param, epoch)

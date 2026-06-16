@@ -4,6 +4,7 @@ total number of atoms or the number of atoms for each element, respectively.
 """
 
 import re
+from typing import Any
 
 
 RE = re.compile(
@@ -14,12 +15,12 @@ RE = re.compile(
 )
 
 
-def atom_count(stack, atom, atom_count="", **_):
+def atom_count(stack, atom, atom_count="", **_: Any) -> None:
     """Handle an atom with an optional count, e.g. H or Mg2."""
     stack[-1][atom] += 1 if atom_count == "" else int(atom_count)
 
 
-def group_count(stack, group_count="", **_):
+def group_count(stack, group_count="", **_: Any) -> None:
     """Handle a closing parenthesis with an optional group count."""
     group_count = 1 if group_count == "" else int(group_count)
     group = stack.pop()

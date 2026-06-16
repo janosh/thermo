@@ -1,3 +1,5 @@
+"""Estimate Automatminer prediction uncertainty via bootstrap resampling."""
+
 # %%
 import pandas as pd
 
@@ -20,7 +22,9 @@ train_df, test_df = train_test_split(targets)
 # %%
 # !%%capture
 n_pipes = 5
-pipes, pred_dfs = zip(*(fit_pred_pipe(train_df, test_df, "zT") for _ in range(n_pipes)))
+pipes, pred_dfs = zip(
+    *(fit_pred_pipe(train_df, test_df, "zT") for _ in range(n_pipes)), strict=True
+)
 
 
 # %%
@@ -34,7 +38,7 @@ zT_stats_df["zT_true"] = test_df.zT
 
 
 # %%
-plot_output(*zT_stats_df[["zT_true", "mean", "std"]].values.T, title="zT")
+plot_output(*zT_stats_df[["zT_true", "mean", "std"]].to_numpy().T, title="zT")
 
 
 # %%
